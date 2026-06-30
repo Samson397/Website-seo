@@ -45,6 +45,27 @@ export interface SerpPreview {
   url: string;
 }
 
+export interface PageSummary {
+  url: string;
+  pathname: string;
+  title: string;
+  description: string;
+  hasH1: boolean;
+  status: number;
+}
+
+export interface CrawlSummary {
+  enabled: boolean;
+  pagesScanned: number;
+  pagesDiscovered: number;
+  pages: PageSummary[];
+}
+
+export interface AuditOptions {
+  siteCrawl?: boolean;
+  maxPages?: number;
+}
+
 export interface AuditReport {
   url: string;
   scannedAt: string;
@@ -54,6 +75,7 @@ export interface AuditReport {
   performanceMetrics?: PerformanceMetrics;
   performanceNote?: string;
   serpPreview?: SerpPreview;
+  crawl?: CrawlSummary;
 }
 
 export interface FetchResult {

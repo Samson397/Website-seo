@@ -16,6 +16,9 @@ A web app that analyzes any public website URL and produces a comprehensive audi
 - **Re-scan comparison** — compare scores before and after fixes
 - **Issue checklist** — mark issues done, hide resolved items
 - **Export** — download CSV or print/PDF report
+- **Full site scan** — crawl up to 10 pages via sitemap + links for duplicate titles/descriptions
+- **Trust & legal** — privacy policy, terms of service, contact page links
+- **Modern web** — manifest.json, llms.txt, www/non-www consistency
 - **Fix snippets** — copy-paste HTML/meta fixes for each issue
 
 ## Use on Your Phone (No Local Setup)

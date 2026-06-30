@@ -7,6 +7,7 @@ import { IssueCard } from "@/components/IssueCard";
 import { SerpPreview } from "@/components/SerpPreview";
 import { ScoreComparison } from "@/components/ScoreComparison";
 import { ExportButtons } from "@/components/ExportButtons";
+import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 
 interface AuditReportViewProps {
   report: AuditReport;
@@ -150,6 +151,8 @@ export function AuditReportView({
           url={report.serpPreview.url}
         />
       )}
+
+      {report.crawl?.enabled && <SiteCrawlPanel crawl={report.crawl} />}
 
       <div>
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

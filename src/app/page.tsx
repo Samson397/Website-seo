@@ -11,8 +11,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lastUrl = useRef<string>("");
+  const lastSiteCrawl = useRef<boolean>(true);
 
-  async function runAudit(url: string, isRescan = false) {
+  async function runAudit(url: string, siteCrawl: boolean, isRescan = false) {
     setLoading(true);
     setError(null);
 
@@ -27,7 +28,7 @@ export default function Home() {
       const response = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, siteCrawl }),
       });
 
       const data = await response.json();
@@ -36,6 +37,7 @@ export default function Home() {
       }
 
       lastUrl.current = url;
+      lastSiteCrawl.current = siteCrawl;
       setReport(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -48,12 +50,12 @@ export default function Home() {
     }
   }
 
-  function handleAudit(url: string) {
-    runAudit(url, false);
+  function handleAudit(url: string, siteCrawl: boolean) {
+    runAudit(url, siteCrawl, false);
   }
 
   function handleRescan() {
-    if (lastUrl.current) runAudit(lastUrl.current, true);
+    if (lastUrl.current) runAudit(lastUrl.current, lastSiteCrawl.current, true);
   }
 
   return (
@@ -75,7 +77,7 @@ export default function Home() {
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
             <p className="text-slate-600">Analyzing your website…</p>
             <p className="mt-1 text-sm text-slate-400">
-              Checking SEO, content, images, accessibility, security, links, and performance
+              Checking SEO, trust signals, content, images, accessibility, security, links, and performance
             </p>
           </div>
         )}

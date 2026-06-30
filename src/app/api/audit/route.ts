@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { runFullAudit } from "@/lib/audit";
 import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const urlInput = body?.url;
+    const siteCrawl = body?.siteCrawl === true;
+    const maxPages =
+      typeof body?.maxPages === "number"
+        ? Math.min(Math.max(2, body.maxPages), 10)
+        : 10;
 
     if (!urlInput || typeof urlInput !== "string") {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
@@ -15,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     await validateUrlSafe(urlInput);
     const normalized = normalizeUrl(urlInput);
-    const report = await runFullAudit(normalized);
+    const report = await runFullAudit(normalized, { siteCrawl, maxPages });
 
     return NextResponse.json(report);
   } catch (err) {
