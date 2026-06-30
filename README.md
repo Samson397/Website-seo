@@ -11,12 +11,37 @@ A web app that analyzes any public website URL and produces a comprehensive audi
 - **Broken links** — checks up to 20 links on the page for 404s and unreachable URLs
 - **Fix snippets** — copy-paste HTML/meta fixes for each issue
 
-## Getting Started
+## Use on Your Phone (No Local Setup)
+
+This app needs a server to fetch and analyze websites — it **cannot run locally on mobile Cursor**. Deploy it once to get a link you can open on any device:
+
+### Option 1: Deploy to Vercel (recommended, free)
+
+1. Open this link on your phone or computer:  
+   **[Deploy to Vercel →](https://vercel.com/new/clone?repository-url=https://github.com/Samson397/Website-seo)**
+2. Sign in with GitHub and click **Deploy**
+3. Wait ~2 minutes — Vercel gives you a live URL like `https://website-seo-xxx.vercel.app`
+4. Open that URL on your phone, paste any website, and tap **Analyze**
+
+Optional: In Vercel project **Settings → Environment Variables**, add `PAGESPEED_API_KEY` for performance scores.
+
+### Option 2: Deploy to Netlify (free)
+
+1. Go to [app.netlify.com/start](https://app.netlify.com/start)
+2. Import the `Samson397/Website-seo` repo from GitHub
+3. Build command: `npm run build` · Publish directory: `.next` (or use Netlify's Next.js preset)
+4. Deploy and use the Netlify URL on your phone
+
+---
+
+## Getting Started (Local Development)
 
 ### Prerequisites
 
 - Node.js 18+
 - npm
+
+**Note:** Local development requires a computer with Node.js installed. If you're on mobile Cursor, use the deployment options above instead.
 
 ### Installation
 
