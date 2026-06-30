@@ -108,6 +108,20 @@ export interface SiteOverview {
   };
 }
 
+export interface SiteChecklist {
+  hasCount: number;
+  missingCount: number;
+  warningCount: number;
+  items: {
+    id: string;
+    label: string;
+    status: "has" | "missing" | "warning";
+    explanation: string;
+    fixHint?: string;
+  }[];
+  summary: string;
+}
+
 export interface AuditOptions {
   siteCrawl?: boolean;
   maxPages?: number;
@@ -124,6 +138,7 @@ export interface AuditReport {
   serpPreview?: SerpPreview;
   crawl?: CrawlSummary;
   siteOverview?: SiteOverview;
+  checklist?: SiteChecklist;
 }
 
 export interface FetchResult {

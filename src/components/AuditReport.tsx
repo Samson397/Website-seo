@@ -9,6 +9,7 @@ import { ScoreComparison } from "@/components/ScoreComparison";
 import { ExportButtons } from "@/components/ExportButtons";
 import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
+import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
 
 interface AuditReportViewProps {
   report: AuditReport;
@@ -76,6 +77,8 @@ export function AuditReportView({
       {previousReport && (
         <ScoreComparison previous={previousReport} current={report} />
       )}
+
+      {report.checklist && <SiteChecklistPanel checklist={report.checklist} />}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

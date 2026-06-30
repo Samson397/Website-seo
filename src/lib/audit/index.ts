@@ -23,6 +23,7 @@ import {
   countInternalLinks,
 } from "@/lib/audit/social";
 import { fetchBacklinkProfile, runBacklinkAudit } from "@/lib/audit/backlinks";
+import { buildSiteChecklist } from "@/lib/audit/checklist";
 import {
   AuditOptions,
   AuditReport,
@@ -126,6 +127,17 @@ export async function runFullAudit(
 
   const pageMeta = extractPageMeta(ctx);
 
+  const checklist = await buildSiteChecklist(
+    ctx,
+    technologies,
+    socialProfiles,
+    dnsInfo,
+    sslInfo,
+    domainInfo,
+    backlinkProfile.available,
+    backlinkProfile.totalBacklinks
+  );
+
   const allIssues = [
     ...seoIssues,
     ...contentIssues,
@@ -184,6 +196,7 @@ export async function runFullAudit(
       url: displayUrl,
     },
     crawl: crawlSummary,
+    checklist,
     siteOverview: {
       domain: {
         registrar: domainInfo.registrar,
