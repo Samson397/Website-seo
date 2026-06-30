@@ -1,1 +1,91 @@
-# Website-seo
+# Website SEO Auditor
+
+A web app that analyzes any public website URL and produces a comprehensive audit report covering SEO, performance, accessibility, security, and broken links — with explanations, severity ratings, and ready-to-copy fix snippets.
+
+## Features
+
+- **SEO audit** — title, meta description, H1, canonical, Open Graph tags, robots.txt, sitemap.xml, structured data
+- **Performance** — Core Web Vitals (LCP, CLS, INP) via Google PageSpeed Insights API
+- **Accessibility** — alt text, form labels, language attribute, heading hierarchy, Lighthouse a11y score
+- **Security** — HTTPS, security headers, mixed content detection
+- **Broken links** — checks up to 20 links on the page for 404s and unreachable URLs
+- **Fix snippets** — copy-paste HTML/meta fixes for each issue
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+git clone https://github.com/Samson397/Website-seo.git
+cd Website-seo
+npm install
+```
+
+### Optional: PageSpeed API Key
+
+Performance and Lighthouse accessibility scores require a free Google PageSpeed Insights API key:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable the PageSpeed Insights API
+3. Create an API key
+4. Copy `.env.example` to `.env.local` and add your key:
+
+```bash
+cp .env.example .env.local
+# Edit .env.local and set PAGESPEED_API_KEY=your_key_here
+```
+
+All other checks work without an API key.
+
+### Run Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000), paste a URL, and click **Analyze**.
+
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+## Usage
+
+1. Enter any public website URL (e.g. `https://example.com`)
+2. Click **Analyze** and wait 10–30 seconds
+3. Review scores and issues grouped by category
+4. Click **Copy fix** on any issue to get a ready-to-paste snippet
+
+## API
+
+```bash
+curl -X POST http://localhost:3000/api/audit \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com"}'
+```
+
+Returns a JSON audit report with scores, issues, and fix snippets.
+
+## Tech Stack
+
+- [Next.js 14](https://nextjs.org/) (App Router)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Cheerio](https://cheerio.js.org/) for HTML parsing
+- [Google PageSpeed Insights API](https://developers.google.com/speed/docs/insights/v5/get-started) (optional)
+
+## Deploy
+
+Deploy to [Vercel](https://vercel.com/) with zero config. Set `PAGESPEED_API_KEY` as an environment variable in your deployment settings.
+
+## License
+
+MIT
