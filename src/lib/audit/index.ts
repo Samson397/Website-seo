@@ -17,7 +17,11 @@ import {
   runDomainAudit,
 } from "@/lib/audit/domain-intel";
 import { detectTechnologies, runTechnologyAudit } from "@/lib/audit/technology";
-import { extractSocialProfiles, extractExternalLinks } from "@/lib/audit/social";
+import {
+  extractSocialProfiles,
+  extractExternalLinks,
+  countInternalLinks,
+} from "@/lib/audit/social";
 import { fetchBacklinkProfile, runBacklinkAudit } from "@/lib/audit/backlinks";
 import {
   AuditOptions,
@@ -62,7 +66,7 @@ export async function runFullAudit(
   ] = await Promise.all([
     runSeoAudit(ctx),
     runLinksAudit(ctx),
-    runPerformanceAudit(fetchResult.finalUrl),
+    runPerformanceAudit(ctx),
     runModernWebAudit(fetchResult.finalUrl),
     runWwwConsistencyAudit(fetchResult.finalUrl),
     fetchDomainInfo(hostname),
@@ -74,6 +78,7 @@ export async function runFullAudit(
   const technologies = detectTechnologies(ctx);
   const socialProfiles = extractSocialProfiles(ctx);
   const externalLinks = extractExternalLinks(ctx);
+  const internalLinks = countInternalLinks(ctx);
 
   const accessibilityIssues = runAccessibilityAudit(ctx);
   const securityIssues = runSecurityAudit(ctx);
@@ -173,7 +178,6 @@ export async function runFullAudit(
     issues: allIssues,
     summary: computeSummary(allIssues),
     performanceMetrics: perfResult.metrics,
-    performanceNote: perfResult.note,
     serpPreview: {
       title: pageMeta.title,
       description: pageMeta.description,
@@ -209,17 +213,18 @@ export async function runFullAudit(
         uniqueDomains: externalLinks.uniqueDomains,
         topDomains: externalLinks.topDomains,
       },
-      backlinks: {
-        available: backlinkProfile.available,
-        note: backlinkProfile.note,
-        totalBacklinks: backlinkProfile.totalBacklinks,
-        referringDomains: backlinkProfile.referringDomains,
-        referringPages: backlinkProfile.referringPages,
-        dofollowBacklinks: backlinkProfile.dofollowBacklinks,
-        nofollowBacklinks: backlinkProfile.nofollowBacklinks,
-        domainRank: backlinkProfile.domainRank,
-        topBacklinks: backlinkProfile.topBacklinks,
-      },
+      internalLinks,
+      backlinks: backlinkProfile.available
+        ? {
+            available: true,
+            totalBacklinks: backlinkProfile.totalBacklinks,
+            referringDomains: backlinkProfile.referringDomains,
+            dofollowBacklinks: backlinkProfile.dofollowBacklinks,
+            nofollowBacklinks: backlinkProfile.nofollowBacklinks,
+            domainRank: backlinkProfile.domainRank,
+            topBacklinks: backlinkProfile.topBacklinks,
+          }
+        : { available: false },
     },
   };
 }

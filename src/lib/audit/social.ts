@@ -87,3 +87,24 @@ export function extractExternalLinks(ctx: AuditContext): {
     links,
   };
 }
+
+export function countInternalLinks(ctx: AuditContext): number {
+  const $ = cheerio.load(ctx.fetchResult.html);
+  const origin = new URL(ctx.fetchResult.finalUrl).origin;
+  let count = 0;
+
+  $("a[href]").each((_, el) => {
+    const href = $(el).attr("href")?.trim();
+    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) {
+      return;
+    }
+    try {
+      const resolved = new URL(href, ctx.fetchResult.finalUrl);
+      if (resolved.origin === origin) count++;
+    } catch {
+      // skip
+    }
+  });
+
+  return count;
+}

@@ -99,12 +99,15 @@ export interface SafeFetchResult {
   html: string;
   headers: Record<string, string>;
   status: number;
+  responseTimeMs?: number;
+  htmlSizeBytes?: number;
 }
 
 export async function safeFetch(urlString: string): Promise<SafeFetchResult> {
   const url = await validateUrlSafe(urlString);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const startTime = Date.now();
 
   try {
     const response = await fetch(url.href, {
@@ -144,6 +147,8 @@ export async function safeFetch(urlString: string): Promise<SafeFetchResult> {
       html,
       headers: normalizeHeaders(response.headers),
       status: response.status,
+      responseTimeMs: Date.now() - startTime,
+      htmlSizeBytes: buffer.byteLength,
     };
   } finally {
     clearTimeout(timeout);

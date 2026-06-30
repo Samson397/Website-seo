@@ -24,7 +24,6 @@ const CATEGORIES: { key: AuditCategory | "all"; label: string }[] = [
   { key: "accessibility", label: "Accessibility" },
   { key: "security", label: "Security" },
   { key: "links", label: "Links" },
-  { key: "backlinks", label: "Backlinks" },
   { key: "domain", label: "Domain" },
 ];
 
@@ -70,7 +69,6 @@ export function AuditReportView({
     return true;
   });
 
-  const perfSkipped = !!report.performanceNote;
   const resolvedCount = report.issues.filter((i) => resolved.has(i.id)).length;
 
   return (
@@ -117,7 +115,7 @@ export function AuditReportView({
 
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
           <ScoreGauge label="SEO" score={report.scores.seo} />
-          <ScoreGauge label="Performance" score={report.scores.performance} skipped={perfSkipped} />
+          <ScoreGauge label="Performance" score={report.scores.performance} />
           <ScoreGauge label="Accessibility" score={report.scores.accessibility} />
           <ScoreGauge label="Security" score={report.scores.security} />
         </div>
@@ -142,9 +140,6 @@ export function AuditReportView({
           </div>
         )}
 
-        {report.performanceNote && (
-          <p className="mt-4 text-sm text-slate-500">{report.performanceNote}</p>
-        )}
       </div>
 
       {report.serpPreview && (

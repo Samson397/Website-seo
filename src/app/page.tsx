@@ -77,7 +77,7 @@ export default function Home() {
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
             <p className="text-slate-600">Analyzing your website…</p>
             <p className="mt-1 text-sm text-slate-400">
-              Checking SEO, domain, DNS, backlinks, technology, trust, content, security, and performance
+              Checking SEO, domain, DNS, links, technology, trust, content, security, and performance
             </p>
           </div>
         )}

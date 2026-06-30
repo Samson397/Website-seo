@@ -7,17 +7,16 @@ interface SiteOverviewPanelProps {
   overview: SiteOverview;
 }
 
-type Tab = "backlinks" | "domain" | "tech" | "social" | "outbound";
+type Tab = "links" | "domain" | "tech" | "social";
 
 export function SiteOverviewPanel({ overview }: SiteOverviewPanelProps) {
-  const [tab, setTab] = useState<Tab>("backlinks");
+  const [tab, setTab] = useState<Tab>("links");
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "backlinks", label: "Backlinks" },
+    { key: "links", label: "Link Profile" },
     { key: "domain", label: "Domain & DNS" },
     { key: "tech", label: "Technology" },
     { key: "social", label: "Social" },
-    { key: "outbound", label: "Outbound Links" },
   ];
 
   return (
@@ -25,7 +24,7 @@ export function SiteOverviewPanel({ overview }: SiteOverviewPanelProps) {
       <div className="border-b border-slate-200 px-5 pt-5">
         <h3 className="text-lg font-bold text-slate-900">Complete Site Intelligence</h3>
         <p className="mt-1 text-sm text-slate-500">
-          Domain, DNS, SSL, technology, backlinks, and link profile
+          Domain, DNS, SSL, technology, and link profile — no API keys required
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {tabs.map((t) => (
@@ -45,74 +44,73 @@ export function SiteOverviewPanel({ overview }: SiteOverviewPanelProps) {
       </div>
 
       <div className="p-5">
-        {tab === "backlinks" && <BacklinksTab overview={overview} />}
+        {tab === "links" && <LinksTab overview={overview} />}
         {tab === "domain" && <DomainTab overview={overview} />}
         {tab === "tech" && <TechTab overview={overview} />}
         {tab === "social" && <SocialTab overview={overview} />}
-        {tab === "outbound" && <OutboundTab overview={overview} />}
       </div>
     </div>
   );
 }
 
-function BacklinksTab({ overview }: { overview: SiteOverview }) {
-  const bl = overview.backlinks;
-
-  if (!bl.available) {
-    return (
-      <div className="rounded-lg bg-amber-50 p-4 text-sm text-amber-900">
-        <p className="font-semibold">Backlink data requires an external API</p>
-        <p className="mt-2">{bl.note}</p>
-        <p className="mt-3 text-amber-800">
-          Backlinks are links from <em>other</em> websites pointing to yours. They cannot be
-          discovered by crawling your site alone — we need access to a backlink index.
-        </p>
-      </div>
-    );
-  }
+function LinksTab({ overview }: { overview: SiteOverview }) {
+  const { externalLinks, internalLinks, backlinks } = overview;
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Total Backlinks" value={bl.totalBacklinks?.toLocaleString() ?? "—"} />
-        <Stat label="Referring Domains" value={bl.referringDomains?.toLocaleString() ?? "—"} />
-        <Stat label="Dofollow" value={bl.dofollowBacklinks?.toLocaleString() ?? "—"} />
-        <Stat label="Domain Rank" value={bl.domainRank?.toString() ?? "—"} />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Stat label="Internal Links" value={internalLinks.toString()} />
+        <Stat label="External Links" value={externalLinks.total.toString()} />
+        <Stat label="External Domains" value={externalLinks.uniqueDomains.toString()} />
       </div>
 
-      {bl.topBacklinks && bl.topBacklinks.length > 0 && (
+      {backlinks?.available && (
         <div>
-          <h4 className="mb-2 text-sm font-semibold text-slate-700">Top Backlinks</h4>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[500px] text-left text-sm">
-              <thead>
-                <tr className="border-b text-xs uppercase text-slate-500">
-                  <th className="pb-2 pr-3">Source</th>
-                  <th className="pb-2 pr-3">Anchor Text</th>
-                  <th className="pb-2">Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bl.topBacklinks.map((link, i) => (
-                  <tr key={i} className="border-b border-slate-100">
-                    <td className="py-2 pr-3">
-                      <div className="font-medium text-slate-800">{link.sourceDomain}</div>
-                      <div className="truncate text-xs text-blue-600 max-w-[250px]">{link.sourceUrl}</div>
-                    </td>
-                    <td className="py-2 pr-3 text-slate-600">{link.anchor || "—"}</td>
-                    <td className="py-2">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          link.dofollow ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {link.dofollow ? "dofollow" : "nofollow"}
-                      </span>
-                    </td>
+          <h4 className="mb-2 text-sm font-semibold text-slate-700">Backlinks</h4>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Stat label="Total" value={backlinks.totalBacklinks?.toLocaleString() ?? "—"} />
+            <Stat label="Referring Domains" value={backlinks.referringDomains?.toLocaleString() ?? "—"} />
+            <Stat label="Dofollow" value={backlinks.dofollowBacklinks?.toLocaleString() ?? "—"} />
+            <Stat label="Domain Rank" value={backlinks.domainRank?.toString() ?? "—"} />
+          </div>
+          {backlinks.topBacklinks && backlinks.topBacklinks.length > 0 && (
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full min-w-[400px] text-left text-sm">
+                <thead>
+                  <tr className="border-b text-xs uppercase text-slate-500">
+                    <th className="pb-2 pr-3">Source</th>
+                    <th className="pb-2 pr-3">Anchor</th>
+                    <th className="pb-2">Type</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {backlinks.topBacklinks.map((link, i) => (
+                    <tr key={i} className="border-b border-slate-100">
+                      <td className="py-2 pr-3 font-medium text-slate-800">{link.sourceDomain}</td>
+                      <td className="py-2 pr-3 text-slate-600">{link.anchor || "—"}</td>
+                      <td className="py-2 text-xs">{link.dofollow ? "dofollow" : "nofollow"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {externalLinks.topDomains.length > 0 && (
+        <div>
+          <h4 className="mb-2 text-sm font-semibold text-slate-700">Top Linked Domains</h4>
+          <div className="space-y-1">
+            {externalLinks.topDomains.map((d) => (
+              <div
+                key={d.domain}
+                className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm"
+              >
+                <span className="text-slate-800">{d.domain}</span>
+                <span className="font-medium text-slate-500">{d.count} links</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -210,34 +208,6 @@ function SocialTab({ overview }: { overview: SiteOverview }) {
           <span className="truncate text-blue-600 max-w-[60%]">{p.url}</span>
         </a>
       ))}
-    </div>
-  );
-}
-
-function OutboundTab({ overview }: { overview: SiteOverview }) {
-  const { externalLinks } = overview;
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
-        <Stat label="External Links" value={externalLinks.total.toString()} />
-        <Stat label="Unique Domains" value={externalLinks.uniqueDomains.toString()} />
-      </div>
-      {externalLinks.topDomains.length > 0 && (
-        <div>
-          <h4 className="mb-2 text-sm font-semibold text-slate-700">Top Linked Domains</h4>
-          <div className="space-y-1">
-            {externalLinks.topDomains.map((d) => (
-              <div
-                key={d.domain}
-                className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm"
-              >
-                <span className="text-slate-800">{d.domain}</span>
-                <span className="font-medium text-slate-500">{d.count} links</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

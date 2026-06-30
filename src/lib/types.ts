@@ -6,7 +6,6 @@ export type AuditCategory =
   | "accessibility"
   | "security"
   | "links"
-  | "backlinks"
   | "domain";
 
 export interface AuditIssue {
@@ -92,19 +91,17 @@ export interface SiteOverview {
     uniqueDomains: number;
     topDomains: { domain: string; count: number }[];
   };
-  backlinks: {
+  internalLinks: number;
+  backlinks?: {
     available: boolean;
-    note?: string;
     totalBacklinks?: number;
     referringDomains?: number;
-    referringPages?: number;
     dofollowBacklinks?: number;
     nofollowBacklinks?: number;
     domainRank?: number;
     topBacklinks?: {
       sourceUrl: string;
       sourceDomain: string;
-      targetUrl: string;
       anchor?: string;
       dofollow: boolean;
     }[];
@@ -135,6 +132,8 @@ export interface FetchResult {
   html: string;
   headers: Record<string, string>;
   status: number;
+  responseTimeMs?: number;
+  htmlSizeBytes?: number;
 }
 
 export interface AuditContext {
