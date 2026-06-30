@@ -117,10 +117,6 @@ export default function Home() {
             />
           </div>
         )}
-
-        <footer className="mt-16 border-t border-slate-200 pt-6 text-center text-xs text-slate-400">
-          Build {process.env.NEXT_PUBLIC_BUILD_ID ?? "dev"} · Has/Missing checklist enabled
-        </footer>
       </div>
     </main>
   );

@@ -32,6 +32,21 @@ function item(
   return { id, label, status, explanation, fixHint };
 }
 
+function countWords(html: string): number {
+  const $ = cheerio.load(html);
+  $("script, style, noscript").remove();
+  const text = $.text().replace(/\s+/g, " ").trim();
+  return text.split(/\s+/).filter((w) => w.length > 0).length;
+}
+
+export interface ChecklistExtras {
+  brokenLinkCount: number;
+  hasManifest: boolean;
+  hasLlmsTxt: boolean;
+  hasMixedContent: boolean;
+  wwwDuplicate: boolean;
+}
+
 export function buildSiteChecklist(
   ctx: AuditContext,
   technologies: TechnologyInfo[],
@@ -42,7 +57,8 @@ export function buildSiteChecklist(
   hasRobotsTxt: boolean,
   hasSitemap: boolean,
   hasBacklinks: boolean,
-  backlinkCount?: number
+  backlinkCount: number | undefined,
+  extras: ChecklistExtras
 ): SiteChecklist {
   const $ = cheerio.load(ctx.fetchResult.html);
   const baseUrl = ctx.fetchResult.finalUrl;
@@ -214,6 +230,104 @@ export function buildSiteChecklist(
         : item("backlinks", "Other sites linking to you", "missing", "No other websites link to yours yet.", "Create great content and reach out to earn links.")
     );
   }
+
+  const hasTerms = /terms|terms-of-service|terms-and-conditions|\/tos/i.test($.html());
+  items.push(
+    hasTerms
+      ? item("terms", "Terms of service", "has", "A terms of service link was found on the page.")
+      : item("terms", "Terms of service", "warning", "No terms of service link — recommended if you have forms or accounts.", "Add a Terms of Service link in your footer.")
+  );
+
+  items.push(
+    $('meta[name="twitter:card"]').attr("content")
+      ? item("twitter", "Twitter/X share preview", "has", "Your page has Twitter/X card tags for sharing.")
+      : item("twitter", "Twitter/X share preview", "missing", "Missing Twitter/X card tags — links shared on X may look plain.", 'Add <meta name="twitter:card" content="summary_large_image">')
+  );
+
+  items.push(
+    $('link[rel="apple-touch-icon"]').length > 0
+      ? item("apple-icon", "Apple touch icon", "has", "Your site has an icon for iPhone home screens.")
+      : item("apple-icon", "Apple touch icon", "missing", "No Apple touch icon — iPhone bookmarks use a generic icon.", 'Add <link rel="apple-touch-icon" href="/apple-touch-icon.png">')
+  );
+
+  const hasCookieBanner =
+    /cookiebot|onetrust|cookie-consent|cookiebanner|gdpr|iubenda|termly|osano/i.test($.html());
+  items.push(
+    hasCookieBanner
+      ? item("cookies", "Cookie consent notice", "has", "A cookie consent or privacy banner was detected.")
+      : item("cookies", "Cookie consent notice", "warning", "No cookie banner detected — may be required in EU/UK if you use analytics or cookies.", "Add a cookie consent banner if you track visitors or use cookies.")
+  );
+
+  items.push(
+    extras.hasManifest
+      ? item("manifest", "Web app manifest", "has", "manifest.json found — supports mobile install and PWA features.")
+      : item("manifest", "Web app manifest", "missing", "No manifest.json — missing PWA and mobile install support.", "Add a manifest.json at your site root.")
+  );
+
+  items.push(
+    extras.hasLlmsTxt
+      ? item("llms", "AI crawler instructions (llms.txt)", "has", "llms.txt tells AI systems how to use your content.")
+      : item("llms", "AI crawler instructions (llms.txt)", "warning", "No llms.txt — AI crawlers may not know how to treat your site.", "Add an llms.txt file at your site root.")
+  );
+
+  items.push(
+    dnsInfo.hasDkim
+      ? item("dkim", "Email DKIM record", "has", "DKIM helps verify your emails are genuinely from you.")
+      : item("dkim", "Email DKIM record", "missing", "No DKIM record found — email authentication is incomplete.", "Add DKIM records from your email provider to DNS.")
+  );
+
+  const headers = ctx.fetchResult.headers;
+  const hasHsts = Boolean(headers["strict-transport-security"]);
+  const hasFrameOptions = Boolean(headers["x-frame-options"]);
+  items.push(
+    hasHsts && hasFrameOptions
+      ? item("sec-headers", "Security headers", "has", "Key security headers (HSTS, X-Frame-Options) are present.")
+      : hasHsts || hasFrameOptions
+        ? item("sec-headers", "Security headers", "warning", "Some security headers are missing — site is partially protected.", "Add HSTS and X-Frame-Options headers on your server.")
+        : item("sec-headers", "Security headers", "missing", "Missing security headers — easier target for clickjacking and downgrade attacks.", "Add Strict-Transport-Security and X-Frame-Options headers.")
+  );
+
+  items.push(
+    extras.hasMixedContent
+      ? item("mixed", "Mixed content (HTTP on HTTPS)", "missing", "Page loads insecure HTTP resources on an HTTPS page — browsers may block them.", "Change all resource URLs to https://")
+      : item("mixed", "Mixed content (HTTP on HTTPS)", "has", "No mixed HTTP content detected on this HTTPS page.")
+  );
+
+  items.push(
+    extras.wwwDuplicate
+      ? item("www", "www vs non-www setup", "warning", "Both www and non-www versions work — can cause duplicate content in Google.", "Pick one version and 301-redirect the other.")
+      : item("www", "www vs non-www setup", "has", "No duplicate www/non-www conflict detected.")
+  );
+
+  const wordCount = countWords(ctx.fetchResult.html);
+  items.push(
+    wordCount >= 300
+      ? item("content", "Enough page content", "has", `Page has ${wordCount} words — good depth for search engines.`)
+      : wordCount >= 100
+        ? item("content", "Enough page content", "warning", `Only ${wordCount} words — thin content may rank poorly.`, "Add more useful, original text (aim for 300+ words).")
+        : item("content", "Enough page content", "missing", `Only ${wordCount} words — Google may see this as low quality.`, "Add substantial content that covers your topic.")
+  );
+
+  items.push(
+    extras.brokenLinkCount === 0
+      ? item("links", "Broken links", "has", "No broken links found on checked links.")
+      : item("links", "Broken links", "missing", `${extras.brokenLinkCount} broken link${extras.brokenLinkCount === 1 ? "" : "s"} found — hurts SEO and user experience.`, "Fix or remove links that return 404 or errors.")
+  );
+
+  const unlabeledInputs = $("input, select, textarea")
+    .filter((_, el) => {
+      const id = $(el).attr("id");
+      const aria = $(el).attr("aria-label") || $(el).attr("aria-labelledby");
+      if (aria) return false;
+      if (id && $(`label[for="${id}"]`).length > 0) return false;
+      const wrapped = $(el).closest("label").length > 0;
+      return !wrapped;
+    }).length;
+  items.push(
+    unlabeledInputs === 0
+      ? item("forms", "Accessible form fields", "has", "Form inputs have labels for screen readers.")
+      : item("forms", "Accessible form fields", "missing", `${unlabeledInputs} form field${unlabeledInputs === 1 ? "" : "s"} missing labels.`, 'Add <label for="id"> matching each input id.')
+  );
 
   const hasCount = items.filter((i) => i.status === "has").length;
   const missingCount = items.filter((i) => i.status === "missing").length;

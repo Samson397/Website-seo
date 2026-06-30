@@ -141,7 +141,14 @@ export async function runFullAudit(
     seoResult.hasRobotsTxt,
     seoResult.hasSitemap,
     backlinkProfile.available,
-    backlinkProfile.available ? backlinkProfile.totalBacklinks : undefined
+    backlinkProfile.available ? backlinkProfile.totalBacklinks : undefined,
+    {
+      brokenLinkCount: linkIssues.filter((i) => i.title.startsWith("Broken link")).length,
+      hasManifest: !modernWebIssues.some((i) => i.title.toLowerCase().includes("manifest")),
+      hasLlmsTxt: !modernWebIssues.some((i) => i.title.toLowerCase().includes("llms.txt")),
+      hasMixedContent: securityIssues.some((i) => i.title.includes("Mixed content")),
+      wwwDuplicate: wwwIssues.length > 0,
+    }
   );
 
   const allIssues = [

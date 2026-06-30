@@ -18,7 +18,11 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row">
+        <label htmlFor="audit-url" className="sr-only">
+          Website URL
+        </label>
         <input
+          id="audit-url"
           type="text"
           name="url"
           placeholder="https://example.com"
@@ -34,8 +38,12 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
           {loading ? "Analyzing…" : "Analyze"}
         </button>
       </div>
-      <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+      <label
+        htmlFor="siteCrawl"
+        className="flex cursor-pointer items-center gap-2 text-sm text-slate-600"
+      >
         <input
+          id="siteCrawl"
           type="checkbox"
           name="siteCrawl"
           defaultChecked={false}
