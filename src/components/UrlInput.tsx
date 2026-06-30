@@ -38,7 +38,7 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
         <input
           type="checkbox"
           name="siteCrawl"
-          defaultChecked
+          defaultChecked={false}
           disabled={loading}
           className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
         />

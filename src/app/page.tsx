@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { UrlInput } from "@/components/UrlInput";
 import { AuditReportView } from "@/components/AuditReport";
+import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
 import type { AuditReport } from "@/lib/types";
 
 export default function Home() {
@@ -11,7 +12,14 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lastUrl = useRef<string>("");
-  const lastSiteCrawl = useRef<boolean>(true);
+  const lastSiteCrawl = useRef<boolean>(false);
+  const checklistRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (report?.checklist && checklistRef.current) {
+      checklistRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [report]);
 
   async function runAudit(url: string, siteCrawl: boolean, isRescan = false) {
     setLoading(true);
@@ -33,7 +41,13 @@ export default function Home() {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Audit failed");
+        const msg = data.error || "Audit failed";
+        if (msg.includes("timeout") || msg.includes("TIMEOUT") || response.status === 504) {
+          throw new Error(
+            "The scan took too long. Try again with 'Full site scan' unchecked for a faster result."
+          );
+        }
+        throw new Error(msg);
       }
 
       lastUrl.current = url;
@@ -66,7 +80,7 @@ export default function Home() {
             Website SEO Auditor
           </h1>
           <p className="mt-3 text-lg text-slate-600">
-            Paste your website URL to find SEO issues, errors, and improvements
+            Paste your website URL — we&apos;ll tell you what you have and what&apos;s missing
           </p>
         </header>
 
@@ -75,9 +89,9 @@ export default function Home() {
         {loading && (
           <div className="mt-8 rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <p className="text-slate-600">Analyzing your website…</p>
+            <p className="text-slate-600">Scanning your website…</p>
             <p className="mt-1 text-sm text-slate-400">
-              Checking SEO, domain, DNS, links, technology, trust, content, security, and performance
+              Checking what you have and what&apos;s missing — usually 20–40 seconds
             </p>
           </div>
         )}
@@ -89,12 +103,19 @@ export default function Home() {
         )}
 
         {report && !loading && (
-          <AuditReportView
-            report={report}
-            previousReport={previousReport}
-            onRescan={handleRescan}
-            rescanLoading={loading}
-          />
+          <div className="mt-8 space-y-8">
+            {report.checklist && (
+              <div ref={checklistRef} id="what-you-have">
+                <SiteChecklistPanel checklist={report.checklist} />
+              </div>
+            )}
+            <AuditReportView
+              report={report}
+              previousReport={previousReport}
+              onRescan={handleRescan}
+              rescanLoading={loading}
+            />
+          </div>
         )}
       </div>
     </main>

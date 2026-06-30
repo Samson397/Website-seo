@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { runFullAudit } from "@/lib/audit";
 import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 
-export const maxDuration = 180;
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {

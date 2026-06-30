@@ -55,7 +55,7 @@ export async function runFullAudit(
   const hostname = new URL(fetchResult.finalUrl).hostname;
 
   const [
-    seoIssues,
+    seoResult,
     linkIssues,
     perfResult,
     modernWebIssues,
@@ -73,8 +73,12 @@ export async function runFullAudit(
     fetchDomainInfo(hostname),
     fetchDnsInfo(hostname),
     fetchSslInfo(hostname),
-    fetchBacklinkProfile(fetchResult.finalUrl),
+    process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD
+      ? fetchBacklinkProfile(fetchResult.finalUrl)
+      : Promise.resolve({ available: false as const }),
   ]);
+
+  const seoIssues = seoResult.issues;
 
   const technologies = detectTechnologies(ctx);
   const socialProfiles = extractSocialProfiles(ctx);
@@ -127,15 +131,17 @@ export async function runFullAudit(
 
   const pageMeta = extractPageMeta(ctx);
 
-  const checklist = await buildSiteChecklist(
+  const checklist = buildSiteChecklist(
     ctx,
     technologies,
     socialProfiles,
     dnsInfo,
     sslInfo,
     domainInfo,
+    seoResult.hasRobotsTxt,
+    seoResult.hasSitemap,
     backlinkProfile.available,
-    backlinkProfile.totalBacklinks
+    backlinkProfile.available ? backlinkProfile.totalBacklinks : undefined
   );
 
   const allIssues = [

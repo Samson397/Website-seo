@@ -2,7 +2,7 @@ import * as cheerio from "cheerio";
 import { safeHead } from "@/lib/fetcher";
 import { AuditContext, AuditIssue, createIssue } from "@/lib/types";
 
-const MAX_LINKS_TO_CHECK = 20;
+const MAX_LINKS_TO_CHECK = 8;
 
 export async function runLinksAudit(ctx: AuditContext): Promise<AuditIssue[]> {
   const issues: AuditIssue[] = [];

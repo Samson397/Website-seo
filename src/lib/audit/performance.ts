@@ -131,7 +131,7 @@ async function runPageSpeedChecks(url: string): Promise<PerformanceResult> {
     apiUrl.searchParams.set("strategy", "mobile");
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 60000);
+    const timeout = setTimeout(() => controller.abort(), 20000);
     const response = await fetch(apiUrl.href, { signal: controller.signal });
     clearTimeout(timeout);
 

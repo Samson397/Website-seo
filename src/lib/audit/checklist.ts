@@ -1,5 +1,4 @@
 import * as cheerio from "cheerio";
-import { safeFetchText } from "@/lib/fetcher";
 import { DnsInfo, DomainInfo, SslInfo } from "@/lib/audit/domain-intel";
 import { TechnologyInfo } from "@/lib/audit/technology";
 import { SocialProfile } from "@/lib/audit/social";
@@ -33,16 +32,18 @@ function item(
   return { id, label, status, explanation, fixHint };
 }
 
-export async function buildSiteChecklist(
+export function buildSiteChecklist(
   ctx: AuditContext,
   technologies: TechnologyInfo[],
   socialProfiles: SocialProfile[],
   dnsInfo: DnsInfo,
   sslInfo: SslInfo,
   domainInfo: DomainInfo,
+  hasRobotsTxt: boolean,
+  hasSitemap: boolean,
   hasBacklinks: boolean,
   backlinkCount?: number
-): Promise<SiteChecklist> {
+): SiteChecklist {
   const $ = cheerio.load(ctx.fetchResult.html);
   const baseUrl = ctx.fetchResult.finalUrl;
   const items: ChecklistItem[] = [];
@@ -98,7 +99,7 @@ export async function buildSiteChecklist(
   items.push(
     $('link[rel="canonical"]').attr("href")
       ? item("canonical", "Canonical URL", "has", "You told search engines which URL is the official version of this page.")
-      : item("canonical", "Canonical URL", "missing", "No canonical URL — duplicate pages may confuse Google.", "Add <link rel=\"canonical\" href=\"...\">")
+      : item("canonical", "Canonical URL", "missing", "No canonical URL — duplicate pages may confuse Google.", 'Add <link rel="canonical" href="...">')
   );
 
   items.push(
@@ -137,16 +138,14 @@ export async function buildSiteChecklist(
       : item("contact", "Contact or About page", "missing", "No contact or about link found — hurts trust.", "Add Contact or About links in your navigation or footer.")
   );
 
-  const robotsTxt = await safeFetchText("/robots.txt", baseUrl);
   items.push(
-    robotsTxt
+    hasRobotsTxt
       ? item("robots", "robots.txt file", "has", "Search engine crawlers can read your robots.txt rules.")
       : item("robots", "robots.txt file", "missing", "No robots.txt at your site root.", "Create a robots.txt file at yoursite.com/robots.txt")
   );
 
-  const sitemap = await safeFetchText("/sitemap.xml", baseUrl);
   items.push(
-    sitemap
+    hasSitemap
       ? item("sitemap", "XML sitemap", "has", "Google can discover all your pages via sitemap.xml.")
       : item("sitemap", "XML sitemap", "missing", "No sitemap.xml found — Google may miss pages.", "Create sitemap.xml and submit it in Google Search Console.")
   );

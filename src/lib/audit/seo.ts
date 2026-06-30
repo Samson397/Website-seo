@@ -2,7 +2,11 @@ import * as cheerio from "cheerio";
 import { safeFetchText } from "@/lib/fetcher";
 import { AuditContext, AuditIssue, createIssue } from "@/lib/types";
 
-export async function runSeoAudit(ctx: AuditContext): Promise<AuditIssue[]> {
+export async function runSeoAudit(ctx: AuditContext): Promise<{
+  issues: AuditIssue[];
+  hasRobotsTxt: boolean;
+  hasSitemap: boolean;
+}> {
   const issues: AuditIssue[] = [];
   const $ = cheerio.load(ctx.fetchResult.html);
   const baseUrl = ctx.fetchResult.finalUrl;
@@ -249,5 +253,5 @@ Sitemap: ${parsedBase.origin}/sitemap.xml`,
     );
   }
 
-  return issues;
+  return { issues, hasRobotsTxt: !!robotsContent, hasSitemap: !!sitemapContent };
 }
