@@ -21,6 +21,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   accessibility: "Accessibility",
   security: "Security",
   links: "Links",
+  backlinks: "Backlinks",
+  domain: "Domain",
 };
 
 export function IssueCard({ issue, resolved, onToggleResolved }: IssueCardProps) {

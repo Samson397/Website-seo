@@ -5,7 +5,9 @@ export type AuditCategory =
   | "performance"
   | "accessibility"
   | "security"
-  | "links";
+  | "links"
+  | "backlinks"
+  | "domain";
 
 export interface AuditIssue {
   id: string;
@@ -61,6 +63,54 @@ export interface CrawlSummary {
   pages: PageSummary[];
 }
 
+export interface SiteOverview {
+  domain: {
+    registrar?: string;
+    created?: string;
+    expires?: string;
+    daysUntilExpiry?: number;
+    nameservers?: string[];
+  };
+  dns: {
+    mxRecords?: string[];
+    hasSpf: boolean;
+    hasDmarc: boolean;
+    hasDkim: boolean;
+    ipv4?: string[];
+    ipv6?: string[];
+  };
+  ssl: {
+    issuer?: string;
+    validTo?: string;
+    daysUntilExpiry?: number;
+    protocol?: string;
+  };
+  technologies: { name: string; category: string }[];
+  socialProfiles: { platform: string; url: string }[];
+  externalLinks: {
+    total: number;
+    uniqueDomains: number;
+    topDomains: { domain: string; count: number }[];
+  };
+  backlinks: {
+    available: boolean;
+    note?: string;
+    totalBacklinks?: number;
+    referringDomains?: number;
+    referringPages?: number;
+    dofollowBacklinks?: number;
+    nofollowBacklinks?: number;
+    domainRank?: number;
+    topBacklinks?: {
+      sourceUrl: string;
+      sourceDomain: string;
+      targetUrl: string;
+      anchor?: string;
+      dofollow: boolean;
+    }[];
+  };
+}
+
 export interface AuditOptions {
   siteCrawl?: boolean;
   maxPages?: number;
@@ -76,6 +126,7 @@ export interface AuditReport {
   performanceNote?: string;
   serpPreview?: SerpPreview;
   crawl?: CrawlSummary;
+  siteOverview?: SiteOverview;
 }
 
 export interface FetchResult {

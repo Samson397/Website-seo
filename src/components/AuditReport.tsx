@@ -8,6 +8,7 @@ import { SerpPreview } from "@/components/SerpPreview";
 import { ScoreComparison } from "@/components/ScoreComparison";
 import { ExportButtons } from "@/components/ExportButtons";
 import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
+import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
 
 interface AuditReportViewProps {
   report: AuditReport;
@@ -23,6 +24,8 @@ const CATEGORIES: { key: AuditCategory | "all"; label: string }[] = [
   { key: "accessibility", label: "Accessibility" },
   { key: "security", label: "Security" },
   { key: "links", label: "Links" },
+  { key: "backlinks", label: "Backlinks" },
+  { key: "domain", label: "Domain" },
 ];
 
 function storageKey(url: string) {
@@ -151,6 +154,8 @@ export function AuditReportView({
           url={report.serpPreview.url}
         />
       )}
+
+      {report.siteOverview && <SiteOverviewPanel overview={report.siteOverview} />}
 
       {report.crawl?.enabled && <SiteCrawlPanel crawl={report.crawl} />}
 

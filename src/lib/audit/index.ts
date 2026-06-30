@@ -11,6 +11,15 @@ import { crawlSitePages } from "@/lib/audit/crawl";
 import { runDuplicateMetaAudit, runInternalLinkAudit } from "@/lib/audit/site-wide";
 import { runTrustAudit, runModernWebAudit, runWwwConsistencyAudit } from "@/lib/audit/trust";
 import {
+  fetchDomainInfo,
+  fetchDnsInfo,
+  fetchSslInfo,
+  runDomainAudit,
+} from "@/lib/audit/domain-intel";
+import { detectTechnologies, runTechnologyAudit } from "@/lib/audit/technology";
+import { extractSocialProfiles, extractExternalLinks } from "@/lib/audit/social";
+import { fetchBacklinkProfile, runBacklinkAudit } from "@/lib/audit/backlinks";
+import {
   AuditOptions,
   AuditReport,
   CrawlSummary,
@@ -38,15 +47,33 @@ export async function runFullAudit(
   }
 
   const ctx = { url: fetchResult.finalUrl, fetchResult };
+  const hostname = new URL(fetchResult.finalUrl).hostname;
 
-  const [seoIssues, linkIssues, perfResult, modernWebIssues, wwwIssues] =
-    await Promise.all([
-      runSeoAudit(ctx),
-      runLinksAudit(ctx),
-      runPerformanceAudit(fetchResult.finalUrl),
-      runModernWebAudit(fetchResult.finalUrl),
-      runWwwConsistencyAudit(fetchResult.finalUrl),
-    ]);
+  const [
+    seoIssues,
+    linkIssues,
+    perfResult,
+    modernWebIssues,
+    wwwIssues,
+    domainInfo,
+    dnsInfo,
+    sslInfo,
+    backlinkProfile,
+  ] = await Promise.all([
+    runSeoAudit(ctx),
+    runLinksAudit(ctx),
+    runPerformanceAudit(fetchResult.finalUrl),
+    runModernWebAudit(fetchResult.finalUrl),
+    runWwwConsistencyAudit(fetchResult.finalUrl),
+    fetchDomainInfo(hostname),
+    fetchDnsInfo(hostname),
+    fetchSslInfo(hostname),
+    fetchBacklinkProfile(fetchResult.finalUrl),
+  ]);
+
+  const technologies = detectTechnologies(ctx);
+  const socialProfiles = extractSocialProfiles(ctx);
+  const externalLinks = extractExternalLinks(ctx);
 
   const accessibilityIssues = runAccessibilityAudit(ctx);
   const securityIssues = runSecurityAudit(ctx);
@@ -54,6 +81,9 @@ export async function runFullAudit(
   const imageIssues = runImageAudit(ctx);
   const mobileSocialIssues = runMobileSocialAudit(ctx);
   const trustIssues = runTrustAudit(ctx);
+  const domainIssues = runDomainAudit(hostname, domainInfo, dnsInfo, sslInfo);
+  const technologyIssues = runTechnologyAudit(ctx, technologies);
+  const backlinkIssues = runBacklinkAudit(backlinkProfile);
 
   let crawlSummary: CrawlSummary | undefined;
   let siteWideIssues: ReturnType<typeof runDuplicateMetaAudit> = [];
@@ -102,6 +132,9 @@ export async function runFullAudit(
     ...trustIssues,
     ...modernWebIssues,
     ...wwwIssues,
+    ...domainIssues,
+    ...technologyIssues,
+    ...backlinkIssues,
     ...siteWideIssues,
     ...perfResult.issues,
   ];
@@ -147,5 +180,46 @@ export async function runFullAudit(
       url: displayUrl,
     },
     crawl: crawlSummary,
+    siteOverview: {
+      domain: {
+        registrar: domainInfo.registrar,
+        created: domainInfo.created,
+        expires: domainInfo.expires,
+        daysUntilExpiry: domainInfo.daysUntilExpiry,
+        nameservers: domainInfo.nameservers,
+      },
+      dns: {
+        mxRecords: dnsInfo.mxRecords,
+        hasSpf: dnsInfo.hasSpf,
+        hasDmarc: dnsInfo.hasDmarc,
+        hasDkim: dnsInfo.hasDkim,
+        ipv4: dnsInfo.ipv4,
+        ipv6: dnsInfo.ipv6,
+      },
+      ssl: {
+        issuer: sslInfo.issuer,
+        validTo: sslInfo.validTo,
+        daysUntilExpiry: sslInfo.daysUntilExpiry,
+        protocol: sslInfo.protocol,
+      },
+      technologies,
+      socialProfiles,
+      externalLinks: {
+        total: externalLinks.total,
+        uniqueDomains: externalLinks.uniqueDomains,
+        topDomains: externalLinks.topDomains,
+      },
+      backlinks: {
+        available: backlinkProfile.available,
+        note: backlinkProfile.note,
+        totalBacklinks: backlinkProfile.totalBacklinks,
+        referringDomains: backlinkProfile.referringDomains,
+        referringPages: backlinkProfile.referringPages,
+        dofollowBacklinks: backlinkProfile.dofollowBacklinks,
+        nofollowBacklinks: backlinkProfile.nofollowBacklinks,
+        domainRank: backlinkProfile.domainRank,
+        topBacklinks: backlinkProfile.topBacklinks,
+      },
+    },
   };
 }

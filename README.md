@@ -19,6 +19,10 @@ A web app that analyzes any public website URL and produces a comprehensive audi
 - **Full site scan** — crawl up to 10 pages via sitemap + links for duplicate titles/descriptions
 - **Trust & legal** — privacy policy, terms of service, contact page links
 - **Modern web** — manifest.json, llms.txt, www/non-www consistency
+- **Complete site intelligence** — domain registration, SSL expiry, DNS (SPF/DMARC/DKIM), technology stack detection
+- **Backlinks** — total backlinks, referring domains, top link sources (via DataForSEO API)
+- **Social profiles** — linked Facebook, Twitter/X, Instagram, LinkedIn, etc.
+- **Outbound link profile** — external domains your site links to
 - **Fix snippets** — copy-paste HTML/meta fixes for each issue
 
 ## Use on Your Phone (No Local Setup)
@@ -76,6 +80,17 @@ cp .env.example .env.local
 ```
 
 All other checks work without an API key.
+
+### Optional: Backlink Data (DataForSEO)
+
+Backlinks require an external index — they cannot be discovered by crawling your site alone. Configure [DataForSEO](https://dataforseo.com) for full backlink reports (~$0.02/request):
+
+```bash
+DATAFORSEO_LOGIN=your_login
+DATAFORSEO_PASSWORD=your_password
+```
+
+Add these in `.env.local` or Vercel environment variables. Domain, DNS, SSL, tech stack, and outbound links work without this.
 
 ### Run Development Server
 
