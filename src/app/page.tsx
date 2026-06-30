@@ -1,19 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { UrlInput } from "@/components/UrlInput";
 import { AuditReportView } from "@/components/AuditReport";
 import type { AuditReport } from "@/lib/types";
 
 export default function Home() {
   const [report, setReport] = useState<AuditReport | null>(null);
+  const [previousReport, setPreviousReport] = useState<AuditReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const lastUrl = useRef<string>("");
 
-  async function handleAudit(url: string) {
+  async function runAudit(url: string, isRescan = false) {
     setLoading(true);
     setError(null);
-    setReport(null);
+
+    if (!isRescan) {
+      setPreviousReport(null);
+      setReport(null);
+    } else if (report) {
+      setPreviousReport(report);
+    }
 
     try {
       const response = await fetch("/api/audit", {
@@ -27,12 +35,25 @@ export default function Home() {
         throw new Error(data.error || "Audit failed");
       }
 
+      lastUrl.current = url;
       setReport(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
+      if (isRescan && previousReport) {
+        setReport(previousReport);
+        setPreviousReport(null);
+      }
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleAudit(url: string) {
+    runAudit(url, false);
+  }
+
+  function handleRescan() {
+    if (lastUrl.current) runAudit(lastUrl.current, true);
   }
 
   return (
@@ -54,7 +75,7 @@ export default function Home() {
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
             <p className="text-slate-600">Analyzing your website…</p>
             <p className="mt-1 text-sm text-slate-400">
-              Checking SEO, accessibility, security, links, and performance
+              Checking SEO, content, images, accessibility, security, links, and performance
             </p>
           </div>
         )}
@@ -65,7 +86,14 @@ export default function Home() {
           </div>
         )}
 
-        {report && !loading && <AuditReportView report={report} />}
+        {report && !loading && (
+          <AuditReportView
+            report={report}
+            previousReport={previousReport}
+            onRescan={handleRescan}
+            rescanLoading={loading}
+          />
+        )}
       </div>
     </main>
   );

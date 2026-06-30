@@ -111,5 +111,43 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]`,
     }
   }
 
+  const encoding = headers["content-encoding"] || "";
+  if (!encoding.includes("gzip") && !encoding.includes("br")) {
+    issues.push(
+      createIssue({
+        category: "performance",
+        severity: "warning",
+        title: "No text compression enabled",
+        description:
+          "Gzip or Brotli compression reduces HTML/CSS/JS size by 60–80%, significantly improving load times.",
+        currentValue: encoding ? `content-encoding: ${encoding}` : "No compression header",
+        recommendation: "Enable gzip or Brotli compression on your web server or CDN.",
+        fixSnippet: `# Nginx
+gzip on;
+gzip_types text/plain text/css application/json application/javascript text/xml;
+
+# Apache
+AddOutputFilterByType DEFLATE text/html text/css application/javascript`,
+      })
+    );
+  }
+
+  const cacheControl = headers["cache-control"] || "";
+  if (!cacheControl || cacheControl.includes("no-store") || cacheControl.includes("no-cache")) {
+    if (!cacheControl) {
+      issues.push(
+        createIssue({
+          category: "performance",
+          severity: "info",
+          title: "Missing cache-control header",
+          description:
+            "Cache headers tell browsers and CDNs how long to store assets, reducing repeat load times.",
+          recommendation: "Set appropriate Cache-Control headers for static assets.",
+          fixSnippet: "Cache-Control: public, max-age=31536000, immutable",
+        })
+      );
+    }
+  }
+
   return issues;
 }

@@ -5,10 +5,17 @@ A web app that analyzes any public website URL and produces a comprehensive audi
 ## Features
 
 - **SEO audit** — title, meta description, H1, canonical, Open Graph tags, robots.txt, sitemap.xml, structured data
-- **Performance** — Core Web Vitals (LCP, CLS, INP) via Google PageSpeed Insights API
+- **Content quality** — thin content detection, readability, content freshness signals
+- **Mobile & social** — viewport meta, Twitter/X cards, favicon, Apple touch icon, URL structure
+- **Image optimization** — missing dimensions, lazy loading, modern format suggestions
+- **Performance** — Core Web Vitals (LCP, CLS, INP) via Google PageSpeed Insights API, compression & caching headers
 - **Accessibility** — alt text, form labels, language attribute, heading hierarchy, Lighthouse a11y score
 - **Security** — HTTPS, security headers, mixed content detection
 - **Broken links** — checks up to 20 links on the page for 404s and unreachable URLs
+- **Google SERP preview** — see how your title/description appear in search results
+- **Re-scan comparison** — compare scores before and after fixes
+- **Issue checklist** — mark issues done, hide resolved items
+- **Export** — download CSV or print/PDF report
 - **Fix snippets** — copy-paste HTML/meta fixes for each issue
 
 ## Use on Your Phone (No Local Setup)

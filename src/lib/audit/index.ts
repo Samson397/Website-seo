@@ -4,6 +4,9 @@ import { runAccessibilityAudit } from "@/lib/audit/accessibility";
 import { runSecurityAudit } from "@/lib/audit/security";
 import { runLinksAudit } from "@/lib/audit/links";
 import { runPerformanceAudit } from "@/lib/audit/performance";
+import { runContentAudit, extractPageMeta } from "@/lib/audit/content";
+import { runImageAudit } from "@/lib/audit/images";
+import { runMobileSocialAudit } from "@/lib/audit/mobile-social";
 import {
   AuditReport,
   computeCategoryScore,
@@ -32,9 +35,17 @@ export async function runFullAudit(url: string): Promise<AuditReport> {
 
   const accessibilityIssues = runAccessibilityAudit(ctx);
   const securityIssues = runSecurityAudit(ctx);
+  const contentIssues = runContentAudit(ctx);
+  const imageIssues = runImageAudit(ctx);
+  const mobileSocialIssues = runMobileSocialAudit(ctx);
+
+  const pageMeta = extractPageMeta(ctx);
 
   const allIssues = [
     ...seoIssues,
+    ...contentIssues,
+    ...mobileSocialIssues,
+    ...imageIssues,
     ...accessibilityIssues,
     ...securityIssues,
     ...linkIssues,
@@ -55,6 +66,14 @@ export async function runFullAudit(url: string): Promise<AuditReport> {
     accessibilityScore = perfResult.accessibilityScore;
   }
 
+  let displayUrl = fetchResult.finalUrl;
+  try {
+    const parsed = new URL(fetchResult.finalUrl);
+    displayUrl = parsed.hostname + parsed.pathname;
+  } catch {
+    // keep full url
+  }
+
   return {
     url: fetchResult.finalUrl,
     scannedAt: new Date().toISOString(),
@@ -68,5 +87,10 @@ export async function runFullAudit(url: string): Promise<AuditReport> {
     summary: computeSummary(allIssues),
     performanceMetrics: perfResult.metrics,
     performanceNote: perfResult.note,
+    serpPreview: {
+      title: pageMeta.title,
+      description: pageMeta.description,
+      url: displayUrl,
+    },
   };
 }

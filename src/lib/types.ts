@@ -39,6 +39,12 @@ export interface PerformanceMetrics {
   ttfb?: string;
 }
 
+export interface SerpPreview {
+  title: string;
+  description: string;
+  url: string;
+}
+
 export interface AuditReport {
   url: string;
   scannedAt: string;
@@ -47,6 +53,7 @@ export interface AuditReport {
   summary: AuditSummary;
   performanceMetrics?: PerformanceMetrics;
   performanceNote?: string;
+  serpPreview?: SerpPreview;
 }
 
 export interface FetchResult {

@@ -5,6 +5,8 @@ import type { AuditIssue } from "@/lib/types";
 
 interface IssueCardProps {
   issue: AuditIssue;
+  resolved?: boolean;
+  onToggleResolved?: (id: string) => void;
 }
 
 const SEVERITY_STYLES = {
@@ -21,7 +23,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   links: "Links",
 };
 
-export function IssueCard({ issue }: IssueCardProps) {
+export function IssueCard({ issue, resolved, onToggleResolved }: IssueCardProps) {
   const [copied, setCopied] = useState(false);
 
   async function copyFix() {
@@ -32,8 +34,23 @@ export function IssueCard({ issue }: IssueCardProps) {
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <div
+      className={`rounded-lg border bg-white p-5 shadow-sm transition ${
+        resolved ? "border-green-200 opacity-60" : "border-slate-200"
+      }`}
+    >
       <div className="mb-3 flex flex-wrap items-center gap-2">
+        {onToggleResolved && (
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              checked={resolved}
+              onChange={() => onToggleResolved(issue.id)}
+              className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
+            />
+            <span className={resolved ? "line-through" : ""}>Done</span>
+          </label>
+        )}
         <span
           className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase ${SEVERITY_STYLES[issue.severity]}`}
         >
@@ -44,7 +61,9 @@ export function IssueCard({ issue }: IssueCardProps) {
         </span>
       </div>
 
-      <h3 className="text-lg font-semibold text-slate-900">{issue.title}</h3>
+      <h3 className={`text-lg font-semibold text-slate-900 ${resolved ? "line-through" : ""}`}>
+        {issue.title}
+      </h3>
       <p className="mt-2 text-sm text-slate-600">{issue.description}</p>
 
       {issue.currentValue && (
