@@ -8,6 +8,7 @@ import { HomeFeatures } from "@/components/HomeFeatures";
 import Link from "next/link";
 import Image from "next/image";
 import type { AuditReport } from "@/lib/types";
+import type { PageLimit } from "@/components/UrlInput";
 
 export default function Home() {
   const [report, setReport] = useState<AuditReport | null>(null);
@@ -16,6 +17,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const lastUrl = useRef<string>("");
   const lastSiteCrawl = useRef<boolean>(false);
+  const lastMaxPages = useRef<PageLimit>(10);
   const checklistRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,7 +26,12 @@ export default function Home() {
     }
   }, [report]);
 
-  async function runAudit(url: string, siteCrawl: boolean, isRescan = false) {
+  async function runAudit(
+    url: string,
+    siteCrawl: boolean,
+    maxPages: PageLimit = 10,
+    isRescan = false
+  ) {
     setLoading(true);
     setError(null);
 
@@ -39,7 +46,7 @@ export default function Home() {
       const response = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, siteCrawl }),
+        body: JSON.stringify({ url, siteCrawl, maxPages }),
       });
 
       const data = await response.json();
@@ -55,6 +62,7 @@ export default function Home() {
 
       lastUrl.current = url;
       lastSiteCrawl.current = siteCrawl;
+      lastMaxPages.current = maxPages;
       setReport(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -67,12 +75,14 @@ export default function Home() {
     }
   }
 
-  function handleAudit(url: string, siteCrawl: boolean) {
-    runAudit(url, siteCrawl, false);
+  function handleAudit(url: string, siteCrawl: boolean, maxPages: PageLimit) {
+    runAudit(url, siteCrawl, maxPages, false);
   }
 
   function handleRescan() {
-    if (lastUrl.current) runAudit(lastUrl.current, lastSiteCrawl.current, true);
+    if (lastUrl.current) {
+      runAudit(lastUrl.current, lastSiteCrawl.current, lastMaxPages.current, true);
+    }
   }
 
   return (
@@ -105,7 +115,7 @@ export default function Home() {
             Paste your website URL — we&apos;ll tell you what you have and what&apos;s missing
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2 text-sm">
-            {["Free forever", "No login", "35+ checks", "Fix snippets"].map((badge) => (
+            {["Free forever", "No login", "35+ checks", "Up to 30 pages"].map((badge) => (
               <span
                 key={badge}
                 className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20 backdrop-blur-sm"

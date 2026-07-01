@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const siteCrawl = body?.siteCrawl === true;
     const maxPages =
       typeof body?.maxPages === "number"
-        ? Math.min(Math.max(2, body.maxPages), 10)
+        ? Math.min(Math.max(2, body.maxPages), 30)
         : 10;
 
     if (!urlInput || typeof urlInput !== "string") {

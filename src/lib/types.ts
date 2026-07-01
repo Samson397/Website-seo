@@ -58,7 +58,12 @@ export interface PageSummary {
 export interface CrawlSummary {
   enabled: boolean;
   pagesScanned: number;
+  /** Total unique pages found via sitemap + links */
+  totalPagesFound: number;
+  /** @deprecated use totalPagesFound — kept for older clients */
   pagesDiscovered: number;
+  scanLimit: number;
+  pagesNotScanned?: string[];
   pages: PageSummary[];
 }
 

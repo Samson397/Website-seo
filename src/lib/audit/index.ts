@@ -7,7 +7,7 @@ import { runPerformanceAudit } from "@/lib/audit/performance";
 import { runContentAudit, extractPageMeta } from "@/lib/audit/content";
 import { runImageAudit } from "@/lib/audit/images";
 import { runMobileSocialAudit } from "@/lib/audit/mobile-social";
-import { crawlSitePages } from "@/lib/audit/crawl";
+import { crawlSitePages, MAX_CRAWL_LIMIT } from "@/lib/audit/crawl";
 import { runDuplicateMetaAudit, runInternalLinkAudit } from "@/lib/audit/site-wide";
 import { runTrustAudit, runModernWebAudit, runWwwConsistencyAudit } from "@/lib/audit/trust";
 import {
@@ -30,11 +30,11 @@ import {
   CrawlSummary,
   computeCategoryScore,
   computeSummary,
+  createIssue,
   resetIssueCounter,
 } from "@/lib/types";
 
 const SEVERITY_ORDER = { critical: 0, warning: 1, info: 2 };
-const MAX_CRAWL_PAGES = 10;
 
 export async function runFullAudit(
   url: string,
@@ -43,7 +43,10 @@ export async function runFullAudit(
   resetIssueCounter();
 
   const siteCrawl = options.siteCrawl ?? false;
-  const maxPages = Math.min(options.maxPages ?? MAX_CRAWL_PAGES, MAX_CRAWL_PAGES);
+  const maxPages = Math.min(
+    options.maxPages ?? 10,
+    MAX_CRAWL_LIMIT
+  );
 
   const fetchResult = await safeFetch(url);
 
@@ -99,7 +102,7 @@ export async function runFullAudit(
   let siteWideIssues: ReturnType<typeof runDuplicateMetaAudit> = [];
 
   if (siteCrawl && fetchResult.html) {
-    const { pages: crawledPages, discoveredUrls } = await crawlSitePages(
+    const { pages: crawledPages, totalFound, notScannedSample } = await crawlSitePages(
       fetchResult.finalUrl,
       fetchResult.html,
       maxPages
@@ -114,10 +117,30 @@ export async function runFullAudit(
       ),
     ];
 
+    if (totalFound > crawledPages.length) {
+      siteWideIssues.push(
+        createIssue({
+          category: "seo",
+          severity: "info",
+          title: `Large site — ${totalFound} pages found, ${crawledPages.length} scanned`,
+          description:
+            "Full site scan checks duplicate titles and descriptions across crawled pages only. Issues on unscanned pages will not appear in this report.",
+          currentValue: `Scan limit: ${maxPages} pages`,
+          recommendation:
+            totalFound > maxPages
+              ? `Increase the page limit (up to ${MAX_CRAWL_LIMIT}), scan key URLs separately, or run multiple scans starting from different pages.`
+              : "Scan important URLs individually for a full check of each page.",
+        })
+      );
+    }
+
     crawlSummary = {
       enabled: true,
       pagesScanned: crawledPages.length,
-      pagesDiscovered: discoveredUrls.length,
+      totalPagesFound: totalFound,
+      pagesDiscovered: totalFound,
+      scanLimit: maxPages,
+      pagesNotScanned: notScannedSample.length > 0 ? notScannedSample : undefined,
       pages: crawledPages.map((p) => ({
         url: p.url,
         pathname: new URL(p.url).pathname,
