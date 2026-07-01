@@ -41,7 +41,7 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
         <button
           type="submit"
           disabled={loading}
-          className="rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 hover:shadow-blue-700/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-60"
+          className="w-full rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 hover:shadow-blue-700/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-60 sm:w-auto"
         >
           {loading ? "Analyzing…" : "Analyze site"}
         </button>

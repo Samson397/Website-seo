@@ -86,9 +86,9 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 pb-28 pt-12 text-white sm:pb-32 sm:pt-16">
+    <main className="min-h-screen bg-slate-50 pb-8">
+      {/* Hero — compact on mobile so the form is never covered */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 px-4 pb-8 pt-10 text-white sm:px-6 sm:pb-24 sm:pt-14">
         <div
           className="pointer-events-none absolute inset-0 opacity-30"
           aria-hidden
@@ -97,24 +97,27 @@ export default function Home() {
               "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 40%)",
           }}
         />
-        <div className="relative mx-auto max-w-5xl px-4 text-center sm:px-6">
-          <div className="mb-5 flex justify-center">
-            <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/20 backdrop-blur-sm">
+        <div className="relative mx-auto max-w-5xl text-center">
+          <div className="mb-4 flex justify-center sm:mb-5">
+            <div className="rounded-2xl bg-white/10 p-2.5 ring-1 ring-white/20 backdrop-blur-sm sm:p-3">
               <Image
                 src="/icon.svg"
                 alt="SEOScan logo — website SEO audit tool"
-                width={52}
-                height={52}
+                width={44}
+                height={44}
                 priority
-                className="brightness-0 invert"
+                className="h-11 w-11 brightness-0 invert sm:h-[52px] sm:w-[52px]"
               />
             </div>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">SEOScan</h1>
-          <p className="mx-auto mt-4 max-w-xl text-lg text-blue-100">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">SEOScan</h1>
+          <p className="mx-auto mt-3 max-w-xl text-base text-blue-100 sm:mt-4 sm:text-lg">
             Paste your website URL — we&apos;ll tell you what you have and what&apos;s missing
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-2 text-sm">
+          <p className="mt-3 text-xs text-blue-200/90 sm:hidden">
+            Free · No login · 35+ checks
+          </p>
+          <div className="mt-5 hidden flex-wrap justify-center gap-2 text-sm sm:flex">
             {["Free forever", "No login", "35+ checks", "Up to 30 pages"].map((badge) => (
               <span
                 key={badge}
@@ -128,8 +131,8 @@ export default function Home() {
       </div>
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        {/* Search card */}
-        <div className="-mt-16 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-8">
+        {/* Search card — below hero on mobile, slight overlap on desktop only */}
+        <div className="relative z-10 mt-5 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/50 sm:-mt-14 sm:p-8">
           <UrlInput onSubmit={handleAudit} loading={loading} />
           <nav className="mt-5 flex justify-center gap-5 border-t border-slate-100 pt-4 text-xs text-slate-400">
             <Link href="/about" className="transition hover:text-blue-600">

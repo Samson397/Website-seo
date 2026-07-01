@@ -23,7 +23,7 @@ const FEATURES = [
 
 export function HomeFeatures() {
   return (
-    <section className="mt-16 space-y-10">
+    <section className="mt-10 space-y-8 pb-24 sm:mt-16 sm:pb-8">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-slate-900">Everything we check in one scan</h2>
         <p className="mx-auto mt-3 max-w-2xl text-slate-600">
