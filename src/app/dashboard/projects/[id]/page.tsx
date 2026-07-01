@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ScoreTrend } from "@/components/dashboard/ScoreTrend";
+import { UptimePanel } from "@/components/dashboard/UptimePanel";
 import { formatUrlDisplay } from "@/lib/url-display";
 import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
 import type { AuditReport } from "@/lib/types";
@@ -13,9 +14,14 @@ interface ProjectDetail {
   name: string;
   url: string;
   siteCrawl: boolean;
-  maxPages: number;
   monitorEnabled: boolean;
+  uptimeEnabled: boolean;
   lastScanAt: string | null;
+  lastUptimeStatus: string | null;
+  lastUptimeAt: string | null;
+  lastUptimeMs: number | null;
+  lastUptimeHttpStatus: number | null;
+  lastSslExpiryDays: number | null;
   scans: {
     id: string;
     createdAt: string;
@@ -28,6 +34,13 @@ interface ProjectDetail {
     warningCount: number;
     infoCount: number;
   }[];
+  uptimeChecks: {
+    status: string;
+    httpStatus: number | null;
+    responseMs: number | null;
+    error: string | null;
+    createdAt: string;
+  }[];
 }
 
 export default function ProjectDetailPage() {
@@ -38,6 +51,7 @@ export default function ProjectDetailPage() {
   const [report, setReport] = useState<AuditReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [checkingUptime, setCheckingUptime] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadProject() {
@@ -82,16 +96,25 @@ export default function ProjectDetailPage() {
     await loadProject();
   }
 
-  async function toggleMonitor(enabled: boolean) {
+  async function checkUptimeNow() {
+    setCheckingUptime(true);
+    const res = await fetch(`/api/projects/${projectId}/uptime`, { method: "POST" });
+    setCheckingUptime(false);
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Uptime check failed");
+      return;
+    }
+    await loadProject();
+  }
+
+  async function patchProject(body: Record<string, boolean>) {
     const res = await fetch(`/api/projects/${projectId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ monitorEnabled: enabled }),
+      body: JSON.stringify(body),
     });
-
-    if (res.ok) {
-      await loadProject();
-    }
+    if (res.ok) await loadProject();
   }
 
   if (loading) {
@@ -130,7 +153,7 @@ export default function ProjectDetailPage() {
           disabled={scanning}
           className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
         >
-          {scanning ? "Scanning…" : "Run scan now"}
+          {scanning ? "Scanning…" : "Run SEO scan"}
         </button>
       </div>
 
@@ -138,10 +161,10 @@ export default function ProjectDetailPage() {
         <input
           type="checkbox"
           checked={project.monitorEnabled}
-          onChange={(e) => toggleMonitor(e.target.checked)}
+          onChange={(e) => patchProject({ monitorEnabled: e.target.checked })}
           className="h-4 w-4 rounded border-slate-300 text-blue-600"
         />
-        Weekly monitoring (email alert if scores drop or critical issues appear)
+        Weekly SEO scan (email if scores drop or critical issues appear)
       </label>
 
       {error && (
@@ -150,8 +173,23 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
+      <div className="mt-8">
+        <UptimePanel
+          uptimeEnabled={project.uptimeEnabled}
+          lastUptimeStatus={project.lastUptimeStatus}
+          lastUptimeAt={project.lastUptimeAt}
+          lastUptimeMs={project.lastUptimeMs}
+          lastUptimeHttpStatus={project.lastUptimeHttpStatus}
+          lastSslExpiryDays={project.lastSslExpiryDays}
+          checks={project.uptimeChecks}
+          onToggle={(enabled) => patchProject({ uptimeEnabled: enabled })}
+          onCheckNow={checkUptimeNow}
+          checking={checkingUptime}
+        />
+      </div>
+
       <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">Score history</h2>
+        <h2 className="text-lg font-semibold text-slate-900">SEO score history</h2>
         <div className="mt-4">
           <ScoreTrend scans={project.scans} />
         </div>
@@ -159,14 +197,14 @@ export default function ProjectDetailPage() {
 
       {report?.checklist && (
         <section className="mt-8">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900">Latest scan checklist</h2>
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">Latest SEO checklist</h2>
           <SiteChecklistPanel checklist={report.checklist} />
         </section>
       )}
 
       {!report && !scanning && (
         <p className="mt-8 text-center text-slate-500">
-          Run your first scan to see the checklist and detailed results.
+          Run your first SEO scan to see the checklist and detailed results.
         </p>
       )}
     </main>

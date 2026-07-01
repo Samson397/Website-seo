@@ -3,12 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatUrlDisplay } from "@/lib/url-display";
+import { UptimeBadge } from "@/components/dashboard/UptimePanel";
 
 interface ProjectSummary {
   id: string;
   name: string;
   url: string;
   monitorEnabled: boolean;
+  uptimeEnabled: boolean;
+  lastUptimeStatus: string | null;
   lastScanAt: string | null;
   scans: {
     seoScore: number;
@@ -84,7 +87,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900">My sites</h1>
             <p className="mt-1 text-sm text-slate-600">
-              Track SEO scores over time · weekly monitoring when enabled
+              Track SEO scores, uptime, and SSL — weekly SEO scans + checks every 15 minutes
             </p>
           </div>
           {projects.length < limit && (
@@ -158,7 +161,12 @@ export default function DashboardPage() {
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                      <h2 className="text-lg font-semibold text-slate-900">{project.name}</h2>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-lg font-semibold text-slate-900">{project.name}</h2>
+                        {project.uptimeEnabled && (
+                          <UptimeBadge status={project.lastUptimeStatus} />
+                        )}
+                      </div>
                       <p className="text-sm text-slate-500">{formatUrlDisplay(project.url)}</p>
                     </div>
                     {last ? (
@@ -174,7 +182,8 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <p className="mt-3 text-xs text-slate-400">
-                    Monitoring: {project.monitorEnabled ? "Weekly" : "Off"}
+                    SEO: {project.monitorEnabled ? "Weekly" : "Off"} · Uptime:{" "}
+                    {project.uptimeEnabled ? "Every 15 min" : "Off"}
                   </p>
                 </Link>
               );

@@ -7,6 +7,7 @@ const updateSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   siteCrawl: z.boolean().optional(),
   monitorEnabled: z.boolean().optional(),
+  uptimeEnabled: z.boolean().optional(),
 });
 
 async function getOwnedProject(projectId: string, userId: string) {
@@ -42,6 +43,17 @@ export async function GET(_request: Request, { params }: { params: { id: string 
           criticalCount: true,
           warningCount: true,
           infoCount: true,
+        },
+      },
+      uptimeChecks: {
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: {
+          status: true,
+          httpStatus: true,
+          responseMs: true,
+          error: true,
+          createdAt: true,
         },
       },
     },

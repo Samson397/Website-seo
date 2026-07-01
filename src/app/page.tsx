@@ -105,7 +105,7 @@ export default function Home() {
             Free · 35+ checks · <Link href="/register" className="underline">Save &amp; monitor</Link>
           </p>
           <div className="mt-5 hidden flex-wrap justify-center gap-2 text-sm sm:flex">
-            {["Free forever", "35+ checks", "Full site discovery", "Weekly monitoring"].map((badge) => (
+            {["Free forever", "35+ checks", "Uptime monitoring", "Weekly SEO scans"].map((badge) => (
               <span
                 key={badge}
                 className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20 backdrop-blur-sm"

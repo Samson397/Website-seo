@@ -15,6 +15,11 @@ const FEATURES = [
     text: "Find missing privacy or terms links, contact and about pages, form labels, image alt text, mobile viewport settings, and broken links. Every issue includes plain-English guidance and a copy-paste fix snippet where possible so you can improve quickly without guessing.",
   },
   {
+    title: "Uptime & SSL alerts",
+    icon: "🛡️",
+    text: "Create a free account and we ping your site every 15 minutes. Get emailed if your site goes down, comes back up, or your SSL certificate is expiring within 30 days.",
+  },
+  {
     title: "Domain intelligence",
     icon: "🌐",
     text: "For custom domains we inspect DNS, domain registration expiry, SPF, DMARC, and DKIM email records. Platform hosts like vercel.app skip email DNS checks because those records cannot be set there. Export your report to CSV or PDF and re-scan after you make changes.",

@@ -1,21 +1,17 @@
 interface AlertEmailParams {
   to: string;
-  projectName: string;
-  projectUrl: string;
-  alerts: { message: string }[];
-  dashboardUrl: string;
+  subject: string;
+  body: string;
 }
 
-export async function sendMonitorAlertEmail(params: AlertEmailParams): Promise<boolean> {
+export async function sendAlertEmail(params: AlertEmailParams): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM || "SEOScan <alerts@seoscan.app>";
 
   if (!apiKey) {
-    console.info("[email] RESEND_API_KEY not set — skipping alert email", params);
+    console.info("[email] RESEND_API_KEY not set — skipping alert", params.subject);
     return false;
   }
-
-  const alertList = params.alerts.map((a) => `• ${a.message}`).join("\n");
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -26,8 +22,8 @@ export async function sendMonitorAlertEmail(params: AlertEmailParams): Promise<b
     body: JSON.stringify({
       from,
       to: params.to,
-      subject: `SEOScan alert: ${params.projectName}`,
-      text: `We detected changes on ${params.projectUrl}:\n\n${alertList}\n\nView details: ${params.dashboardUrl}`,
+      subject: params.subject,
+      text: params.body,
     }),
   });
 
@@ -37,4 +33,22 @@ export async function sendMonitorAlertEmail(params: AlertEmailParams): Promise<b
   }
 
   return true;
+}
+
+interface MonitorAlertEmailParams {
+  to: string;
+  projectName: string;
+  projectUrl: string;
+  alerts: { message: string }[];
+  dashboardUrl: string;
+}
+
+export async function sendMonitorAlertEmail(params: MonitorAlertEmailParams): Promise<boolean> {
+  const alertList = params.alerts.map((a) => `• ${a.message}`).join("\n");
+
+  return sendAlertEmail({
+    to: params.to,
+    subject: `SEOScan alert: ${params.projectName}`,
+    body: `We detected changes on ${params.projectUrl}:\n\n${alertList}\n\nView details: ${params.dashboardUrl}`,
+  });
 }

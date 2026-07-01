@@ -10,6 +10,7 @@ const createProjectSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   siteCrawl: z.boolean().optional(),
   monitorEnabled: z.boolean().optional(),
+  uptimeEnabled: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
         name: parsed.data.name || hostname,
         siteCrawl: parsed.data.siteCrawl ?? false,
         monitorEnabled: parsed.data.monitorEnabled ?? true,
+        uptimeEnabled: parsed.data.uptimeEnabled ?? true,
       },
     });
 

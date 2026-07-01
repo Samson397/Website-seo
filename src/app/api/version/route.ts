@@ -15,6 +15,7 @@ export async function GET() {
       ),
       accounts: Boolean(process.env.DATABASE_URL && process.env.NEXTAUTH_SECRET),
       monitoring: Boolean(process.env.DATABASE_URL && process.env.CRON_SECRET),
+      uptimeMonitoring: Boolean(process.env.DATABASE_URL && process.env.CRON_SECRET),
     },
   });
 }

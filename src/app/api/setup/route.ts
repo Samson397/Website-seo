@@ -10,7 +10,7 @@ function checks(): Check[] {
     { key: "DATABASE_URL", label: "PostgreSQL database", ok: Boolean(process.env.DATABASE_URL), required: true },
     { key: "NEXTAUTH_SECRET", label: "Auth secret", ok: Boolean(process.env.NEXTAUTH_SECRET), required: true },
     { key: "NEXTAUTH_URL", label: "Auth URL (your site URL)", ok: Boolean(process.env.NEXTAUTH_URL), required: true },
-    { key: "CRON_SECRET", label: "Weekly monitoring cron", ok: Boolean(process.env.CRON_SECRET), required: false },
+    { key: "CRON_SECRET", label: "Scheduled monitoring crons", ok: Boolean(process.env.CRON_SECRET), required: false },
     { key: "RESEND_API_KEY", label: "Email alerts (Resend)", ok: Boolean(process.env.RESEND_API_KEY), required: false },
     { key: "EMAIL_FROM", label: "Alert sender address", ok: Boolean(process.env.EMAIL_FROM), required: false },
     { key: "PAGESPEED_API_KEY", label: "Google PageSpeed scores", ok: Boolean(process.env.PAGESPEED_API_KEY), required: false },
