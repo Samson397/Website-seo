@@ -28,7 +28,7 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
           id="audit-url"
           type="text"
           name="url"
-          placeholder="https://yourwebsite.com"
+          placeholder="yourwebsite.com"
           required
           disabled={loading}
           className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 shadow-inner placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/25 disabled:opacity-60"

@@ -99,7 +99,7 @@ export default function Home() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">SEOScan</h1>
           <p className="mx-auto mt-3 max-w-xl text-base text-blue-100 sm:mt-4 sm:text-lg">
-            Paste your website URL — we&apos;ll tell you what you have and what&apos;s missing
+            Enter your website — just the domain is fine, e.g. yourwebsite.com
           </p>
           <p className="mt-3 text-xs text-blue-200/90 sm:hidden">
             Free · 35+ checks · <Link href="/register" className="underline">Save &amp; monitor</Link>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { formatUrlDisplay } from "@/lib/url-display";
 
 interface ProjectSummary {
   id: string;
@@ -114,9 +115,9 @@ export default function DashboardPage() {
             <div className="mt-2 flex flex-col gap-3 sm:flex-row">
               <input
                 id="site-url"
-                type="url"
+                type="text"
                 required
-                placeholder="https://yourwebsite.com"
+                placeholder="yourwebsite.com"
                 value={newUrl}
                 onChange={(e) => setNewUrl(e.target.value)}
                 className="flex-1 rounded-xl border border-slate-200 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/25"
@@ -158,7 +159,7 @@ export default function DashboardPage() {
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <h2 className="text-lg font-semibold text-slate-900">{project.name}</h2>
-                      <p className="text-sm text-slate-500">{project.url}</p>
+                      <p className="text-sm text-slate-500">{formatUrlDisplay(project.url)}</p>
                     </div>
                     {last ? (
                       <div className="text-right">

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ScoreTrend } from "@/components/dashboard/ScoreTrend";
+import { formatUrlDisplay } from "@/lib/url-display";
 import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
 import type { AuditReport } from "@/lib/types";
 
@@ -121,7 +122,7 @@ export default function ProjectDetailPage() {
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{project.name}</h1>
-          <p className="text-sm text-slate-500">{project.url}</p>
+          <p className="text-sm text-slate-500">{formatUrlDisplay(project.url)}</p>
         </div>
         <button
           type="button"

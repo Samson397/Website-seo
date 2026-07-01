@@ -41,10 +41,20 @@ function isPrivateIp(ip: string): boolean {
 export function normalizeUrl(input: string): string {
   let url = input.trim();
   if (!url) throw new Error("URL is required");
-  if (!/^https?:\/\//i.test(url)) {
-    url = `https://${url}`;
+
+  // Allow plain domains: example.com, www.example.com, example.com/about
+  url = url.replace(/^<|>$/g, "").replace(/^https?:\/\//i, "");
+  url = url.replace(/\/+$/, "") || url;
+
+  if (!url || /\s/.test(url)) {
+    throw new Error("Enter a website address like example.com");
   }
-  return new URL(url).href;
+
+  try {
+    return new URL(`https://${url}`).href;
+  } catch {
+    throw new Error("Enter a website address like example.com");
+  }
 }
 
 export async function validateUrlSafe(urlString: string): Promise<URL> {

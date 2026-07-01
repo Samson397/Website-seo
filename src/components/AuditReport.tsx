@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { AuditReport, AuditCategory } from "@/lib/types";
+import { formatUrlDisplay } from "@/lib/url-display";
 import { ScoreGauge } from "@/components/ScoreGauge";
 import { IssueCard } from "@/components/IssueCard";
 import { SerpPreview } from "@/components/SerpPreview";
@@ -81,7 +82,7 @@ export function AuditReportView({
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-xl font-bold text-slate-900">Audit Results</h2>
-            <p className="mt-1 break-all text-sm text-slate-500">{report.url}</p>
+            <p className="mt-1 break-all text-sm text-slate-500">{formatUrlDisplay(report.url)}</p>
             <p className="text-xs text-slate-400">
               Scanned {new Date(report.scannedAt).toLocaleString()}
             </p>
