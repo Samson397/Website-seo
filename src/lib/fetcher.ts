@@ -133,11 +133,15 @@ export async function safeFetch(urlString: string): Promise<SafeFetchResult> {
     }
 
     let html = "";
-    if (
+    const isTextBody =
       contentType.includes("text/html") ||
       contentType.includes("application/xhtml") ||
-      contentType === ""
-    ) {
+      contentType.startsWith("text/") ||
+      contentType.includes("xml") ||
+      contentType.includes("json") ||
+      contentType === "";
+
+    if (isTextBody) {
       html = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
     }
 

@@ -97,6 +97,14 @@ export default function Home() {
           <Link href="/terms" className="hover:text-slate-600">
             Terms
           </Link>
+          <a
+            href="https://github.com/Samson397/Website-seo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-slate-600"
+          >
+            GitHub
+          </a>
         </nav>
 
         {loading && (
