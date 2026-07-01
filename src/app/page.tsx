@@ -4,8 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { UrlInput } from "@/components/UrlInput";
 import { AuditReportView } from "@/components/AuditReport";
 import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
-import { SiteFooter } from "@/components/SiteFooter";
-import { HowItWorks } from "@/components/HowItWorks";
+import Link from "next/link";
 import type { AuditReport } from "@/lib/types";
 
 export default function Home() {
@@ -88,6 +87,18 @@ export default function Home() {
 
         <UrlInput onSubmit={handleAudit} loading={loading} />
 
+        <nav className="mx-auto mt-4 flex max-w-2xl justify-center gap-4 text-xs text-slate-400">
+          <Link href="/about" className="hover:text-slate-600">
+            About
+          </Link>
+          <Link href="/privacy" className="hover:text-slate-600">
+            Privacy
+          </Link>
+          <Link href="/terms" className="hover:text-slate-600">
+            Terms
+          </Link>
+        </nav>
+
         {loading && (
           <div className="mt-8 rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
@@ -119,10 +130,6 @@ export default function Home() {
             />
           </div>
         )}
-
-        {!report && !loading && <HowItWorks />}
-
-        <SiteFooter />
       </div>
     </main>
   );

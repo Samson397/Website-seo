@@ -6,6 +6,7 @@
 
 - [Homepage](/): Run a website audit
 - [Privacy Policy](/privacy): How we handle data
+- [Terms of Service](/terms): Terms of use
 - [About](/about): About SEOScan
 
 ## Optional
