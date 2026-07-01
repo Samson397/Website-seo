@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { UrlInput } from "@/components/UrlInput";
 import { AuditReportView } from "@/components/AuditReport";
 import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
+import { SiteFooter } from "@/components/SiteFooter";
+import { HowItWorks } from "@/components/HowItWorks";
 import type { AuditReport } from "@/lib/types";
 
 export default function Home() {
@@ -117,6 +119,10 @@ export default function Home() {
             />
           </div>
         )}
+
+        {!report && !loading && <HowItWorks />}
+
+        <SiteFooter />
       </div>
     </main>
   );

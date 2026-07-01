@@ -1,0 +1,13 @@
+# Website SEO Auditor
+
+> Free tool that scans any public website and reports what you have and what's missing for SEO, performance, security, and accessibility.
+
+## Docs
+
+- [Homepage](/): Run a website audit
+- [Privacy Policy](/privacy): How we handle data
+- [About](/about): About this tool
+
+## Optional
+
+- [GitHub](https://github.com/Samson397/Website-seo): Source code
