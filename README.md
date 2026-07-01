@@ -1,84 +1,119 @@
-# Website SEO Auditor
+# SEOScan
 
-A web app that analyzes any public website URL and produces a comprehensive audit report — **no API keys required**. Covers SEO, performance, accessibility, security, domain intelligence, and more, with explanations, severity ratings, and ready-to-copy fix snippets.
+Free website SEO auditor with optional **accounts, saved sites, scan history, and weekly monitoring**.
 
-## Features
+Live: [seoscan-five.vercel.app](https://seoscan-five.vercel.app)
 
-- **SEO audit** — title, meta description, H1, canonical, Open Graph tags, robots.txt, sitemap.xml, structured data
-- **Content quality** — thin content detection, readability, content freshness signals
-- **Mobile & social** — viewport meta, Twitter/X cards, favicon, Apple touch icon, URL structure
-- **Image optimization** — missing dimensions, lazy loading, modern format suggestions
-- **Performance** — server response time, HTML size, script/stylesheet count, compression headers
-- **Accessibility** — alt text, form labels, language attribute, heading hierarchy
-- **Security** — HTTPS, security headers, mixed content detection
-- **Broken links** — checks up to 20 links on the page for 404s and unreachable URLs
-- **Google SERP preview** — see how your title/description appear in search results
-- **Re-scan comparison** — compare scores before and after fixes
-- **Issue checklist** — mark issues done, hide resolved items
-- **Export** — download CSV or print/PDF report
-- **Full site scan** — crawl up to 10 pages via sitemap + links for duplicate titles/descriptions
-- **Trust & legal** — privacy policy, terms of service, contact page links
-- **Modern web** — manifest.json, llms.txt, www/non-www consistency
-- **Domain intelligence** — registration expiry, SSL expiry, DNS (SPF/DMARC/DKIM)
-- **Technology detection** — WordPress, Shopify, React, GA4, Cloudflare, etc.
-- **Link profile** — internal and external link counts and top linked domains
-- **Social profiles** — linked Facebook, Twitter/X, Instagram, LinkedIn, etc.
-- **Fix snippets** — copy-paste HTML/meta fixes for each issue
+## What it does
 
-## Use on Your Phone (No Local Setup)
+**Without an account (always free)**
+- Paste any URL → instant SEO, performance, accessibility, and security audit
+- 35+ Has/Missing checklist in plain English
+- Full site scan up to 30 pages
+- Export CSV / PDF
 
-1. Open **[Deploy to Vercel →](https://vercel.com/new/clone?repository-url=https://github.com/Samson397/Website-seo)**
-2. Sign in with GitHub and click **Deploy**
-3. Open your Vercel URL on your phone, paste any website, and tap **Analyze**
-
-No API keys required for the full audit. Optional extras:
-
-- `PAGESPEED_API_KEY` — Lighthouse Core Web Vitals scores
-- `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` — backlink data
-
-Add these in Vercel **Settings → Environment Variables** only if you want them. No user login or OAuth anywhere in the app.
+**With a free account**
+- Save up to 3 websites
+- Scan history and score trends over time
+- Weekly auto-rescan (when monitoring is enabled)
+- Email alerts when scores drop or critical issues appear (optional)
 
 ---
 
-## Getting Started (Local Development)
+## Deploy to Vercel (step by step)
+
+### 1. Deploy the app (no keys needed)
+
+1. Open [Deploy to Vercel](https://vercel.com/new/clone?repository-url=https://github.com/Samson397/Website-seo)
+2. Deploy — the **scanner works immediately** without any environment variables
+
+### 2. Add a database (for accounts)
+
+1. In Vercel → your project → **Storage** → create **Postgres** (or use [Neon](https://neon.tech) free tier)
+2. Connect it to the project — Vercel sets `DATABASE_URL` automatically
+
+### 3. Add required env vars (accounts)
+
+In Vercel → **Settings → Environment Variables**, add:
+
+| Variable | How to get it |
+|----------|---------------|
+| `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` and paste the result |
+| `NEXTAUTH_URL` | Your site URL, e.g. `https://seoscan-five.vercel.app` |
+
+Redeploy. The build runs `prisma db push` automatically when `DATABASE_URL` is set.
+
+### 4. Verify setup
+
+Visit `https://your-site.vercel.app/api/setup` — you should see `"accountsReady": true`.
+
+Then go to `/register` and create an account.
+
+### 5. Optional extras (add when you want them)
+
+| Variable | What it enables |
+|----------|-----------------|
+| `CRON_SECRET` | Weekly monitoring cron (any random string) |
+| `RESEND_API_KEY` | Email alerts via [Resend](https://resend.com) |
+| `EMAIL_FROM` | Sender for alerts, e.g. `SEOScan <alerts@yourdomain.com>` |
+| `PAGESPEED_API_KEY` | Google Lighthouse Core Web Vitals |
+| `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlink data |
+| `NEXT_PUBLIC_SITE_URL` | Canonical URL for your own site's SEO |
+
+**Cron:** Vercel sends `Authorization: Bearer <CRON_SECRET>` to `/api/cron/monitor` every Monday 9:00 UTC when `CRON_SECRET` is set.
+
+---
+
+## Local development
 
 ```bash
 git clone https://github.com/Samson397/Website-seo.git
 cd Website-seo
 npm install
+cp .env.example .env.local
+# Edit .env.local — add DATABASE_URL and NEXTAUTH_SECRET for accounts
+npm run db:push   # create tables (first time only)
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), paste a URL, and click **Analyze**.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Usage
+Check setup: [http://localhost:3000/api/setup](http://localhost:3000/api/setup)
 
-1. Enter any public website URL (e.g. `https://example.com`)
-2. Click **Analyze** and wait 10–60 seconds (site scan takes longer)
-3. Review scores, site intelligence, and issues grouped by category
-4. Click **Copy fix** on any issue to get a ready-to-paste snippet
+---
 
 ## API
 
+### Scan a URL (no auth)
+
 ```bash
-curl -X POST http://localhost:3000/api/audit \
+curl -X POST https://your-site.vercel.app/api/audit \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "siteCrawl": true}'
+  -d '{"url": "https://example.com", "siteCrawl": false}'
 ```
 
-Returns a JSON audit report with scores, issues, and fix snippets.
+### Setup status
 
-## Tech Stack
+```bash
+curl https://your-site.vercel.app/api/setup
+```
 
-- [Next.js 14](https://nextjs.org/) (App Router)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Cheerio](https://cheerio.js.org/) for HTML parsing
-- [Vercel Analytics](https://vercel.com/docs/analytics)
+### Projects (auth required — browser session)
 
-## Deploy
+Sign in at `/login`, then use the dashboard or:
 
-Deploy to [Vercel](https://vercel.com/) with zero config. No environment variables required.
+- `GET /api/projects` — list your sites
+- `POST /api/projects` — `{ "url": "https://example.com" }`
+- `POST /api/projects/{id}/scan` — run a saved scan
+
+---
+
+## Tech stack
+
+- Next.js 14 (App Router), TypeScript, Tailwind CSS
+- Prisma + PostgreSQL
+- NextAuth (email/password)
+- Cheerio, Vercel Analytics, optional Resend + PageSpeed + DataForSEO
 
 ## License
 

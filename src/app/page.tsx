@@ -99,7 +99,7 @@ export default function Home() {
           }}
         />
         <div className="relative mx-auto max-w-5xl text-center">
-          <div className="absolute right-0 top-0 hidden sm:block">
+          <div className="absolute right-0 top-0">
             <HomeAuthLinks />
           </div>
           <div className="mb-4 flex justify-center sm:mb-5">
