@@ -6,7 +6,7 @@ import { AuditReportView } from "@/components/AuditReport";
 import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
 import { HomeFeatures } from "@/components/HomeFeatures";
 import Link from "next/link";
-import Image from "next/image";
+import { LogoMark } from "@/components/LogoMark";
 import { HomeAuthLinks, SaveScanBanner } from "@/components/HomeAuthLinks";
 import type { AuditReport } from "@/lib/types";
 import type { PageLimit } from "@/components/UrlInput";
@@ -103,16 +103,7 @@ export default function Home() {
             <HomeAuthLinks />
           </div>
           <div className="mb-4 flex justify-center sm:mb-5">
-            <div className="rounded-2xl bg-white/10 p-2.5 ring-1 ring-white/20 backdrop-blur-sm sm:p-3">
-              <Image
-                src="/icon.svg"
-                alt="SEOScan logo — website SEO audit tool"
-                width={44}
-                height={44}
-                priority
-                className="h-11 w-11 brightness-0 invert sm:h-[52px] sm:w-[52px]"
-              />
-            </div>
+            <LogoMark size="md" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">SEOScan</h1>
           <p className="mx-auto mt-3 max-w-xl text-base text-blue-100 sm:mt-4 sm:text-lg">
