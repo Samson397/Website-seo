@@ -3,6 +3,7 @@ import { DnsInfo, DomainInfo, SslInfo } from "@/lib/audit/domain-intel";
 import { TechnologyInfo } from "@/lib/audit/technology";
 import { SocialProfile } from "@/lib/audit/social";
 import { AuditContext } from "@/lib/types";
+import { supportsEmailDnsChecks } from "@/lib/platform-domain";
 
 export type ChecklistStatus = "has" | "missing" | "warning";
 
@@ -62,6 +63,8 @@ export function buildSiteChecklist(
 ): SiteChecklist {
   const $ = cheerio.load(ctx.fetchResult.html);
   const baseUrl = ctx.fetchResult.finalUrl;
+  const hostname = new URL(baseUrl).hostname;
+  const checkEmailDns = supportsEmailDnsChecks(hostname);
   const items: ChecklistItem[] = [];
 
   const title = $("title").first().text().trim();
@@ -179,17 +182,19 @@ export function buildSiteChecklist(
       : item("analytics", "Visitor tracking (Analytics)", "warning", "No analytics detected — you can't measure traffic.", "Install Google Analytics 4 or similar.")
   );
 
-  items.push(
-    dnsInfo.hasSpf
-      ? item("spf", "Email SPF record", "has", "SPF helps your emails reach inboxes instead of spam.")
-      : item("spf", "Email SPF record", "missing", "No SPF record — emails from your domain may go to spam.", "Add an SPF TXT record to your DNS.")
-  );
+  if (checkEmailDns) {
+    items.push(
+      dnsInfo.hasSpf
+        ? item("spf", "Email SPF record", "has", "SPF helps your emails reach inboxes instead of spam.")
+        : item("spf", "Email SPF record", "missing", "No SPF record — emails from your domain may go to spam.", "Add an SPF TXT record to your DNS.")
+    );
 
-  items.push(
-    dnsInfo.hasDmarc
-      ? item("dmarc", "Email DMARC record", "has", "DMARC protects your domain from email spoofing.")
-      : item("dmarc", "Email DMARC record", "missing", "No DMARC record found.", "Add a DMARC record at _dmarc.yourdomain.com")
-  );
+    items.push(
+      dnsInfo.hasDmarc
+        ? item("dmarc", "Email DMARC record", "has", "DMARC protects your domain from email spoofing.")
+        : item("dmarc", "Email DMARC record", "missing", "No DMARC record found.", "Add a DMARC record at _dmarc.yourdomain.com")
+    );
+  }
 
   items.push(
     sslInfo.daysUntilExpiry !== undefined && sslInfo.daysUntilExpiry > 30
@@ -251,7 +256,9 @@ export function buildSiteChecklist(
   );
 
   const hasCookieBanner =
-    /cookiebot|onetrust|cookie-consent|cookiebanner|gdpr|iubenda|termly|osano/i.test($.html());
+    /seoscan-cookie-consent|cookie-consent-banner|cookiebot|onetrust|cookie-consent|cookiebanner|gdpr|iubenda|termly|osano|analytics cookies|uses cookies/i.test(
+      $.html()
+    );
   items.push(
     hasCookieBanner
       ? item("cookies", "Cookie consent notice", "has", "A cookie consent or privacy banner was detected.")
@@ -270,11 +277,13 @@ export function buildSiteChecklist(
       : item("llms", "AI crawler instructions (llms.txt)", "warning", "No llms.txt — AI crawlers may not know how to treat your site.", "Add an llms.txt file at your site root.")
   );
 
-  items.push(
-    dnsInfo.hasDkim
-      ? item("dkim", "Email DKIM record", "has", "DKIM helps verify your emails are genuinely from you.")
-      : item("dkim", "Email DKIM record", "missing", "No DKIM record found — email authentication is incomplete.", "Add DKIM records from your email provider to DNS.")
-  );
+  if (checkEmailDns) {
+    items.push(
+      dnsInfo.hasDkim
+        ? item("dkim", "Email DKIM record", "has", "DKIM helps verify your emails are genuinely from you.")
+        : item("dkim", "Email DKIM record", "missing", "No DKIM record found — email authentication is incomplete.", "Add DKIM records from your email provider to DNS.")
+    );
+  }
 
   const headers = ctx.fetchResult.headers;
   const hasHsts = Boolean(headers["strict-transport-security"]);

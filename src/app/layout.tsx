@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
+import { CookieConsent } from "@/components/CookieConsent";
 import "./globals.css";
 
 import { getSiteUrl } from "@/lib/site-url";
@@ -56,6 +57,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         {children}
+        <CookieConsent />
         <Analytics />
       </body>
     </html>

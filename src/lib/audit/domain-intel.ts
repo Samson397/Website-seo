@@ -1,6 +1,7 @@
 import dns from "dns/promises";
 import tls from "tls";
 import { AuditIssue, createIssue } from "@/lib/types";
+import { supportsEmailDnsChecks } from "@/lib/platform-domain";
 
 export interface DomainInfo {
   registrar?: string;
@@ -215,7 +216,7 @@ export function runDomainAudit(
     );
   }
 
-  if (!dnsInfo.hasSpf) {
+  if (supportsEmailDnsChecks(hostname) && !dnsInfo.hasSpf) {
     issues.push(
       createIssue({
         category: "domain",
@@ -228,7 +229,7 @@ export function runDomainAudit(
     );
   }
 
-  if (!dnsInfo.hasDmarc) {
+  if (supportsEmailDnsChecks(hostname) && !dnsInfo.hasDmarc) {
     issues.push(
       createIssue({
         category: "domain",
@@ -241,7 +242,7 @@ export function runDomainAudit(
     );
   }
 
-  if (!dnsInfo.hasDkim) {
+  if (supportsEmailDnsChecks(hostname) && !dnsInfo.hasDkim) {
     issues.push(
       createIssue({
         category: "domain",
@@ -253,7 +254,7 @@ export function runDomainAudit(
     );
   }
 
-  if (!dnsInfo.mxRecords?.length) {
+  if (supportsEmailDnsChecks(hostname) && !dnsInfo.mxRecords?.length) {
     issues.push(
       createIssue({
         category: "domain",

@@ -5,7 +5,9 @@ import { UrlInput } from "@/components/UrlInput";
 import { AuditReportView } from "@/components/AuditReport";
 import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
 import Link from "next/link";
+import Image from "next/image";
 import type { AuditReport } from "@/lib/types";
+import { WhatWeCheck } from "@/components/WhatWeCheck";
 
 export default function Home() {
   const [report, setReport] = useState<AuditReport | null>(null);
@@ -77,6 +79,15 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         <header className="mb-10 text-center">
+          <div className="mb-4 flex justify-center">
+            <Image
+              src="/icon.svg"
+              alt="SEOScan logo — website SEO audit tool"
+              width={56}
+              height={56}
+              priority
+            />
+          </div>
           <h1 className="text-4xl font-bold tracking-tight text-slate-900">
             SEOScan
           </h1>
@@ -106,6 +117,8 @@ export default function Home() {
             GitHub
           </a>
         </nav>
+
+        {!report && !loading && <WhatWeCheck />}
 
         {loading && (
           <div className="mt-8 rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
