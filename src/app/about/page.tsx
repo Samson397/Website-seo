@@ -20,15 +20,8 @@ export default function AboutPage() {
         </p>
         <h2 className="mt-8 text-xl font-semibold text-slate-900">Contact</h2>
         <p className="mt-2 leading-relaxed">
-          This project is open source. Report issues or contribute on{" "}
-          <a
-            href="https://github.com/Samson397/Website-seo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            GitHub
-          </a>
-          .
+          Questions or feedback? Visit our About page or run a scan on your site to see
+          SEOScan in action.
         </p>
         <h2 className="mt-6 text-xl font-semibold text-slate-900">How it works</h2>
         <p className="mt-2 leading-relaxed">

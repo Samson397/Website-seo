@@ -32,16 +32,7 @@ export default function TermsPage() {
         </p>
         <h2 className="mt-6 text-xl font-semibold text-slate-900">Contact</h2>
         <p className="mt-2 leading-relaxed">
-          Questions? See our <Link href="/about">About</Link> page or open an issue on{" "}
-          <a
-            href="https://github.com/Samson397/Website-seo"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
-          >
-            GitHub
-          </a>
-          .
+          Questions? See our <Link href="/about">About</Link> page.
         </p>
       </article>
     </main>
