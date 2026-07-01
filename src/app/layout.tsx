@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { CookieConsent } from "@/components/CookieConsent";
+import { AuthProvider } from "@/components/AuthProvider";
 import "./globals.css";
 
 import { getSiteUrl } from "@/lib/site-url";
@@ -56,9 +57,11 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        {children}
-        <CookieConsent />
-        <Analytics />
+        <AuthProvider>
+          {children}
+          <CookieConsent />
+          <Analytics />
+        </AuthProvider>
       </body>
     </html>
   );

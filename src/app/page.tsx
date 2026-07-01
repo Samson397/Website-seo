@@ -7,6 +7,7 @@ import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
 import { HomeFeatures } from "@/components/HomeFeatures";
 import Link from "next/link";
 import Image from "next/image";
+import { HomeAuthLinks, SaveScanBanner } from "@/components/HomeAuthLinks";
 import type { AuditReport } from "@/lib/types";
 import type { PageLimit } from "@/components/UrlInput";
 
@@ -98,6 +99,9 @@ export default function Home() {
           }}
         />
         <div className="relative mx-auto max-w-5xl text-center">
+          <div className="absolute right-0 top-0 hidden sm:block">
+            <HomeAuthLinks />
+          </div>
           <div className="mb-4 flex justify-center sm:mb-5">
             <div className="rounded-2xl bg-white/10 p-2.5 ring-1 ring-white/20 backdrop-blur-sm sm:p-3">
               <Image
@@ -115,10 +119,10 @@ export default function Home() {
             Paste your website URL — we&apos;ll tell you what you have and what&apos;s missing
           </p>
           <p className="mt-3 text-xs text-blue-200/90 sm:hidden">
-            Free · No login · 35+ checks
+            Free · 35+ checks · <Link href="/register" className="underline">Save &amp; monitor</Link>
           </p>
           <div className="mt-5 hidden flex-wrap justify-center gap-2 text-sm sm:flex">
-            {["Free forever", "No login", "35+ checks", "Up to 30 pages"].map((badge) => (
+            {["Free forever", "35+ checks", "Up to 30 pages", "Weekly monitoring"].map((badge) => (
               <span
                 key={badge}
                 className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20 backdrop-blur-sm"
@@ -163,6 +167,7 @@ export default function Home() {
 
         {report && !loading && (
           <div className="mt-10 space-y-8 pb-12">
+            <SaveScanBanner url={report.url} />
             {report.checklist && (
               <div ref={checklistRef} id="what-you-have">
                 <SiteChecklistPanel checklist={report.checklist} />

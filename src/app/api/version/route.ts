@@ -13,6 +13,8 @@ export async function GET() {
       dataForSeo: Boolean(
         process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD
       ),
+      accounts: Boolean(process.env.DATABASE_URL && process.env.NEXTAUTH_SECRET),
+      monitoring: Boolean(process.env.DATABASE_URL && process.env.CRON_SECRET),
     },
   });
 }

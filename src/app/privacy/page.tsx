@@ -16,9 +16,14 @@ export default function PrivacyPage() {
         <p className="mt-2 text-sm text-slate-500">Last updated: July 2026</p>
         <h2 className="mt-8 text-xl font-semibold text-slate-900">What we collect</h2>
         <p className="mt-2 leading-relaxed">
-          When you enter a URL to audit, we fetch that public webpage and analyze it. We do not
-          require an account. We do not store your audit history on our servers after the
-          response is sent.
+          When you enter a URL to audit, we fetch that public webpage and analyze it. One-off scans
+          without an account are not stored on our servers after the response is sent.
+        </p>
+        <h2 className="mt-6 text-xl font-semibold text-slate-900">Accounts &amp; monitoring</h2>
+        <p className="mt-2 leading-relaxed">
+          If you create a free account, we store your email, saved site URLs, and scan results so
+          you can view history and receive monitoring alerts. You can delete sites from your
+          dashboard at any time.
         </p>
         <h2 className="mt-6 text-xl font-semibold text-slate-900">Analytics</h2>
         <p className="mt-2 leading-relaxed">

@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String?
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  projects     Project[]
+}
+
+model Project {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  url            String
+  siteCrawl      Boolean   @default(false)
+  maxPages       Int       @default(10)
+  monitorEnabled Boolean   @default(true)
+  lastScanAt     DateTime?
+  lastAlertAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  scans          Scan[]
+
+  @@unique([userId, url])
+  @@index([userId])
+  @@index([monitorEnabled, lastScanAt])
+}
+
+model Scan {
+  id                 String   @id @default(cuid())
+  projectId          String
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  trigger            String   @default("manual")
+  seoScore           Int
+  performanceScore   Int
+  accessibilityScore Int
+  securityScore      Int
+  criticalCount      Int
+  warningCount       Int
+  infoCount          Int
+  report             Json
+  createdAt          DateTime @default(now())
+
+  @@index([projectId, createdAt])
+}
