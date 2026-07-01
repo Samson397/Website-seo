@@ -17,7 +17,7 @@ const FEATURES = [
   {
     title: "Uptime & SSL alerts",
     icon: "🛡️",
-    text: "Create a free account and we ping your site every 15 minutes. Get emailed if your site goes down, comes back up, or your SSL certificate is expiring within 30 days.",
+    text: "Create a free account and we check your site daily for uptime. Get emailed if your site goes down, comes back up, or your SSL certificate is expiring within 30 days. Use Check now anytime for an instant test.",
   },
   {
     title: "Domain intelligence",

@@ -87,7 +87,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900">My sites</h1>
             <p className="mt-1 text-sm text-slate-600">
-              Track SEO scores, uptime, and SSL — weekly SEO scans + checks every 15 minutes
+              Track SEO scores, uptime, and SSL — weekly SEO scans + daily uptime checks
             </p>
           </div>
           {projects.length < limit && (
