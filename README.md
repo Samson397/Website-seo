@@ -9,7 +9,7 @@ Live: [seoscan-five.vercel.app](https://seoscan-five.vercel.app)
 **Without an account (always free)**
 - Paste any URL → instant SEO, performance, accessibility, and security audit
 - 35+ Has/Missing checklist in plain English
-- Full site scan up to 30 pages
+- Full site scan — discovers all pages from sitemap + links, reports full site map
 - Export CSV / PDF
 
 **With a free account**

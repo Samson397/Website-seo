@@ -9,7 +9,6 @@ const createProjectSchema = z.object({
   url: z.string().min(1),
   name: z.string().trim().min(1).max(120).optional(),
   siteCrawl: z.boolean().optional(),
-  maxPages: z.number().int().min(2).max(30).optional(),
   monitorEnabled: z.boolean().optional(),
 });
 
@@ -87,7 +86,6 @@ export async function POST(request: Request) {
         url,
         name: parsed.data.name || hostname,
         siteCrawl: parsed.data.siteCrawl ?? false,
-        maxPages: parsed.data.maxPages ?? 10,
         monitorEnabled: parsed.data.monitorEnabled ?? true,
       },
     });

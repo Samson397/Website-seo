@@ -6,7 +6,6 @@ import { getCurrentUser } from "@/lib/session";
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
   siteCrawl: z.boolean().optional(),
-  maxPages: z.number().int().min(2).max(30).optional(),
   monitorEnabled: z.boolean().optional(),
 });
 

@@ -35,7 +35,6 @@ export async function POST(_request: Request, { params }: { params: { id: string
     await validateUrlSafe(project.url);
     const report = await runFullAudit(project.url, {
       siteCrawl: project.siteCrawl,
-      maxPages: project.maxPages,
     });
 
     const previousReport = parseStoredReport(project.scans[0]?.report);

@@ -2,11 +2,8 @@
 
 import { useState } from "react";
 
-export const PAGE_LIMIT_OPTIONS = [10, 20, 30] as const;
-export type PageLimit = (typeof PAGE_LIMIT_OPTIONS)[number];
-
 interface UrlInputProps {
-  onSubmit: (url: string, siteCrawl: boolean, maxPages: PageLimit) => void;
+  onSubmit: (url: string, siteCrawl: boolean) => void;
   loading: boolean;
 }
 
@@ -17,10 +14,8 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
     e.preventDefault();
     const form = e.currentTarget;
     const input = form.elements.namedItem("url") as HTMLInputElement;
-    const maxPagesInput = form.elements.namedItem("maxPages") as HTMLSelectElement;
     const url = input.value.trim();
-    const maxPages = Number(maxPagesInput.value) as PageLimit;
-    if (url) onSubmit(url, siteCrawl, maxPages);
+    if (url) onSubmit(url, siteCrawl);
   }
 
   return (
@@ -47,7 +42,7 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
         </button>
       </div>
 
-      <div className="space-y-3 rounded-lg border border-slate-100 bg-slate-50/80 p-3">
+      <div className="rounded-lg border border-slate-100 bg-slate-50/80 p-3">
         <label
           htmlFor="siteCrawl"
           className="flex cursor-pointer items-start gap-3 text-sm text-slate-600"
@@ -64,34 +59,11 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
           <span>
             <span className="font-medium text-slate-800">Full site scan</span>
             <span className="block text-xs text-slate-500">
-              Find duplicate titles &amp; descriptions across multiple pages
+              Find every page from your sitemap and links — we report how many pages you have
+              and check titles, descriptions, and duplicates across the site
             </span>
           </span>
         </label>
-
-        {siteCrawl && (
-          <div className="flex flex-col gap-1.5 border-t border-slate-200/80 pt-3 sm:flex-row sm:items-center sm:gap-3">
-            <label htmlFor="maxPages" className="text-sm font-medium text-slate-700">
-              Pages to scan
-            </label>
-            <select
-              id="maxPages"
-              name="maxPages"
-              defaultValue={10}
-              disabled={loading}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            >
-              {PAGE_LIMIT_OPTIONS.map((n) => (
-                <option key={n} value={n}>
-                  {n} pages{n === 30 ? " (slower)" : ""}
-                </option>
-              ))}
-            </select>
-            <span className="text-xs text-slate-500">
-              We find all pages from your sitemap + links, then scan up to this limit
-            </span>
-          </div>
-        )}
       </div>
     </form>
   );

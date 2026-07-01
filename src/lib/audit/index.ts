@@ -7,7 +7,7 @@ import { runPerformanceAudit } from "@/lib/audit/performance";
 import { runContentAudit, extractPageMeta } from "@/lib/audit/content";
 import { runImageAudit } from "@/lib/audit/images";
 import { runMobileSocialAudit } from "@/lib/audit/mobile-social";
-import { crawlSitePages, MAX_CRAWL_LIMIT } from "@/lib/audit/crawl";
+import { crawlSitePages } from "@/lib/audit/crawl";
 import { runDuplicateMetaAudit, runInternalLinkAudit } from "@/lib/audit/site-wide";
 import { runTrustAudit, runModernWebAudit, runWwwConsistencyAudit } from "@/lib/audit/trust";
 import {
@@ -43,10 +43,6 @@ export async function runFullAudit(
   resetIssueCounter();
 
   const siteCrawl = options.siteCrawl ?? false;
-  const maxPages = Math.min(
-    options.maxPages ?? 10,
-    MAX_CRAWL_LIMIT
-  );
 
   const fetchResult = await safeFetch(url);
 
@@ -102,11 +98,21 @@ export async function runFullAudit(
   let siteWideIssues: ReturnType<typeof runDuplicateMetaAudit> = [];
 
   if (siteCrawl && fetchResult.html) {
-    const { pages: crawledPages, totalFound, notScannedSample } = await crawlSitePages(
+    const { pages: crawledPages, totalFound, allDiscovered } = await crawlSitePages(
       fetchResult.finalUrl,
-      fetchResult.html,
-      maxPages
+      fetchResult.html
     );
+
+    const scannedUrls = new Set(crawledPages.map((p) => p.url));
+    const notScannedPaths = allDiscovered
+      .filter((u) => !scannedUrls.has(u))
+      .map((u) => {
+        try {
+          return new URL(u).pathname || "/";
+        } catch {
+          return u;
+        }
+      });
 
     siteWideIssues = [
       ...runDuplicateMetaAudit(crawledPages),
@@ -122,25 +128,31 @@ export async function runFullAudit(
         createIssue({
           category: "seo",
           severity: "info",
-          title: `Large site — ${totalFound} pages found, ${crawledPages.length} scanned`,
+          title: `Large site — ${totalFound} pages found, ${crawledPages.length} scanned in detail`,
           description:
-            "Full site scan checks duplicate titles and descriptions across crawled pages only. Issues on unscanned pages will not appear in this report.",
-          currentValue: `Scan limit: ${maxPages} pages`,
+            "We discovered every page from your sitemap and internal links. Duplicate-title checks run on scanned pages; the full page list is shown in the report.",
+          currentValue: `${totalFound} pages found`,
           recommendation:
-            totalFound > maxPages
-              ? `Increase the page limit (up to ${MAX_CRAWL_LIMIT}), scan key URLs separately, or run multiple scans starting from different pages.`
-              : "Scan important URLs individually for a full check of each page.",
+            "Review unscanned pages in the site list below, or run separate scans on important URLs for a full per-page audit.",
         })
       );
     }
+
+    const allPagePaths = allDiscovered.map((u) => {
+      try {
+        return new URL(u).pathname || "/";
+      } catch {
+        return u;
+      }
+    });
 
     crawlSummary = {
       enabled: true,
       pagesScanned: crawledPages.length,
       totalPagesFound: totalFound,
       pagesDiscovered: totalFound,
-      scanLimit: maxPages,
-      pagesNotScanned: notScannedSample.length > 0 ? notScannedSample : undefined,
+      allPagePaths,
+      pagesNotScanned: notScannedPaths.length > 0 ? notScannedPaths : undefined,
       pages: crawledPages.map((p) => ({
         url: p.url,
         pathname: new URL(p.url).pathname,

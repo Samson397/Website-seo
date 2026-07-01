@@ -62,7 +62,8 @@ export interface CrawlSummary {
   totalPagesFound: number;
   /** @deprecated use totalPagesFound — kept for older clients */
   pagesDiscovered: number;
-  scanLimit: number;
+  /** All discovered page paths (may exceed pagesScanned on large sites) */
+  allPagePaths?: string[];
   pagesNotScanned?: string[];
   pages: PageSummary[];
 }
@@ -129,7 +130,6 @@ export interface SiteChecklist {
 
 export interface AuditOptions {
   siteCrawl?: boolean;
-  maxPages?: number;
 }
 
 export interface AuditReport {

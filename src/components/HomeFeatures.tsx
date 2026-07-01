@@ -2,7 +2,7 @@ const FEATURES = [
   {
     title: "SEO & Google visibility",
     icon: "📋",
-    text: "We check your page title, meta description, H1 heading, canonical URL, Open Graph tags, Twitter cards, JSON-LD schema, robots.txt, XML sitemap, favicon, and internal links. Turn on full site scan to crawl up to 30 pages and catch duplicate titles or descriptions across your site.",
+    text: "We check your page title, meta description, H1 heading, canonical URL, Open Graph tags, Twitter cards, JSON-LD schema, robots.txt, XML sitemap, favicon, and internal links. Turn on full site scan to discover every page on your site and catch duplicate titles or descriptions across pages.",
   },
   {
     title: "Speed & security",

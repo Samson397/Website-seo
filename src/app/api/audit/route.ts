@@ -13,10 +13,6 @@ export async function POST(request: NextRequest) {
     const urlInput = body?.url;
     const siteCrawl = body?.siteCrawl === true;
     const projectId = typeof body?.projectId === "string" ? body.projectId : undefined;
-    const maxPages =
-      typeof body?.maxPages === "number"
-        ? Math.min(Math.max(2, body.maxPages), 30)
-        : 10;
 
     if (!urlInput || typeof urlInput !== "string") {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
@@ -24,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     await validateUrlSafe(urlInput);
     const normalized = normalizeUrl(urlInput);
-    const report = await runFullAudit(normalized, { siteCrawl, maxPages });
+    const report = await runFullAudit(normalized, { siteCrawl });
 
     if (projectId && isDatabaseConfigured()) {
       const user = await getCurrentUser();

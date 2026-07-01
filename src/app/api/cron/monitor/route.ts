@@ -43,7 +43,6 @@ export async function GET(request: Request) {
       await validateUrlSafe(project.url);
       const report = await runFullAudit(project.url, {
         siteCrawl: project.siteCrawl,
-        maxPages: project.maxPages,
       });
 
       const previousReport = parseStoredReport(project.scans[0]?.report);

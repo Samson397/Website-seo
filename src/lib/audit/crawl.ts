@@ -9,14 +9,15 @@ export interface CrawledPageMeta {
   status: number;
 }
 
-export const DEFAULT_MAX_PAGES = 10;
-export const MAX_CRAWL_LIMIT = 30;
-const MAX_DISCOVER_LIST = 250;
+/** Max pages we deep-scan for meta / duplicate checks (no user picker). */
+export const AUTO_SCAN_MAX = 75;
+/** Max unique URLs to discover from sitemap + links. */
+export const MAX_DISCOVER = 500;
 
 export interface DiscoverResult {
   urlsToScan: string[];
+  allDiscovered: string[];
   totalFound: number;
-  notScannedSample: string[];
 }
 
 function parseSitemapUrls(xml: string, origin: string, cap: number): string[] {
@@ -32,6 +33,46 @@ function parseSitemapUrls(xml: string, origin: string, cap: number): string[] {
     }
   }
   return urls;
+}
+
+function isSitemapIndex(xml: string): boolean {
+  return /<sitemapindex/i.test(xml);
+}
+
+async function collectSitemapUrls(entryUrl: string, cap: number): Promise<string[]> {
+  const origin = new URL(entryUrl).origin;
+  const found = new Set<string>();
+
+  const rootXml = await safeFetchText("/sitemap.xml", entryUrl);
+  if (!rootXml) return [];
+
+  async function ingest(xml: string) {
+    if (found.size >= cap) return;
+
+    if (isSitemapIndex(xml)) {
+      const childSitemaps = parseSitemapUrls(xml, origin, 20).filter((u) => /\.xml$/i.test(u));
+      for (const childUrl of childSitemaps) {
+        if (found.size >= cap) break;
+        try {
+          const res = await safeFetch(childUrl);
+          if (res.html && res.status < 400) {
+            await ingest(res.html);
+          }
+        } catch {
+          // skip unreachable child sitemap
+        }
+      }
+      return;
+    }
+
+    for (const u of parseSitemapUrls(xml, origin, cap - found.size)) {
+      found.add(u);
+      if (found.size >= cap) break;
+    }
+  }
+
+  await ingest(rootXml);
+  return Array.from(found);
 }
 
 function extractInternalLinks(html: string, baseUrl: string, origin: string): string[] {
@@ -71,51 +112,34 @@ function normalizeUrls(urls: string[]): string[] {
     .filter((u, i, arr) => arr.indexOf(u) === i);
 }
 
-export async function discoverPages(
-  entryUrl: string,
-  html: string,
-  maxPages: number = DEFAULT_MAX_PAGES
-): Promise<DiscoverResult> {
+function prioritizeUrls(entryUrl: string, urls: string[]): string[] {
+  const entryNormalized = entryUrl.replace(/\/$/, "") || entryUrl;
+  const entry =
+    urls.find((u) => u === entryNormalized || u.startsWith(entryNormalized)) || urls[0];
+  const rest = urls.filter((u) => u !== entry);
+  return entry ? [entry, ...rest] : rest;
+}
+
+export async function discoverPages(entryUrl: string, html: string): Promise<DiscoverResult> {
   const origin = new URL(entryUrl).origin;
   const discovered = new Set<string>();
   discovered.add(entryUrl);
 
-  const sitemapXml = await safeFetchText("/sitemap.xml", entryUrl);
-  if (sitemapXml) {
-    for (const url of parseSitemapUrls(sitemapXml, origin, MAX_DISCOVER_LIST)) {
-      discovered.add(url);
-      if (discovered.size >= MAX_DISCOVER_LIST) break;
-    }
+  for (const url of await collectSitemapUrls(entryUrl, MAX_DISCOVER)) {
+    discovered.add(url);
+    if (discovered.size >= MAX_DISCOVER) break;
   }
 
   for (const link of extractInternalLinks(html, entryUrl, origin)) {
     discovered.add(link);
-    if (discovered.size >= MAX_DISCOVER_LIST) break;
+    if (discovered.size >= MAX_DISCOVER) break;
   }
 
-  const normalized = normalizeUrls(Array.from(discovered));
-  const totalFound = normalized.length;
+  const allDiscovered = prioritizeUrls(entryUrl, normalizeUrls(Array.from(discovered)));
+  const totalFound = allDiscovered.length;
+  const urlsToScan = allDiscovered.slice(0, AUTO_SCAN_MAX);
 
-  const entryNormalized = entryUrl.replace(/\/$/, "") || entryUrl;
-  const entry =
-    normalized.find((u) => u === entryNormalized || u.startsWith(entryNormalized)) ||
-    normalized[0];
-  const rest = normalized.filter((u) => u !== entry);
-  const urlsToScan = [entry, ...rest].slice(0, maxPages);
-
-  const scanSet = new Set(urlsToScan);
-  const notScannedSample = normalized
-    .filter((u) => !scanSet.has(u))
-    .slice(0, 8)
-    .map((u) => {
-      try {
-        return new URL(u).pathname || "/";
-      } catch {
-        return u;
-      }
-    });
-
-  return { urlsToScan, totalFound, notScannedSample };
+  return { urlsToScan, allDiscovered, totalFound };
 }
 
 export function extractMetaFromHtml(url: string, html: string, status: number): CrawledPageMeta {
@@ -149,22 +173,17 @@ export async function fetchPageMeta(url: string): Promise<CrawledPageMeta | null
 
 export async function crawlSitePages(
   entryUrl: string,
-  entryHtml: string,
-  maxPages: number = DEFAULT_MAX_PAGES
+  entryHtml: string
 ): Promise<{
   pages: CrawledPageMeta[];
   urlsToScan: string[];
+  allDiscovered: string[];
   totalFound: number;
-  notScannedSample: string[];
 }> {
-  const { urlsToScan, totalFound, notScannedSample } = await discoverPages(
-    entryUrl,
-    entryHtml,
-    maxPages
-  );
+  const { urlsToScan, allDiscovered, totalFound } = await discoverPages(entryUrl, entryHtml);
   const results: CrawledPageMeta[] = [];
 
-  const batchSize = 4;
+  const batchSize = 6;
   for (let i = 0; i < urlsToScan.length; i += batchSize) {
     const batch = urlsToScan.slice(i, i + batchSize);
     const batchResults = await Promise.all(batch.map((u) => fetchPageMeta(u)));
@@ -173,5 +192,5 @@ export async function crawlSitePages(
     }
   }
 
-  return { pages: results, urlsToScan, totalFound, notScannedSample };
+  return { pages: results, urlsToScan, allDiscovered, totalFound };
 }

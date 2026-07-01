@@ -9,7 +9,6 @@ import Link from "next/link";
 import { LogoMark } from "@/components/LogoMark";
 import { HomeAuthLinks, SaveScanBanner } from "@/components/HomeAuthLinks";
 import type { AuditReport } from "@/lib/types";
-import type { PageLimit } from "@/components/UrlInput";
 
 export default function Home() {
   const [report, setReport] = useState<AuditReport | null>(null);
@@ -18,7 +17,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const lastUrl = useRef<string>("");
   const lastSiteCrawl = useRef<boolean>(false);
-  const lastMaxPages = useRef<PageLimit>(10);
   const checklistRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -27,12 +25,7 @@ export default function Home() {
     }
   }, [report]);
 
-  async function runAudit(
-    url: string,
-    siteCrawl: boolean,
-    maxPages: PageLimit = 10,
-    isRescan = false
-  ) {
+  async function runAudit(url: string, siteCrawl: boolean, isRescan = false) {
     setLoading(true);
     setError(null);
 
@@ -47,7 +40,7 @@ export default function Home() {
       const response = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, siteCrawl, maxPages }),
+        body: JSON.stringify({ url, siteCrawl }),
       });
 
       const data = await response.json();
@@ -63,7 +56,6 @@ export default function Home() {
 
       lastUrl.current = url;
       lastSiteCrawl.current = siteCrawl;
-      lastMaxPages.current = maxPages;
       setReport(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -76,13 +68,13 @@ export default function Home() {
     }
   }
 
-  function handleAudit(url: string, siteCrawl: boolean, maxPages: PageLimit) {
-    runAudit(url, siteCrawl, maxPages, false);
+  function handleAudit(url: string, siteCrawl: boolean) {
+    runAudit(url, siteCrawl, false);
   }
 
   function handleRescan() {
     if (lastUrl.current) {
-      runAudit(lastUrl.current, lastSiteCrawl.current, lastMaxPages.current, true);
+      runAudit(lastUrl.current, lastSiteCrawl.current, true);
     }
   }
 
@@ -113,7 +105,7 @@ export default function Home() {
             Free · 35+ checks · <Link href="/register" className="underline">Save &amp; monitor</Link>
           </p>
           <div className="mt-5 hidden flex-wrap justify-center gap-2 text-sm sm:flex">
-            {["Free forever", "35+ checks", "Up to 30 pages", "Weekly monitoring"].map((badge) => (
+            {["Free forever", "35+ checks", "Full site discovery", "Weekly monitoring"].map((badge) => (
               <span
                 key={badge}
                 className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20 backdrop-blur-sm"
