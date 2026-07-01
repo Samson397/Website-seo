@@ -22,10 +22,10 @@ export default function OpenGraphImage() {
         }}
       >
         <div style={{ fontSize: 56, fontWeight: 700, marginBottom: 16 }}>
-          Website SEO Auditor
+          SEOScan
         </div>
         <div style={{ fontSize: 28, opacity: 0.9, textAlign: "center", maxWidth: 800 }}>
-          See what your website has and what&apos;s missing — free, no login
+          What your site has &amp; what&apos;s missing
         </div>
       </div>
     ),

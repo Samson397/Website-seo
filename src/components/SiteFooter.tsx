@@ -21,7 +21,7 @@ export function SiteFooter() {
           </a>
         </nav>
         <p className="text-center text-slate-400">
-          Free SEO audit — no login required
+          Free SEO scan — no login required
         </p>
       </div>
     </footer>

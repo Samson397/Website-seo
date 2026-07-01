@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   return NextResponse.json({
-    app: "website-seo-auditor",
+    app: "seoscan",
     version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
     branch: process.env.VERCEL_GIT_COMMIT_REF ?? "local",
     features: {

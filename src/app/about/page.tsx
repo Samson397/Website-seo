@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "About — Website SEO Auditor",
-  description: "About the free Website SEO Auditor tool.",
+  title: "About — SEOScan",
+  description: "About the free SEOScan website audit tool.",
 };
 
 export default function AboutPage() {
@@ -12,9 +12,9 @@ export default function AboutPage() {
         <Link href="/" className="text-sm text-blue-600 hover:underline">
           ← Back to auditor
         </Link>
-        <h1 className="mt-6 text-3xl font-bold text-slate-900">About Website SEO Auditor</h1>
+        <h1 className="mt-6 text-3xl font-bold text-slate-900">About SEOScan</h1>
         <p className="mt-4 leading-relaxed">
-          Website SEO Auditor is a free online tool that scans any public website and tells you
+          SEOScan is a free online tool that scans any public website and tells you
           what you have and what&apos;s missing — SEO tags, performance, security headers,
           accessibility, DNS records, and more.
         </p>

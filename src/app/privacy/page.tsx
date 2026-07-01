@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Privacy Policy — Website SEO Auditor",
-  description: "Privacy policy for the Website SEO Auditor free online tool.",
+  title: "Privacy Policy — SEOScan",
+  description: "Privacy policy for SEOScan.",
 };
 
 export default function PrivacyPage() {

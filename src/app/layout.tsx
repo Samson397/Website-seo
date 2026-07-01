@@ -6,9 +6,9 @@ const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
-const title = "Website SEO Auditor — Free SEO, Security & Performance Scan";
+const title = "SEOScan — Free Website SEO & Security Audit";
 const description =
-  "Free website audit tool. Paste any URL to see what you have and what's missing — SEO, speed, security, accessibility, DNS, and more. No login required.";
+  "Paste any URL. SEOScan shows what your site has and what's missing — SEO, speed, security, accessibility, and DNS. Free, no login.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: siteUrl,
-    siteName: "Website SEO Auditor",
+    siteName: "SEOScan",
     type: "website",
     locale: "en_GB",
   },
@@ -39,7 +39,7 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "Website SEO Auditor",
+    name: "SEOScan",
     description,
     url: siteUrl,
     applicationCategory: "BusinessApplication",

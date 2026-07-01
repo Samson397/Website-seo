@@ -79,7 +79,7 @@ export default function Home() {
       <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         <header className="mb-10 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-slate-900">
-            Website SEO Auditor
+            SEOScan
           </h1>
           <p className="mt-3 text-lg text-slate-600">
             Paste your website URL — we&apos;ll tell you what you have and what&apos;s missing
