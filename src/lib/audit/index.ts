@@ -23,6 +23,7 @@ import {
   countInternalLinks,
 } from "@/lib/audit/social";
 import { fetchBacklinkProfile, runBacklinkAudit } from "@/lib/audit/backlinks";
+import { runDeepChecksAudit } from "@/lib/audit/deep-checks";
 import { buildSiteChecklist } from "@/lib/audit/checklist";
 import {
   AuditOptions,
@@ -93,6 +94,7 @@ export async function runFullAudit(
   const domainIssues = runDomainAudit(hostname, domainInfo, dnsInfo, sslInfo);
   const technologyIssues = runTechnologyAudit(ctx, technologies);
   const backlinkIssues = runBacklinkAudit(backlinkProfile);
+  const deepIssues = await runDeepChecksAudit(ctx);
 
   let crawlSummary: CrawlSummary | undefined;
   let siteWideIssues: ReturnType<typeof runDuplicateMetaAudit> = [];
@@ -179,10 +181,14 @@ export async function runFullAudit(
     backlinkProfile.available ? backlinkProfile.totalBacklinks : undefined,
     {
       brokenLinkCount: linkIssues.filter((i) => i.title.startsWith("Broken link")).length,
+      brokenImageCount: deepIssues.filter((i) => i.title === "Broken image").length,
+      isIndexable: !deepIssues.some((i) => i.title.includes("noindex")),
+      hasValidSchema: !deepIssues.some((i) => i.title.includes("Invalid structured data")),
       hasManifest: !modernWebIssues.some((i) => i.title.toLowerCase().includes("manifest")),
       hasLlmsTxt: !modernWebIssues.some((i) => i.title.toLowerCase().includes("llms.txt")),
       hasMixedContent: securityIssues.some((i) => i.title.includes("Mixed content")),
       wwwDuplicate: wwwIssues.length > 0,
+      hasRedirectChain: deepIssues.some((i) => i.title.includes("Redirect chain")),
     }
   );
 
@@ -200,6 +206,7 @@ export async function runFullAudit(
     ...domainIssues,
     ...technologyIssues,
     ...backlinkIssues,
+    ...deepIssues,
     ...siteWideIssues,
     ...perfResult.issues,
   ];

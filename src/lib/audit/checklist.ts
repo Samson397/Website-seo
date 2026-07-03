@@ -42,10 +42,14 @@ function countWords(html: string): number {
 
 export interface ChecklistExtras {
   brokenLinkCount: number;
+  brokenImageCount: number;
+  isIndexable: boolean;
+  hasValidSchema: boolean;
   hasManifest: boolean;
   hasLlmsTxt: boolean;
   hasMixedContent: boolean;
   wwwDuplicate: boolean;
+  hasRedirectChain: boolean;
 }
 
 export function buildSiteChecklist(
@@ -321,6 +325,30 @@ export function buildSiteChecklist(
     extras.brokenLinkCount === 0
       ? item("links", "Broken links", "has", "No broken links found on checked links.")
       : item("links", "Broken links", "missing", `${extras.brokenLinkCount} broken link${extras.brokenLinkCount === 1 ? "" : "s"} found — hurts SEO and user experience.`, "Fix or remove links that return 404 or errors.")
+  );
+
+  items.push(
+    extras.isIndexable
+      ? item("indexable", "Google can index this page", "has", "No noindex directive — search engines may include this page in results.")
+      : item("indexable", "Google can index this page", "missing", "This page is blocked from indexing.", "Remove noindex from meta robots unless intentional.")
+  );
+
+  items.push(
+    extras.hasValidSchema
+      ? item("schema-valid", "Structured data is valid", "has", "JSON-LD structured data parsed without errors.")
+      : item("schema-valid", "Structured data is valid", "warning", "Structured data has errors or is missing @context.", "Fix JSON-LD syntax and include @context.")
+  );
+
+  items.push(
+    extras.brokenImageCount === 0
+      ? item("images-ok", "Images load correctly", "has", "Checked images returned successfully.")
+      : item("images-ok", "Images load correctly", "missing", `${extras.brokenImageCount} broken image${extras.brokenImageCount === 1 ? "" : "s"} found.`, "Fix or replace images that return errors.")
+  );
+
+  items.push(
+    !extras.hasRedirectChain
+      ? item("redirects", "Clean URL (no redirect chain)", "has", "Page loads without a long redirect chain.")
+      : item("redirects", "Clean URL (no redirect chain)", "warning", "Multiple redirects detected before the page loads.", "Use a single direct URL or one 301 redirect.")
   );
 
   const unlabeledInputs = $("input, select, textarea")
