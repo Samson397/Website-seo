@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { AuditReport } from "@/lib/types";
 
 export function HomeAuthLinks() {
   const { data: session, status } = useSession();
@@ -41,7 +42,15 @@ export function HomeAuthLinks() {
   );
 }
 
-export function SaveScanBanner({ url }: { url: string }) {
+export function SaveScanBanner({
+  url,
+  report,
+  siteCrawl = false,
+}: {
+  url: string;
+  report: AuditReport;
+  siteCrawl?: boolean;
+}) {
   const { data: session } = useSession();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -66,7 +75,7 @@ export function SaveScanBanner({ url }: { url: string }) {
     const res = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
+      body: JSON.stringify({ url, siteCrawl, report }),
     });
 
     const data = await res.json();
@@ -83,7 +92,7 @@ export function SaveScanBanner({ url }: { url: string }) {
   return (
     <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span>Save this site to your dashboard for scan history and weekly alerts.</span>
+        <span>Save this scan to your dashboard for history, exports, and weekly alerts.</span>
         <button
           type="button"
           onClick={saveSite}
