@@ -2,7 +2,44 @@ import * as cheerio from "cheerio";
 import { safeHead } from "@/lib/fetcher";
 import { AuditContext, AuditIssue, createIssue } from "@/lib/types";
 
-const MAX_LINKS_TO_CHECK = 8;
+const LINK_CHECK_CONCURRENCY = 10;
+const LINK_CHECK_TIME_BUDGET_MS = 25_000;
+
+async function checkLinks(
+  links: string[]
+): Promise<{ brokenLinks: { url: string; status: number }[]; checkedCount: number }> {
+  const brokenLinks: { url: string; status: number }[] = [];
+  const startedAt = Date.now();
+  let checkedCount = 0;
+
+  for (let i = 0; i < links.length; i += LINK_CHECK_CONCURRENCY) {
+    if (Date.now() - startedAt >= LINK_CHECK_TIME_BUDGET_MS) {
+      break;
+    }
+
+    const batch = links.slice(i, i + LINK_CHECK_CONCURRENCY);
+    const batchResults = await Promise.all(
+      batch.map(async (linkUrl) => {
+        try {
+          const result = await safeHead(linkUrl);
+          if (result.status === 0 || result.status >= 400) {
+            return { url: linkUrl, status: result.status === 0 ? 0 : result.status };
+          }
+        } catch {
+          return { url: linkUrl, status: 0 };
+        }
+        return null;
+      })
+    );
+
+    for (const broken of batchResults) {
+      if (broken) brokenLinks.push(broken);
+    }
+    checkedCount += batch.length;
+  }
+
+  return { brokenLinks, checkedCount };
+}
 
 export async function runLinksAudit(ctx: AuditContext): Promise<AuditIssue[]> {
   const issues: AuditIssue[] = [];
@@ -25,23 +62,14 @@ export async function runLinksAudit(ctx: AuditContext): Promise<AuditIssue[]> {
     }
   });
 
-  const linksToCheck = Array.from(links).slice(0, MAX_LINKS_TO_CHECK);
-  const brokenLinks: { url: string; status: number }[] = [];
+  const sortedLinks = Array.from(links).sort((a, b) => {
+    const aInternal = a.startsWith(baseOrigin);
+    const bInternal = b.startsWith(baseOrigin);
+    if (aInternal === bInternal) return a.localeCompare(b);
+    return aInternal ? -1 : 1;
+  });
 
-  await Promise.all(
-    linksToCheck.map(async (linkUrl) => {
-      try {
-        const result = await safeHead(linkUrl);
-        if (result.status === 0) {
-          brokenLinks.push({ url: linkUrl, status: 0 });
-        } else if (result.status >= 400) {
-          brokenLinks.push({ url: linkUrl, status: result.status });
-        }
-      } catch {
-        brokenLinks.push({ url: linkUrl, status: 0 });
-      }
-    })
-  );
+  const { brokenLinks, checkedCount } = await checkLinks(sortedLinks);
 
   for (const broken of brokenLinks) {
     const isInternal = broken.url.startsWith(baseOrigin);
@@ -61,14 +89,14 @@ export async function runLinksAudit(ctx: AuditContext): Promise<AuditIssue[]> {
     );
   }
 
-  if (links.size > MAX_LINKS_TO_CHECK) {
+  if (checkedCount < links.size) {
     issues.push(
       createIssue({
         category: "links",
         severity: "info",
         title: "Additional links not checked",
-        description: `Found ${links.size} links but only checked the first ${MAX_LINKS_TO_CHECK} to avoid long scan times.`,
-        currentValue: `${links.size} total links on page`,
+        description: `Found ${links.size} links and checked ${checkedCount} before reaching the scan time limit. Internal links are checked first.`,
+        currentValue: `${checkedCount} of ${links.size} links checked`,
         recommendation: "Run a full-site crawl tool for comprehensive link checking.",
       })
     );
