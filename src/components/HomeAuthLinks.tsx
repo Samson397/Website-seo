@@ -92,7 +92,7 @@ export function SaveScanBanner({
   return (
     <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-900">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span>Save this scan to your dashboard for history, exports, and weekly alerts.</span>
+        <span>Save this scan to your dashboard for history, exports, and weekly monitoring.</span>
         <button
           type="button"
           onClick={saveSite}

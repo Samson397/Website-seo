@@ -18,7 +18,6 @@ export async function GET(request: Request) {
 
   const projects = await prisma.project.findMany({
     where: { uptimeEnabled: true },
-    include: { user: { select: { email: true } } },
     take: 25,
   });
 

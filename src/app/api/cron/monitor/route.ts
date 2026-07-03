@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma, isDatabaseConfigured } from "@/lib/db";
 import { runFullAudit } from "@/lib/audit";
 import { validateUrlSafe } from "@/lib/fetcher";
-import { saveScan, compareScans, parseStoredReport } from "@/lib/scans";
-import { sendMonitorAlertEmail } from "@/lib/email";
-import { getSiteUrl } from "@/lib/site-url";
+import { saveScan } from "@/lib/scans";
 
 export const maxDuration = 300;
 
@@ -31,12 +29,11 @@ export async function GET(request: Request) {
     },
     include: {
       scans: { orderBy: { createdAt: "desc" }, take: 1 },
-      user: { select: { email: true } },
     },
     take: 10,
   });
 
-  const results: { projectId: string; status: string; alerts?: number }[] = [];
+  const results: { projectId: string; status: string }[] = [];
 
   for (const project of projects) {
     try {
@@ -45,31 +42,9 @@ export async function GET(request: Request) {
         siteCrawl: project.siteCrawl,
       });
 
-      const previousReport = parseStoredReport(project.scans[0]?.report);
       await saveScan(project.id, report, "scheduled");
 
-      const alerts = previousReport ? compareScans(previousReport, report) : [];
-
-      if (alerts.length > 0 && project.user.email) {
-        const recentlyAlerted =
-          project.lastAlertAt && Date.now() - project.lastAlertAt.getTime() < 24 * 60 * 60 * 1000;
-
-        if (!recentlyAlerted) {
-          await sendMonitorAlertEmail({
-            to: project.user.email,
-            projectName: project.name,
-            projectUrl: project.url,
-            alerts,
-            dashboardUrl: `${getSiteUrl()}/dashboard/projects/${project.id}`,
-          });
-          await prisma.project.update({
-            where: { id: project.id },
-            data: { lastAlertAt: new Date() },
-          });
-        }
-      }
-
-      results.push({ projectId: project.id, status: "ok", alerts: alerts.length });
+      results.push({ projectId: project.id, status: "ok" });
     } catch (err) {
       results.push({
         projectId: project.id,

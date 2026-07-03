@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         <h2 className="mt-6 text-xl font-semibold text-slate-900">Accounts &amp; monitoring</h2>
         <p className="mt-2 leading-relaxed">
           If you create a free account, we store your email, saved site URLs, and scan results so
-          you can view history and receive monitoring alerts. You can delete sites from your
+          you can view history in your dashboard. You can delete sites from your
           dashboard at any time.
         </p>
         <h2 className="mt-6 text-xl font-semibold text-slate-900">Analytics</h2>

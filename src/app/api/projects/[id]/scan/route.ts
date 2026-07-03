@@ -4,8 +4,6 @@ import { getCurrentUser } from "@/lib/session";
 import { runFullAudit } from "@/lib/audit";
 import { validateUrlSafe } from "@/lib/fetcher";
 import { saveScan, compareScans, parseStoredReport } from "@/lib/scans";
-import { sendMonitorAlertEmail } from "@/lib/email";
-import { getSiteUrl } from "@/lib/site-url";
 
 export const maxDuration = 60;
 
@@ -23,7 +21,6 @@ export async function POST(_request: Request, { params }: { params: { id: string
     where: { id: params.id, userId: user.id },
     include: {
       scans: { orderBy: { createdAt: "desc" }, take: 1 },
-      user: { select: { email: true } },
     },
   });
 
@@ -40,21 +37,7 @@ export async function POST(_request: Request, { params }: { params: { id: string
     const previousReport = parseStoredReport(project.scans[0]?.report);
     const scan = await saveScan(project.id, report, "manual");
 
-    let alerts = previousReport ? compareScans(previousReport, report) : [];
-
-    if (alerts.length > 0 && user.email) {
-      await sendMonitorAlertEmail({
-        to: user.email,
-        projectName: project.name,
-        projectUrl: project.url,
-        alerts,
-        dashboardUrl: `${getSiteUrl()}/dashboard/projects/${project.id}`,
-      });
-      await prisma.project.update({
-        where: { id: project.id },
-        data: { lastAlertAt: new Date() },
-      });
-    }
+    const alerts = previousReport ? compareScans(previousReport, report) : [];
 
     return NextResponse.json({ report, scanId: scan.id, alerts });
   } catch (err) {

@@ -249,7 +249,7 @@ export default function ProjectDetailPage() {
             onChange={(e) => patchProject({ monitorEnabled: e.target.checked })}
             className="h-4 w-4 rounded border-slate-300 text-blue-600"
           />
-          Weekly SEO scan (email if scores drop or critical issues appear)
+          Weekly SEO scan (saved to your dashboard — check anytime for score history)
         </label>
         <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
           <input
