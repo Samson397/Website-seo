@@ -1,5 +1,6 @@
 import type { AuditReport } from "@/lib/types";
 import { prisma } from "@/lib/db";
+import { compareReports } from "@/lib/compare-reports";
 
 export const MAX_PROJECTS_PER_USER = 3;
 
@@ -47,20 +48,30 @@ export async function saveScan(
 }
 
 export interface ScanAlert {
-  type: "critical_increase" | "score_drop" | "new_critical_issues";
+  type: "critical_increase" | "score_drop" | "new_critical_issues" | "issues_fixed" | "checklist_change";
   message: string;
 }
 
 export function compareScans(previous: AuditReport, current: AuditReport): ScanAlert[] {
   const alerts: ScanAlert[] = [];
+  const comparison = compareReports(previous, current);
 
-  const prevCritical = previous.summary.critical;
-  const currCritical = current.summary.critical;
+  if (comparison.newIssues.filter((i) => i.severity === "critical").length > 0) {
+    const count = comparison.newIssues.filter((i) => i.severity === "critical").length;
+    alerts.push({
+      type: "new_critical_issues",
+      message: `${count} new critical issue${count === 1 ? "" : "s"}: ${comparison.newIssues
+        .filter((i) => i.severity === "critical")
+        .slice(0, 3)
+        .map((i) => i.title)
+        .join(", ")}${count > 3 ? "…" : ""}`,
+    });
+  }
 
-  if (currCritical > prevCritical) {
+  if (current.summary.critical > previous.summary.critical) {
     alerts.push({
       type: "critical_increase",
-      message: `Critical issues increased from ${prevCritical} to ${currCritical}.`,
+      message: `Critical issues increased from ${previous.summary.critical} to ${current.summary.critical}.`,
     });
   }
 
@@ -86,21 +97,17 @@ export function compareScans(previous: AuditReport, current: AuditReport): ScanA
     });
   }
 
-  const prevTitles = new Set(
-    previous.issues.filter((i) => i.severity === "critical").map((i) => i.title)
-  );
-  const newCritical = current.issues.filter(
-    (i) => i.severity === "critical" && !prevTitles.has(i.title)
-  );
-
-  if (newCritical.length > 0) {
-    const sample = newCritical
-      .slice(0, 3)
-      .map((i) => i.title)
-      .join(", ");
+  if (comparison.fixed.length > 0) {
     alerts.push({
-      type: "new_critical_issues",
-      message: `New critical issues: ${sample}${newCritical.length > 3 ? "…" : ""}`,
+      type: "issues_fixed",
+      message: `${comparison.fixed.length} issue${comparison.fixed.length === 1 ? "" : "s"} fixed since last scan.`,
+    });
+  }
+
+  if (comparison.checklist && comparison.checklist.hasCountDelta !== 0) {
+    alerts.push({
+      type: "checklist_change",
+      message: `Checklist: ${comparison.checklist.hasCountBefore} → ${comparison.checklist.hasCountAfter} items passing.`,
     });
   }
 

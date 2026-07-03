@@ -53,13 +53,25 @@ export default function ProjectDetailPage() {
   const [report, setReport] = useState<AuditReport | null>(null);
   const [previousReport, setPreviousReport] = useState<AuditReport | null>(null);
   const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
+  const [compareScanId, setCompareScanId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [checkingUptime, setCheckingUptime] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadScanReport(scanId: string, allScans: ProjectDetail["scans"]) {
+  async function loadBaselineReport(baselineScanId: string) {
+    const prevRes = await fetch(`/api/projects/${projectId}/scan?scanId=${baselineScanId}`);
+    const prevData = await prevRes.json();
+    setPreviousReport(prevRes.ok ? prevData.report : null);
+    setCompareScanId(baselineScanId);
+  }
+
+  async function loadScanReport(
+    scanId: string,
+    allScans: ProjectDetail["scans"],
+    baselineId?: string | null
+  ) {
     const res = await fetch(`/api/projects/${projectId}/scan?scanId=${scanId}`);
     const data = await res.json();
     if (!res.ok) {
@@ -71,13 +83,14 @@ export default function ProjectDetailPage() {
     setSelectedScanId(scanId);
 
     const scanIndex = allScans.findIndex((s) => s.id === scanId);
-    const previousScan = scanIndex >= 0 ? allScans[scanIndex + 1] : undefined;
-    if (previousScan) {
-      const prevRes = await fetch(`/api/projects/${projectId}/scan?scanId=${previousScan.id}`);
-      const prevData = await prevRes.json();
-      setPreviousReport(prevRes.ok ? prevData.report : null);
+    const defaultBaseline = scanIndex >= 0 ? allScans[scanIndex + 1]?.id : undefined;
+    const baseline = baselineId ?? defaultBaseline;
+
+    if (baseline && baseline !== scanId) {
+      await loadBaselineReport(baseline);
     } else {
       setPreviousReport(null);
+      setCompareScanId(null);
     }
   }
 
@@ -166,7 +179,16 @@ export default function ProjectDetailPage() {
 
   async function selectScan(scanId: string) {
     if (!project) return;
-    await loadScanReport(scanId, project.scans);
+    await loadScanReport(scanId, project.scans, compareScanId);
+  }
+
+  async function selectCompareScan(baselineId: string) {
+    if (!baselineId || baselineId === selectedScanId) {
+      setPreviousReport(null);
+      setCompareScanId(null);
+      return;
+    }
+    await loadBaselineReport(baselineId);
   }
 
   if (loading) {
@@ -227,7 +249,7 @@ export default function ProjectDetailPage() {
             onChange={(e) => patchProject({ monitorEnabled: e.target.checked })}
             className="h-4 w-4 rounded border-slate-300 text-blue-600"
           />
-          Weekly SEO scan (email if scores drop or critical issues appear)
+          Weekly SEO scan (saved to your dashboard — check anytime for score history)
         </label>
         <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
           <input
@@ -262,7 +284,28 @@ export default function ProjectDetailPage() {
       </div>
 
       <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">SEO score history</h2>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold text-slate-900">SEO score history</h2>
+          {project.scans.length > 1 && selectedScanId && (
+            <label className="flex items-center gap-2 text-sm text-slate-600">
+              Compare to
+              <select
+                value={compareScanId ?? ""}
+                onChange={(e) => selectCompareScan(e.target.value)}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+              >
+                <option value="">No comparison</option>
+                {project.scans
+                  .filter((s) => s.id !== selectedScanId)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {new Date(s.createdAt).toLocaleString()} ({s.trigger === "scheduled" ? "Weekly" : "Manual"})
+                    </option>
+                  ))}
+              </select>
+            </label>
+          )}
+        </div>
         <div className="mt-4">
           <ScoreTrend
             scans={project.scans}

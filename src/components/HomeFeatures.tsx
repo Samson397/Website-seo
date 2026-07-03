@@ -15,9 +15,9 @@ const FEATURES = [
     text: "Find missing privacy or terms links, contact and about pages, form labels, image alt text, mobile viewport settings, and broken links. Every issue includes plain-English guidance and a copy-paste fix snippet where possible so you can improve quickly without guessing.",
   },
   {
-    title: "Uptime & SSL alerts",
+    title: "Uptime & SSL monitoring",
     icon: "🛡️",
-    text: "Create a free account and we check your site daily for uptime. Get emailed if your site goes down, comes back up, or your SSL certificate is expiring within 30 days. Use Check now anytime for an instant test.",
+    text: "Create a free account and we check your site daily for uptime and SSL expiry. Results are saved to your dashboard — sign in anytime to see status, history, and trends. Use Check now for an instant test.",
   },
   {
     title: "Domain intelligence",
@@ -35,7 +35,7 @@ export function HomeFeatures() {
           SEOScan is a free website auditor built for business owners and marketers. Paste any
           public URL — no account required — and get a clear report of what your site already
           has and what is still missing for search engines, visitors, and security. Each scan
-          takes about thirty seconds and covers more than thirty-five individual checks.
+          takes about thirty seconds and covers more than fifty individual checks.
         </p>
       </div>
 

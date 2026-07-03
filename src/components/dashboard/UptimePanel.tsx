@@ -42,7 +42,7 @@ export function UptimePanel({
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Uptime &amp; SSL</h2>
           <p className="mt-1 text-sm text-slate-500">
-            We ping your site daily and email you if it goes down or SSL is expiring. Use Check now anytime.
+            We check your site daily and save uptime & SSL status to your dashboard. Use Check now anytime.
           </p>
         </div>
         <button

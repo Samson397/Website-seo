@@ -15,8 +15,7 @@ Live: [seoscan-five.vercel.app](https://seoscan-five.vercel.app)
 **With a free account**
 - Save up to 3 websites
 - Scan history and score trends over time
-- Weekly auto-rescan (when monitoring is enabled)
-- Email alerts when scores drop or critical issues appear (optional)
+- Weekly auto-rescan saved to your dashboard (when monitoring is enabled)
 
 ---
 
@@ -53,9 +52,7 @@ Then go to `/register` and create an account.
 
 | Variable | What it enables |
 |----------|-----------------|
-| `CRON_SECRET` | Weekly monitoring cron (any random string) |
-| `RESEND_API_KEY` | Email alerts via [Resend](https://resend.com) |
-| `EMAIL_FROM` | Sender for alerts, e.g. `SEOScan <alerts@yourdomain.com>` |
+| `CRON_SECRET` | Weekly SEO + daily uptime crons (any random string) |
 | `PAGESPEED_API_KEY` | Google Lighthouse Core Web Vitals |
 | `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlink data |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for your own site's SEO |
@@ -112,8 +109,7 @@ Sign in at `/login`, then use the dashboard or:
 
 - Next.js 14 (App Router), TypeScript, Tailwind CSS
 - Prisma + PostgreSQL
-- NextAuth (email/password)
-- Cheerio, Vercel Analytics, optional Resend + PageSpeed + DataForSEO
+- Cheerio, Vercel Analytics, optional PageSpeed + DataForSEO
 
 ## License
 

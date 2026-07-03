@@ -6,7 +6,7 @@ import { formatUrlDisplay } from "@/lib/url-display";
 import { ScoreGauge } from "@/components/ScoreGauge";
 import { IssueCard } from "@/components/IssueCard";
 import { SerpPreview } from "@/components/SerpPreview";
-import { ScoreComparison } from "@/components/ScoreComparison";
+import { ScanComparisonPanel } from "@/components/ScanComparisonPanel";
 import { ExportButtons } from "@/components/ExportButtons";
 import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
@@ -75,7 +75,7 @@ export function AuditReportView({
   return (
     <div className="mt-10 space-y-8">
       {previousReport && (
-        <ScoreComparison previous={previousReport} current={report} />
+        <ScanComparisonPanel previous={previousReport} current={report} />
       )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

@@ -23,7 +23,10 @@ import {
   countInternalLinks,
 } from "@/lib/audit/social";
 import { fetchBacklinkProfile, runBacklinkAudit } from "@/lib/audit/backlinks";
+import { runDeepChecksAudit } from "@/lib/audit/deep-checks";
+import { runComprehensiveChecksAudit } from "@/lib/audit/comprehensive-checks";
 import { buildSiteChecklist } from "@/lib/audit/checklist";
+import * as cheerio from "cheerio";
 import {
   AuditOptions,
   AuditReport,
@@ -93,6 +96,8 @@ export async function runFullAudit(
   const domainIssues = runDomainAudit(hostname, domainInfo, dnsInfo, sslInfo);
   const technologyIssues = runTechnologyAudit(ctx, technologies);
   const backlinkIssues = runBacklinkAudit(backlinkProfile);
+  const deepIssues = await runDeepChecksAudit(ctx);
+  const comprehensiveIssues = await runComprehensiveChecksAudit(ctx);
 
   let crawlSummary: CrawlSummary | undefined;
   let siteWideIssues: ReturnType<typeof runDuplicateMetaAudit> = [];
@@ -165,6 +170,7 @@ export async function runFullAudit(
   }
 
   const pageMeta = extractPageMeta(ctx);
+  const jsonLdText = cheerio.load(ctx.fetchResult.html)('script[type="application/ld+json"]').text();
 
   const checklist = buildSiteChecklist(
     ctx,
@@ -179,10 +185,19 @@ export async function runFullAudit(
     backlinkProfile.available ? backlinkProfile.totalBacklinks : undefined,
     {
       brokenLinkCount: linkIssues.filter((i) => i.title.startsWith("Broken link")).length,
+      brokenImageCount: deepIssues.filter((i) => i.title === "Broken image").length,
+      isIndexable: !deepIssues.some((i) => i.title.includes("noindex")),
+      hasValidSchema: !deepIssues.some((i) => i.title.includes("Invalid structured data")),
       hasManifest: !modernWebIssues.some((i) => i.title.toLowerCase().includes("manifest")),
       hasLlmsTxt: !modernWebIssues.some((i) => i.title.toLowerCase().includes("llms.txt")),
       hasMixedContent: securityIssues.some((i) => i.title.includes("Mixed content")),
       wwwDuplicate: wwwIssues.length > 0,
+      hasRedirectChain: deepIssues.some((i) => i.title.includes("Redirect chain")),
+      hasFaqSchema: jsonLdText.includes("FAQPage"),
+      hasOrganizationSchema:
+        jsonLdText.includes("Organization") || jsonLdText.includes("LocalBusiness"),
+      hasSecurityTxt: !comprehensiveIssues.some((i) => i.title.includes("security.txt")),
+      hasMainLandmark: !comprehensiveIssues.some((i) => i.title === "No main landmark"),
     }
   );
 
@@ -200,6 +215,8 @@ export async function runFullAudit(
     ...domainIssues,
     ...technologyIssues,
     ...backlinkIssues,
+    ...deepIssues,
+    ...comprehensiveIssues,
     ...siteWideIssues,
     ...perfResult.issues,
   ];

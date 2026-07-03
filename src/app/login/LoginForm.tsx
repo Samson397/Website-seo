@@ -41,7 +41,7 @@ export default function LoginForm() {
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-slate-900">Sign in to SEOScan</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Save sites, track scores over time, and get weekly monitoring alerts.
+          Save sites, track scores over time, and get weekly scans saved to your dashboard.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
