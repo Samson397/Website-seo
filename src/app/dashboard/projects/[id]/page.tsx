@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ScoreTrend } from "@/components/dashboard/ScoreTrend";
 import { UptimePanel } from "@/components/dashboard/UptimePanel";
 import { formatUrlDisplay } from "@/lib/url-display";
@@ -45,6 +45,7 @@ interface ProjectDetail {
 
 export default function ProjectDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const projectId = params.id as string;
 
   const [project, setProject] = useState<ProjectDetail | null>(null);
@@ -52,6 +53,7 @@ export default function ProjectDetailPage() {
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
   const [checkingUptime, setCheckingUptime] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadProject() {
@@ -115,6 +117,27 @@ export default function ProjectDetailPage() {
       body: JSON.stringify(body),
     });
     if (res.ok) await loadProject();
+  }
+
+  async function deleteProject() {
+    const confirmed = window.confirm(
+      `Delete ${project?.name}? This removes the site, scan history, and uptime checks. This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    setError(null);
+
+    const res = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
+    setDeleting(false);
+
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Failed to delete site");
+      return;
+    }
+
+    router.push("/dashboard");
   }
 
   if (loading) {
@@ -207,6 +230,21 @@ export default function ProjectDetailPage() {
           Run your first SEO scan to see the checklist and detailed results.
         </p>
       )}
+
+      <section className="mt-10 rounded-2xl border border-red-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">Delete site</h2>
+        <p className="mt-2 text-sm text-slate-600">
+          Remove this site from your account. All scan history and uptime data will be permanently deleted.
+        </p>
+        <button
+          type="button"
+          onClick={deleteProject}
+          disabled={deleting}
+          className="mt-4 rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
+        >
+          {deleting ? "Deleting…" : "Delete site"}
+        </button>
+      </section>
     </main>
   );
 }
