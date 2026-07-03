@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma, isDatabaseConfigured } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import { normalizeUrl } from "@/lib/fetcher";
-import { MAX_PROJECTS_PER_USER } from "@/lib/scans";
+import { MAX_PROJECTS_PER_USER, saveScan, parseStoredReport } from "@/lib/scans";
 
 const createProjectSchema = z.object({
   url: z.string().min(1),
@@ -11,6 +11,7 @@ const createProjectSchema = z.object({
   siteCrawl: z.boolean().optional(),
   monitorEnabled: z.boolean().optional(),
   uptimeEnabled: z.boolean().optional(),
+  report: z.record(z.string(), z.unknown()).optional(),
 });
 
 export async function GET() {
@@ -91,6 +92,11 @@ export async function POST(request: Request) {
         uptimeEnabled: parsed.data.uptimeEnabled ?? true,
       },
     });
+
+    const initialReport = parseStoredReport(parsed.data.report);
+    if (initialReport) {
+      await saveScan(project.id, initialReport, "manual");
+    }
 
     return NextResponse.json({ project }, { status: 201 });
   } catch (err) {

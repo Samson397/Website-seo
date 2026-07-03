@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatUrlDisplay } from "@/lib/url-display";
 import { UptimeBadge } from "@/components/dashboard/UptimePanel";
 
@@ -24,6 +25,7 @@ interface ProjectSummary {
 }
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [limit, setLimit] = useState(3);
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,7 @@ export default function DashboardPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [newUrl, setNewUrl] = useState("");
   const [adding, setAdding] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function loadProjects() {
     setLoading(true);
@@ -72,6 +75,28 @@ export default function DashboardPage() {
 
     setNewUrl("");
     setShowAdd(false);
+    await loadProjects();
+    router.push(`/dashboard/projects/${data.project.id}`);
+  }
+
+  async function deleteProject(project: ProjectSummary) {
+    const confirmed = window.confirm(
+      `Delete ${project.name}? This removes the site, scan history, and uptime checks. This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(project.id);
+    setError(null);
+
+    const res = await fetch(`/api/projects/${project.id}`, { method: "DELETE" });
+    setDeletingId(null);
+
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Failed to delete site");
+      return;
+    }
+
     await loadProjects();
   }
 
@@ -154,13 +179,12 @@ export default function DashboardPage() {
             {projects.map((project) => {
               const last = project.scans[0];
               return (
-                <Link
+                <div
                   key={project.id}
-                  href={`/dashboard/projects/${project.id}`}
-                  className="block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-200 hover:shadow-md"
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-200 hover:shadow-md"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
+                    <Link href={`/dashboard/projects/${project.id}`} className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-lg font-semibold text-slate-900">{project.name}</h2>
                         {project.uptimeEnabled && (
@@ -168,24 +192,34 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <p className="text-sm text-slate-500">{formatUrlDisplay(project.url)}</p>
+                      <p className="mt-3 text-xs text-slate-400">
+                        SEO: {project.monitorEnabled ? "Weekly" : "Off"} · Uptime:{" "}
+                        {project.uptimeEnabled ? "Daily" : "Off"}
+                      </p>
+                    </Link>
+                    <div className="flex flex-col items-end gap-3">
+                      {last ? (
+                        <Link href={`/dashboard/projects/${project.id}`} className="text-right">
+                          <p className="text-2xl font-bold text-slate-900">{overallScore(last)}</p>
+                          <p className="text-xs text-slate-500">
+                            {last.criticalCount} critical ·{" "}
+                            {new Date(last.createdAt).toLocaleDateString()}
+                          </p>
+                        </Link>
+                      ) : (
+                        <span className="text-sm text-amber-600">No scans yet</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => deleteProject(project)}
+                        disabled={deletingId === project.id}
+                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
+                      >
+                        {deletingId === project.id ? "Deleting…" : "Delete"}
+                      </button>
                     </div>
-                    {last ? (
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-slate-900">{overallScore(last)}</p>
-                        <p className="text-xs text-slate-500">
-                          {last.criticalCount} critical ·{" "}
-                          {new Date(last.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-amber-600">No scans yet</span>
-                    )}
                   </div>
-                  <p className="mt-3 text-xs text-slate-400">
-                    SEO: {project.monitorEnabled ? "Weekly" : "Off"} · Uptime:{" "}
-                    {project.uptimeEnabled ? "Every 15 min" : "Off"}
-                  </p>
-                </Link>
+                </div>
               );
             })}
           </div>

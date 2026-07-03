@@ -150,7 +150,7 @@ export default function Home() {
 
         {report && !loading && (
           <div className="mt-10 space-y-8 pb-12">
-            <SaveScanBanner url={report.url} />
+            <SaveScanBanner url={report.url} report={report} siteCrawl={lastSiteCrawl.current} />
             {report.checklist && (
               <div ref={checklistRef} id="what-you-have">
                 <SiteChecklistPanel checklist={report.checklist} />

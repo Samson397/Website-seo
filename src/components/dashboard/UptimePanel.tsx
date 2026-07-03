@@ -62,7 +62,7 @@ export function UptimePanel({
           onChange={(e) => onToggle(e.target.checked)}
           className="h-4 w-4 rounded border-slate-300 text-blue-600"
         />
-        Uptime monitoring (every 15 minutes)
+        Uptime monitoring (daily checks)
       </label>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-3">
