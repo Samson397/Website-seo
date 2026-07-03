@@ -24,7 +24,9 @@ import {
 } from "@/lib/audit/social";
 import { fetchBacklinkProfile, runBacklinkAudit } from "@/lib/audit/backlinks";
 import { runDeepChecksAudit } from "@/lib/audit/deep-checks";
+import { runComprehensiveChecksAudit } from "@/lib/audit/comprehensive-checks";
 import { buildSiteChecklist } from "@/lib/audit/checklist";
+import * as cheerio from "cheerio";
 import {
   AuditOptions,
   AuditReport,
@@ -95,6 +97,7 @@ export async function runFullAudit(
   const technologyIssues = runTechnologyAudit(ctx, technologies);
   const backlinkIssues = runBacklinkAudit(backlinkProfile);
   const deepIssues = await runDeepChecksAudit(ctx);
+  const comprehensiveIssues = await runComprehensiveChecksAudit(ctx);
 
   let crawlSummary: CrawlSummary | undefined;
   let siteWideIssues: ReturnType<typeof runDuplicateMetaAudit> = [];
@@ -167,6 +170,7 @@ export async function runFullAudit(
   }
 
   const pageMeta = extractPageMeta(ctx);
+  const jsonLdText = cheerio.load(ctx.fetchResult.html)('script[type="application/ld+json"]').text();
 
   const checklist = buildSiteChecklist(
     ctx,
@@ -189,6 +193,11 @@ export async function runFullAudit(
       hasMixedContent: securityIssues.some((i) => i.title.includes("Mixed content")),
       wwwDuplicate: wwwIssues.length > 0,
       hasRedirectChain: deepIssues.some((i) => i.title.includes("Redirect chain")),
+      hasFaqSchema: jsonLdText.includes("FAQPage"),
+      hasOrganizationSchema:
+        jsonLdText.includes("Organization") || jsonLdText.includes("LocalBusiness"),
+      hasSecurityTxt: !comprehensiveIssues.some((i) => i.title.includes("security.txt")),
+      hasMainLandmark: !comprehensiveIssues.some((i) => i.title === "No main landmark"),
     }
   );
 
@@ -207,6 +216,7 @@ export async function runFullAudit(
     ...technologyIssues,
     ...backlinkIssues,
     ...deepIssues,
+    ...comprehensiveIssues,
     ...siteWideIssues,
     ...perfResult.issues,
   ];

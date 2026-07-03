@@ -50,6 +50,10 @@ export interface ChecklistExtras {
   hasMixedContent: boolean;
   wwwDuplicate: boolean;
   hasRedirectChain: boolean;
+  hasFaqSchema: boolean;
+  hasOrganizationSchema: boolean;
+  hasSecurityTxt: boolean;
+  hasMainLandmark: boolean;
 }
 
 export function buildSiteChecklist(
@@ -349,6 +353,30 @@ export function buildSiteChecklist(
     !extras.hasRedirectChain
       ? item("redirects", "Clean URL (no redirect chain)", "has", "Page loads without a long redirect chain.")
       : item("redirects", "Clean URL (no redirect chain)", "warning", "Multiple redirects detected before the page loads.", "Use a single direct URL or one 301 redirect.")
+  );
+
+  items.push(
+    extras.hasFaqSchema
+      ? item("faq-schema", "FAQ structured data", "has", "FAQ schema detected — may show FAQ rich results in Google.")
+      : item("faq-schema", "FAQ structured data", "warning", "No FAQ schema found.", "Add FAQPage JSON-LD if you have frequently asked questions.")
+  );
+
+  items.push(
+    extras.hasOrganizationSchema
+      ? item("org-schema", "Business/Organization schema", "has", "Organization or LocalBusiness schema helps Google understand your brand.")
+      : item("org-schema", "Business/Organization schema", "warning", "No Organization schema found.", "Add Organization or LocalBusiness JSON-LD in your site footer or about page.")
+  );
+
+  items.push(
+    extras.hasSecurityTxt
+      ? item("security-txt", "security.txt file", "has", "security.txt helps researchers report vulnerabilities.")
+      : item("security-txt", "security.txt file", "warning", "No /.well-known/security.txt found.", "Publish security.txt with a Contact field.")
+  );
+
+  items.push(
+    extras.hasMainLandmark
+      ? item("main-landmark", "Main content landmark", "has", "Page uses a <main> element for accessibility.")
+      : item("main-landmark", "Main content landmark", "warning", "No <main> element found.", "Wrap primary content in <main>.")
   );
 
   const unlabeledInputs = $("input, select, textarea")

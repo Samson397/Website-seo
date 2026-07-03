@@ -102,10 +102,10 @@ export default function Home() {
             Enter your website — just the domain is fine, e.g. yourwebsite.com
           </p>
           <p className="mt-3 text-xs text-blue-200/90 sm:hidden">
-            Free · 40+ checks · <Link href="/register" className="underline">Save &amp; monitor</Link>
+            Free · 50+ checks · <Link href="/register" className="underline">Save &amp; monitor</Link>
           </p>
           <div className="mt-5 hidden flex-wrap justify-center gap-2 text-sm sm:flex">
-            {["Free forever", "40+ checks", "Uptime monitoring", "Weekly SEO scans"].map((badge) => (
+            {["Free forever", "50+ checks", "Uptime monitoring", "Weekly SEO scans"].map((badge) => (
               <span
                 key={badge}
                 className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20 backdrop-blur-sm"
