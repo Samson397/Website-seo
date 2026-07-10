@@ -122,6 +122,9 @@ export default function Home() {
         <div className="relative z-10 mt-5 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/50 sm:-mt-14 sm:p-8">
           <UrlInput onSubmit={handleAudit} loading={loading} />
           <nav className="mt-5 flex justify-center gap-5 border-t border-slate-100 pt-4 text-xs text-slate-400">
+            <Link href="/competitors" className="transition hover:text-blue-600">
+              Compare competitors
+            </Link>
             <Link href="/about" className="transition hover:text-blue-600">
               About
             </Link>

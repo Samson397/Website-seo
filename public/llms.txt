@@ -5,6 +5,7 @@
 ## Docs
 
 - [Homepage](/): Run a website audit
+- [Competitor audit](/competitors): Compare up to 10 external websites side by side
 - [Privacy Policy](/privacy): How we handle data
 - [Terms of Service](/terms): Terms of use
 - [About](/about): About SEOScan

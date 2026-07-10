@@ -1,6 +1,11 @@
 /**
- * Run SEOScan audits against competitor sites and write a comparison report.
- * Usage: npx tsx scripts/competitor-audit.ts
+ * Run SEOScan audits against external websites and write a comparison report.
+ *
+ * Usage:
+ *   npm run audit:competitors
+ *   npx tsx scripts/competitor-audit.ts https://rival1.com https://rival2.com
+ *
+ * With no URLs, audits the default SEO-tool competitor list in this file.
  */
 import { writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
@@ -178,13 +183,19 @@ function buildMarkdown(results: AuditResult[]): string {
 }
 
 async function main() {
+  const cliUrls = process.argv.slice(2).filter((arg) => arg.startsWith("http"));
+  const targets: Competitor[] =
+    cliUrls.length > 0
+      ? cliUrls.map((url) => ({ name: new URL(url).hostname, url }))
+      : COMPETITORS;
+
   const results: AuditResult[] = [];
   const outDir = join(process.cwd(), "docs");
   mkdirSync(outDir, { recursive: true });
 
-  console.log(`Auditing ${COMPETITORS.length} competitors...\n`);
+  console.log(`Auditing ${targets.length} external sites...\n`);
 
-  for (const competitor of COMPETITORS) {
+  for (const competitor of targets) {
     process.stdout.write(`→ ${competitor.name}... `);
     try {
       const report = await runFullAudit(competitor.url, { siteCrawl: false });
