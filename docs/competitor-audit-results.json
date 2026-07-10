@@ -1,0 +1,512 @@
+[
+  {
+    "name": "SEOptimer",
+    "url": "https://www.seoptimer.com",
+    "scores": {
+      "seo": 13,
+      "performance": 78,
+      "accessibility": 0,
+      "security": 55
+    },
+    "summary": {
+      "critical": 0,
+      "warning": 22,
+      "info": 21
+    },
+    "overall": 37,
+    "checklistPassRate": 66,
+    "checklist": {
+      "has": 29,
+      "missing": 8,
+      "warning": 7
+    },
+    "topIssues": [
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Title tag too long"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Meta description too long"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Multiple H1 headings found"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Missing Open Graph title"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "sitemap.xml not found"
+      }
+    ],
+    "scannedUrl": "https://www.seoptimer.com/",
+    "scannedAt": "2026-07-10T05:55:26.780Z"
+  },
+  {
+    "name": "SEO Site Checkup",
+    "url": "https://seositecheckup.com",
+    "scores": {
+      "seo": 22,
+      "performance": 88,
+      "accessibility": 0,
+      "security": 62
+    },
+    "summary": {
+      "critical": 0,
+      "warning": 18,
+      "info": 16
+    },
+    "overall": 43,
+    "checklistPassRate": 75,
+    "checklist": {
+      "has": 33,
+      "missing": 5,
+      "warning": 6
+    },
+    "topIssues": [
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Title tag too long"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Multiple H1 headings found"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "sitemap.xml not found"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Form input missing label"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Form input missing label"
+      }
+    ],
+    "scannedUrl": "https://seositecheckup.com/",
+    "scannedAt": "2026-07-10T05:55:27.921Z"
+  },
+  {
+    "name": "Sitechecker",
+    "url": "https://sitechecker.pro",
+    "scores": {
+      "seo": 58,
+      "performance": 91,
+      "accessibility": 24,
+      "security": 62
+    },
+    "summary": {
+      "critical": 0,
+      "warning": 15,
+      "info": 16
+    },
+    "overall": 59,
+    "checklistPassRate": 73,
+    "checklist": {
+      "has": 32,
+      "missing": 5,
+      "warning": 7
+    },
+    "topIssues": [
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Title tag too long"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "sitemap.xml not found"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Image missing alt text"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Image missing alt text"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Image missing alt text"
+      }
+    ],
+    "scannedUrl": "https://sitechecker.pro/",
+    "scannedAt": "2026-07-10T05:55:44.565Z"
+  },
+  {
+    "name": "Seobility",
+    "url": "https://www.seobility.net",
+    "scores": {
+      "seo": 62,
+      "performance": 81,
+      "accessibility": 67,
+      "security": 62
+    },
+    "summary": {
+      "critical": 0,
+      "warning": 10,
+      "info": 17
+    },
+    "overall": 68,
+    "checklistPassRate": 75,
+    "checklist": {
+      "has": 33,
+      "missing": 4,
+      "warning": 7
+    },
+    "topIssues": [
+      {
+        "severity": "warning",
+        "category": "performance",
+        "title": "Images missing width/height attributes"
+      },
+      {
+        "severity": "warning",
+        "category": "security",
+        "title": "Missing strict-transport-security header"
+      },
+      {
+        "severity": "warning",
+        "category": "security",
+        "title": "Missing x-frame-options header"
+      },
+      {
+        "severity": "warning",
+        "category": "links",
+        "title": "Broken link (HTTP 429)"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Both www and non-www versions accessible"
+      }
+    ],
+    "scannedUrl": "https://www.seobility.net/en/",
+    "scannedAt": "2026-07-10T05:55:47.817Z"
+  },
+  {
+    "name": "HubSpot Website Grader",
+    "url": "https://website.grader.com",
+    "scores": {
+      "seo": 21,
+      "performance": 80,
+      "accessibility": 94,
+      "security": 68
+    },
+    "summary": {
+      "critical": 2,
+      "warning": 6,
+      "info": 11
+    },
+    "overall": 66,
+    "checklistPassRate": 70,
+    "checklist": {
+      "has": 31,
+      "missing": 8,
+      "warning": 5
+    },
+    "topIssues": [
+      {
+        "severity": "critical",
+        "category": "seo",
+        "title": "Missing H1 heading"
+      },
+      {
+        "severity": "critical",
+        "category": "seo",
+        "title": "Thin content detected"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Missing canonical URL"
+      },
+      {
+        "severity": "warning",
+        "category": "security",
+        "title": "Missing strict-transport-security header"
+      },
+      {
+        "severity": "warning",
+        "category": "security",
+        "title": "Missing x-frame-options header"
+      }
+    ],
+    "scannedUrl": "https://website.grader.com/",
+    "scannedAt": "2026-07-10T05:55:48.730Z"
+  },
+  {
+    "name": "Ahrefs Website Checker",
+    "url": "https://ahrefs.com/website-checker",
+    "scores": {
+      "seo": 81,
+      "performance": 64,
+      "accessibility": 0,
+      "security": 91
+    },
+    "summary": {
+      "critical": 1,
+      "warning": 21,
+      "info": 10
+    },
+    "overall": 59,
+    "checklistPassRate": 73,
+    "checklist": {
+      "has": 32,
+      "missing": 5,
+      "warning": 7
+    },
+    "topIssues": [
+      {
+        "severity": "critical",
+        "category": "links",
+        "title": "Broken link (HTTP 404)"
+      },
+      {
+        "severity": "warning",
+        "category": "performance",
+        "title": "Images missing width/height attributes"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Image missing alt text"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Image missing alt text"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Image missing alt text"
+      }
+    ],
+    "scannedUrl": "https://ahrefs.com/website-checker",
+    "scannedAt": "2026-07-10T05:55:59.425Z"
+  },
+  {
+    "name": "SEMrush Site Audit",
+    "url": "https://www.semrush.com/siteaudit/",
+    "scores": {
+      "seo": 45,
+      "performance": 48,
+      "accessibility": 80,
+      "security": 75
+    },
+    "summary": {
+      "critical": 1,
+      "warning": 16,
+      "info": 14
+    },
+    "overall": 62,
+    "checklistPassRate": 82,
+    "checklist": {
+      "has": 36,
+      "missing": 4,
+      "warning": 4
+    },
+    "topIssues": [
+      {
+        "severity": "critical",
+        "category": "links",
+        "title": "Broken link (HTTP 404)"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Meta description too short"
+      },
+      {
+        "severity": "warning",
+        "category": "performance",
+        "title": "Images missing width/height attributes"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Form input missing label"
+      },
+      {
+        "severity": "warning",
+        "category": "links",
+        "title": "Broken link (HTTP 405)"
+      }
+    ],
+    "scannedUrl": "https://www.semrush.com/siteaudit/",
+    "scannedAt": "2026-07-10T05:56:16.544Z"
+  },
+  {
+    "name": "Moz Free SEO Tools",
+    "url": "https://moz.com/free-seo-tools",
+    "scores": {
+      "seo": 36,
+      "performance": 88,
+      "accessibility": 60,
+      "security": 91
+    },
+    "summary": {
+      "critical": 0,
+      "warning": 12,
+      "info": 15
+    },
+    "overall": 69,
+    "checklistPassRate": 77,
+    "checklist": {
+      "has": 34,
+      "missing": 6,
+      "warning": 4
+    },
+    "topIssues": [
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Title tag too long"
+      },
+      {
+        "severity": "warning",
+        "category": "seo",
+        "title": "Meta description too long"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Form input missing label"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Form input missing label"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Skipped heading level"
+      }
+    ],
+    "scannedUrl": "https://moz.com/free-seo-tools",
+    "scannedAt": "2026-07-10T05:56:41.377Z"
+  },
+  {
+    "name": "SEO Review Tools",
+    "url": "https://seoreviewtools.com",
+    "scores": {
+      "seo": 66,
+      "performance": 74,
+      "accessibility": 34,
+      "security": 78
+    },
+    "summary": {
+      "critical": 1,
+      "warning": 11,
+      "info": 17
+    },
+    "overall": 63,
+    "checklistPassRate": 70,
+    "checklist": {
+      "has": 31,
+      "missing": 5,
+      "warning": 8
+    },
+    "topIssues": [
+      {
+        "severity": "critical",
+        "category": "links",
+        "title": "Broken link (HTTP 404)"
+      },
+      {
+        "severity": "warning",
+        "category": "performance",
+        "title": "Images missing width/height attributes"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Image missing alt text"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Image missing alt text"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Image missing alt text"
+      }
+    ],
+    "scannedUrl": "https://www.seoreviewtools.com/",
+    "scannedAt": "2026-07-10T05:56:48.249Z"
+  },
+  {
+    "name": "Neil Patel SEO Analyzer",
+    "url": "https://neilpatel.com/seo-analyzer/",
+    "scores": {
+      "seo": 28,
+      "performance": 77,
+      "accessibility": 57,
+      "security": 72
+    },
+    "summary": {
+      "critical": 1,
+      "warning": 13,
+      "info": 18
+    },
+    "overall": 59,
+    "checklistPassRate": 68,
+    "checklist": {
+      "has": 30,
+      "missing": 7,
+      "warning": 7
+    },
+    "topIssues": [
+      {
+        "severity": "critical",
+        "category": "seo",
+        "title": "Missing meta description"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Form input missing label"
+      },
+      {
+        "severity": "warning",
+        "category": "accessibility",
+        "title": "Form input missing label"
+      },
+      {
+        "severity": "warning",
+        "category": "security",
+        "title": "Missing x-frame-options header"
+      },
+      {
+        "severity": "warning",
+        "category": "links",
+        "title": "Broken link (HTTP 403)"
+      }
+    ],
+    "scannedUrl": "https://neilpatel.com/seo-analyzer/",
+    "scannedAt": "2026-07-10T05:56:52.599Z"
+  }
+]
