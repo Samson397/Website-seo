@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { LogoMark } from "@/components/LogoMark";
-import { HomeAuthLinks } from "@/components/HomeAuthLinks";
 import { CompetitorUrlInput } from "@/components/CompetitorUrlInput";
 import { CompetitorComparisonPanel } from "@/components/CompetitorComparisonPanel";
 import type { CompetitorAuditResult } from "@/lib/competitor-scores";
@@ -67,36 +64,19 @@ export default function CompetitorsPageClient() {
 
   return (
     <main className="min-h-screen bg-slate-50 pb-12">
-      <div className="bg-gradient-to-br from-indigo-700 via-blue-600 to-blue-700 px-4 py-10 text-white sm:px-6">
-        <div className="relative mx-auto max-w-5xl">
-          <div className="absolute right-0 top-0">
-            <HomeAuthLinks />
-          </div>
-          <div className="flex flex-col items-center text-center">
-            <Link href="/" className="mb-4 flex items-center gap-2 text-blue-100 hover:text-white">
-              <LogoMark size="sm" />
-              <span className="text-sm font-medium">SEOScan</span>
-            </Link>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Competitor audit</h1>
-            <p className="mt-3 max-w-2xl text-blue-100">
-              Compare other websites side by side — SEO, speed, accessibility, and security scores
-              for each competitor, ranked in one table.
-            </p>
-          </div>
+      <div className="border-b border-slate-200 bg-white px-4 py-8 sm:px-6">
+        <div className="mx-auto max-w-5xl">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Compare competitors</h1>
+          <p className="mt-2 max-w-2xl text-slate-600">
+            Route: <code className="rounded bg-slate-100 px-1.5 py-0.5 text-sm">/competitors</code> —
+            audit up to 10 websites and rank them side by side.
+          </p>
         </div>
       </div>
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="relative z-10 -mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/50 sm:p-8">
+        <div className="relative z-10 mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/50 sm:p-8">
           <CompetitorUrlInput onSubmit={auditCompetitors} loading={loading} progress={progress} />
-          <nav className="mt-5 flex justify-center gap-5 border-t border-slate-100 pt-4 text-xs text-slate-400">
-            <Link href="/" className="transition hover:text-blue-600">
-              Single site scan
-            </Link>
-            <Link href="/about" className="transition hover:text-blue-600">
-              About
-            </Link>
-          </nav>
         </div>
 
         {loading && !progress && (

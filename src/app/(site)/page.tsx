@@ -6,9 +6,9 @@ import { AuditReportView } from "@/components/AuditReport";
 import { ProblemsSummary } from "@/components/ProblemsSummary";
 import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
 import { HomeFeatures } from "@/components/HomeFeatures";
+import { RouteCards } from "@/components/RouteCards";
 import Link from "next/link";
-import { LogoMark } from "@/components/LogoMark";
-import { HomeAuthLinks, SaveScanBanner } from "@/components/HomeAuthLinks";
+import { SaveScanBanner } from "@/components/HomeAuthLinks";
 import type { AuditReport, AuditCategory } from "@/lib/types";
 
 export default function Home() {
@@ -93,13 +93,7 @@ export default function Home() {
           }}
         />
         <div className="relative mx-auto max-w-5xl text-center">
-          <div className="absolute right-0 top-0">
-            <HomeAuthLinks />
-          </div>
-          <div className="mb-4 flex justify-center sm:mb-5">
-            <LogoMark size="md" />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">SEOScan</h1>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">Scan a website</h1>
           <p className="mx-auto mt-3 max-w-xl text-base text-blue-100 sm:mt-4 sm:text-lg">
             Find what&apos;s wrong — SEO, security, speed, and accessibility. Paste any website URL.
           </p>
@@ -123,20 +117,6 @@ export default function Home() {
         {/* Search card — below hero on mobile, slight overlap on desktop only */}
         <div className="relative z-10 mt-5 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/50 sm:-mt-14 sm:p-8">
           <UrlInput onSubmit={handleAudit} loading={loading} />
-          <nav className="mt-5 flex justify-center gap-5 border-t border-slate-100 pt-4 text-xs text-slate-400">
-            <Link href="/competitors" className="transition hover:text-blue-600">
-              Compare competitors
-            </Link>
-            <Link href="/about" className="transition hover:text-blue-600">
-              About
-            </Link>
-            <Link href="/privacy" className="transition hover:text-blue-600">
-              Privacy
-            </Link>
-            <Link href="/terms" className="transition hover:text-blue-600">
-              Terms
-            </Link>
-          </nav>
         </div>
 
         {loading && (
@@ -182,7 +162,12 @@ export default function Home() {
           </div>
         )}
 
-        {!report && !loading && <HomeFeatures />}
+        {!report && !loading && (
+          <>
+            <RouteCards />
+            <HomeFeatures />
+          </>
+        )}
       </div>
     </main>
   );
