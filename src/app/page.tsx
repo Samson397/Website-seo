@@ -3,12 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { UrlInput } from "@/components/UrlInput";
 import { AuditReportView } from "@/components/AuditReport";
+import { ProblemsSummary } from "@/components/ProblemsSummary";
 import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
 import { HomeFeatures } from "@/components/HomeFeatures";
 import Link from "next/link";
 import { LogoMark } from "@/components/LogoMark";
 import { HomeAuthLinks, SaveScanBanner } from "@/components/HomeAuthLinks";
-import type { AuditReport } from "@/lib/types";
+import type { AuditReport, AuditCategory } from "@/lib/types";
 
 export default function Home() {
   const [report, setReport] = useState<AuditReport | null>(null);
@@ -18,9 +19,10 @@ export default function Home() {
   const lastUrl = useRef<string>("");
   const lastSiteCrawl = useRef<boolean>(false);
   const checklistRef = useRef<HTMLDivElement>(null);
+  const [issueFilter, setIssueFilter] = useState<AuditCategory | "all">("all");
 
   useEffect(() => {
-    if (report?.checklist && checklistRef.current) {
+    if (report && checklistRef.current) {
       checklistRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [report]);
@@ -99,13 +101,13 @@ export default function Home() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">SEOScan</h1>
           <p className="mx-auto mt-3 max-w-xl text-base text-blue-100 sm:mt-4 sm:text-lg">
-            Enter your website — just the domain is fine, e.g. yourwebsite.com
+            Find what&apos;s wrong — SEO, security, speed, and accessibility. Paste any website URL.
           </p>
           <p className="mt-3 text-xs text-blue-200/90 sm:hidden">
             Free · 50+ checks · <Link href="/register" className="underline">Save &amp; monitor</Link>
           </p>
           <div className="mt-5 hidden flex-wrap justify-center gap-2 text-sm sm:flex">
-            {["Free forever", "50+ checks", "Uptime monitoring", "Weekly SEO scans"].map((badge) => (
+            {["SEO & security checks", "50+ issues found", "Uptime monitoring", "Weekly scans"].map((badge) => (
               <span
                 key={badge}
                 className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20 backdrop-blur-sm"
@@ -140,7 +142,7 @@ export default function Home() {
         {loading && (
           <div className="mt-8 rounded-2xl border border-blue-100 bg-white p-10 text-center shadow-sm">
             <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <p className="font-medium text-slate-700">Scanning your website…</p>
+            <p className="font-medium text-slate-700">Scanning for SEO, security &amp; performance issues…</p>
             <p className="mt-1 text-sm text-slate-400">Usually 20–40 seconds</p>
           </div>
         )}
@@ -154,8 +156,17 @@ export default function Home() {
         {report && !loading && (
           <div className="mt-10 space-y-8 pb-12">
             <SaveScanBanner url={report.url} report={report} siteCrawl={lastSiteCrawl.current} />
+            <div ref={checklistRef}>
+              <ProblemsSummary
+                report={report}
+                onJumpToCategory={(category) => {
+                  setIssueFilter(category);
+                  document.getElementById("audit-issues")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+              />
+            </div>
             {report.checklist && (
-              <div ref={checklistRef} id="what-you-have">
+              <div id="what-you-have">
                 <SiteChecklistPanel checklist={report.checklist} />
               </div>
             )}
@@ -164,6 +175,9 @@ export default function Home() {
               previousReport={previousReport}
               onRescan={handleRescan}
               rescanLoading={loading}
+              showProblemsSummary={false}
+              categoryFilter={issueFilter}
+              onCategoryFilterChange={setIssueFilter}
             />
           </div>
         )}
