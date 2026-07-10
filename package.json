@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "db:push": "prisma db push"
+    "audit:competitors": "tsx scripts/competitor-audit.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -33,6 +33,7 @@
     "postcss": "^8.4.49",
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.0",
     "typescript": "^5.7.2"
   }
 }

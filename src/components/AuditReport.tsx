@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { AuditReport, AuditCategory } from "@/lib/types";
 import { formatUrlDisplay } from "@/lib/url-display";
+import { ProblemsSummary } from "@/components/ProblemsSummary";
 import { ScoreGauge } from "@/components/ScoreGauge";
 import { IssueCard } from "@/components/IssueCard";
 import { SerpPreview } from "@/components/SerpPreview";
@@ -16,6 +17,9 @@ interface AuditReportViewProps {
   previousReport?: AuditReport | null;
   onRescan?: () => void;
   rescanLoading?: boolean;
+  showProblemsSummary?: boolean;
+  categoryFilter?: AuditCategory | "all";
+  onCategoryFilterChange?: (category: AuditCategory | "all") => void;
 }
 
 const CATEGORIES: { key: AuditCategory | "all"; label: string }[] = [
@@ -37,8 +41,13 @@ export function AuditReportView({
   previousReport,
   onRescan,
   rescanLoading,
+  showProblemsSummary = true,
+  categoryFilter: controlledFilter,
+  onCategoryFilterChange,
 }: AuditReportViewProps) {
-  const [filter, setFilter] = useState<AuditCategory | "all">("all");
+  const [internalFilter, setInternalFilter] = useState<AuditCategory | "all">("all");
+  const filter = controlledFilter ?? internalFilter;
+  const setFilter = onCategoryFilterChange ?? setInternalFilter;
   const [resolved, setResolved] = useState<Set<string>>(new Set());
   const [hideResolved, setHideResolved] = useState(false);
 
@@ -74,6 +83,16 @@ export function AuditReportView({
 
   return (
     <div className="mt-10 space-y-8">
+      {showProblemsSummary && (
+        <ProblemsSummary
+          report={report}
+          onJumpToCategory={(category) => {
+            setFilter(category);
+            document.getElementById("audit-issues")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
+      )}
+
       {previousReport && (
         <ScanComparisonPanel previous={previousReport} current={report} />
       )}
@@ -155,7 +174,13 @@ export function AuditReportView({
 
       {report.crawl?.enabled && <SiteCrawlPanel crawl={report.crawl} />}
 
-      <div>
+      <div id="audit-issues">
+        <div className="mb-2">
+          <h3 className="text-lg font-bold text-slate-900">All issues found</h3>
+          <p className="text-sm text-slate-500">
+            SEO, security, performance, accessibility, links, and domain — with fix recommendations.
+          </p>
+        </div>
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => (

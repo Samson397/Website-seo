@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { routes } from "@/lib/routes";
 
 export const metadata = {
   title: "About — SEOScan",
@@ -9,8 +10,8 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-12">
       <article className="mx-auto max-w-2xl text-slate-700">
-        <Link href="/" className="text-sm text-blue-600 hover:underline">
-          ← Back to auditor
+        <Link href={routes.home} className="text-sm text-blue-600 hover:underline">
+          ← Scan a site
         </Link>
         <h1 className="mt-6 text-3xl font-bold text-slate-900">About SEOScan</h1>
         <p className="mt-4 leading-relaxed">

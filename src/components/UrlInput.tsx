@@ -28,7 +28,7 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
           id="audit-url"
           type="text"
           name="url"
-          placeholder="yourwebsite.com"
+          placeholder="example.com"
           required
           disabled={loading}
           className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-slate-900 shadow-inner placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/25 disabled:opacity-60"
@@ -38,7 +38,7 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
           disabled={loading}
           className="w-full rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 hover:shadow-blue-700/30 focus:outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-60 sm:w-auto"
         >
-          {loading ? "Analyzing…" : "Analyze site"}
+          {loading ? "Scanning…" : "Find issues"}
         </button>
       </div>
 
