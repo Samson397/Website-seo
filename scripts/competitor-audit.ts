@@ -1,5 +1,5 @@
 /**
- * Run SEOScan audits against external websites and write a comparison report.
+ * Run SEOHub audits against external websites and write a comparison report.
  *
  * Usage:
  *   npm run audit:competitors
@@ -57,9 +57,12 @@ function topIssues(report: AuditReport, limit = 5) {
 function checklistPassRate(report: AuditReport): number | null {
   const checklist = report.checklist;
   if (!checklist?.items?.length) return null;
-  const total = checklist.hasCount + checklist.missingCount + checklist.warningCount;
+  const pass = checklist.passCount ?? checklist.hasCount;
+  const fail = checklist.failCount ?? checklist.missingCount;
+  const attention = checklist.attentionCount ?? checklist.warningCount;
+  const total = pass + fail + attention;
   if (total === 0) return null;
-  return Math.round((checklist.hasCount / total) * 100);
+  return Math.round((pass / total) * 100);
 }
 
 function buildMarkdown(results: AuditResult[]): string {
@@ -75,7 +78,7 @@ function buildMarkdown(results: AuditResult[]): string {
     "",
     `Generated: ${new Date().toISOString()}`,
     "",
-    "Audited with SEOScan's `runFullAudit` (homepage only, no full site crawl).",
+    "Audited with SEOHub's `runFullAudit` (homepage only, no full site crawl).",
     "",
     "## Executive Summary",
     "",
@@ -170,10 +173,10 @@ function buildMarkdown(results: AuditResult[]): string {
   }
 
   lines.push(
-    "## Insights for SEOScan",
+    "## Insights for SEOHub",
     "",
     "1. **Performance is the differentiator** — many competitors score well on SEO basics but lag on Core Web Vitals.",
-    "2. **Security headers** — several tools miss HSTS, CSP, or X-Frame-Options; SEOScan can highlight this gap.",
+    "2. **Security headers** — several tools miss HSTS, CSP, or X-Frame-Options; SEOHub can highlight this gap.",
     "3. **Accessibility** — image alt text and heading structure remain weak across the category.",
     "4. **Dogfooding opportunity** — run periodic competitor audits to track category benchmarks.",
     ""
@@ -221,9 +224,10 @@ async function main() {
     checklistPassRate: r.report ? checklistPassRate(r.report) : null,
     checklist: r.report?.checklist
       ? {
-          has: r.report.checklist.hasCount,
-          missing: r.report.checklist.missingCount,
-          warning: r.report.checklist.warningCount,
+          pass: r.report.checklist.passCount ?? r.report.checklist.hasCount,
+          fail: r.report.checklist.failCount ?? r.report.checklist.missingCount,
+          attention: r.report.checklist.attentionCount ?? r.report.checklist.warningCount,
+          total: r.report.checklist.items.length,
         }
       : null,
     topIssues: r.report ? topIssues(r.report) : null,

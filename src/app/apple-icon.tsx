@@ -13,14 +13,27 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#2563eb",
-          color: "white",
-          fontSize: 72,
-          fontWeight: 700,
-          fontFamily: "system-ui, sans-serif",
+          background: "transparent",
         }}
       >
-        SS
+        <div
+          style={{
+            width: 140,
+            height: 140,
+            background: "#2563EB",
+            clipPath:
+              "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontSize: 54,
+            fontWeight: 800,
+            fontFamily: "system-ui, sans-serif",
+          }}
+        >
+          S
+        </div>
       </div>
     ),
     { ...size }

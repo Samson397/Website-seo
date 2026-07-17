@@ -53,18 +53,24 @@ export interface PageSummary {
   description: string;
   hasH1: boolean;
   status: number;
+  canonical?: string;
+  robots?: string;
+  hasOg?: boolean;
+  wordCount?: number;
+  h1Count?: number;
 }
 
 export interface CrawlSummary {
   enabled: boolean;
   pagesScanned: number;
-  /** Total unique pages found via sitemap + links */
+  /** Total unique pages found and scanned via sitemap + links + BFS */
   totalPagesFound: number;
   /** @deprecated use totalPagesFound — kept for older clients */
   pagesDiscovered: number;
-  /** All discovered page paths (may exceed pagesScanned on large sites) */
+  /** True when the site is larger than the scan cap */
+  hitCap?: boolean;
+  /** All scanned page paths */
   allPagePaths?: string[];
-  pagesNotScanned?: string[];
   pages: PageSummary[];
 }
 
@@ -114,14 +120,31 @@ export interface SiteOverview {
   };
 }
 
+export type CheckCategory =
+  | "seo"
+  | "content"
+  | "technical"
+  | "social"
+  | "security"
+  | "accessibility"
+  | "trust"
+  | "performance";
+
 export interface SiteChecklist {
+  passCount: number;
+  failCount: number;
+  attentionCount: number;
+  /** @deprecated use passCount */
   hasCount: number;
+  /** @deprecated use failCount */
   missingCount: number;
+  /** @deprecated use attentionCount */
   warningCount: number;
   items: {
     id: string;
     label: string;
-    status: "has" | "missing" | "warning";
+    status: "pass" | "fail" | "attention";
+    category: CheckCategory;
     explanation: string;
     fixHint?: string;
   }[];
@@ -129,7 +152,10 @@ export interface SiteChecklist {
 }
 
 export interface AuditOptions {
+  /** Homepage-only when false (competitors). Default true. */
   siteCrawl?: boolean;
+  /** Optional progress callbacks for streaming UI */
+  onProgress?: (event: Exclude<ScanProgressEvent, { type: "done" } | { type: "error" }>) => void;
 }
 
 export interface AuditReport {
@@ -144,7 +170,17 @@ export interface AuditReport {
   crawl?: CrawlSummary;
   siteOverview?: SiteOverview;
   checklist?: SiteChecklist;
+  /** Present when the report was saved for sharing */
+  shareId?: string;
+  /** free = homepage preview; full = paid unlock (when Stripe is configured) */
+  tier?: "free" | "full";
 }
+
+export type ScanProgressEvent =
+  | { type: "stage"; stage: string; message: string }
+  | { type: "crawl"; scanned: number; queued: number; lastPath?: string }
+  | { type: "done"; report: AuditReport }
+  | { type: "error"; error: string };
 
 export interface FetchResult {
   url: string;

@@ -1,39 +1,49 @@
 import Link from "next/link";
+import { PageHero } from "@/components/ui/PageHero";
+import { routes } from "@/lib/routes";
 
 export const metadata = {
-  title: "Terms of Service — SEOScan",
-  description: "Terms of service for SEOScan.",
+  title: "Terms of Service — SEOHub",
+  description: "Terms of service for SEOHub.",
 };
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-12">
-      <article className="mx-auto max-w-2xl text-slate-700">
-        <Link href="/" className="text-sm text-blue-600 hover:underline">
-          ← Back to SEOScan
-        </Link>
-        <h1 className="mt-6 text-3xl font-bold text-slate-900">Terms of Service</h1>
-        <p className="mt-2 text-sm text-slate-500">Last updated: July 2026</p>
-        <h2 className="mt-8 text-xl font-semibold text-slate-900">Using SEOScan</h2>
-        <p className="mt-2 leading-relaxed">
-          SEOScan is a free tool for scanning public websites. You may only audit URLs you own or
-          have permission to test. Do not use this service to attack, overload, or scrape sites
-          without authorization.
-        </p>
-        <h2 className="mt-6 text-xl font-semibold text-slate-900">No warranty</h2>
-        <p className="mt-2 leading-relaxed">
-          Results are provided for informational purposes only. We do not guarantee accuracy,
-          completeness, or that fixing reported issues will improve search rankings or security.
-        </p>
-        <h2 className="mt-6 text-xl font-semibold text-slate-900">Availability</h2>
-        <p className="mt-2 leading-relaxed">
-          The service is offered as-is. We may change, limit, or discontinue features at any time
-          without notice.
-        </p>
-        <h2 className="mt-6 text-xl font-semibold text-slate-900">Contact</h2>
-        <p className="mt-2 leading-relaxed">
-          Questions? See our <Link href="/about">About</Link> page.
-        </p>
+    <main className="min-h-screen pb-16">
+      <PageHero eyebrow="Legal" title="Terms of Service" description="Last updated: July 2026" />
+      <article className="mx-auto mt-10 max-w-2xl space-y-6 px-4 text-ink-muted sm:px-6">
+        <section>
+          <h2 className="font-display text-xl font-semibold text-ink">Using SEOHub</h2>
+          <p className="mt-2 leading-relaxed">
+            SEOHub is a free tool for scanning public websites. You may only audit URLs you own or
+            have permission to test. Do not use this service to attack, overload, or scrape sites
+            without authorization.
+          </p>
+        </section>
+        <section>
+          <h2 className="font-display text-xl font-semibold text-ink">No warranty</h2>
+          <p className="mt-2 leading-relaxed">
+            Results are provided for informational purposes only. We do not guarantee accuracy,
+            completeness, or that fixing reported issues will improve search rankings or security.
+          </p>
+        </section>
+        <section>
+          <h2 className="font-display text-xl font-semibold text-ink">Availability</h2>
+          <p className="mt-2 leading-relaxed">
+            The service is offered as-is. We may change, limit, or discontinue features at any time
+            without notice. Rate limits may apply to protect the service.
+          </p>
+        </section>
+        <section>
+          <h2 className="font-display text-xl font-semibold text-ink">Contact</h2>
+          <p className="mt-2 leading-relaxed">
+            Questions? See our{" "}
+            <Link href={routes.about} className="text-teal hover:underline">
+              About
+            </Link>{" "}
+            page.
+          </p>
+        </section>
       </article>
     </main>
   );

@@ -3,16 +3,17 @@ import { mainNav } from "@/lib/routes";
 
 export function RouteCards() {
   return (
-    <section className="mt-8 grid gap-4 sm:grid-cols-3">
+    <section className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {mainNav.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md"
+          className="group border-t-2 border-teal/40 pt-4 transition hover:border-teal"
         >
-          <h2 className="font-semibold text-slate-900">{item.label}</h2>
-          <p className="mt-1 text-sm text-slate-600">{item.description}</p>
-          <p className="mt-3 text-xs font-mono text-blue-600">{item.href}</p>
+          <h2 className="font-display text-lg font-semibold text-ink group-hover:text-teal">
+            {item.label}
+          </h2>
+          <p className="mt-2 text-sm text-ink-muted">{item.description}</p>
         </Link>
       ))}
     </section>

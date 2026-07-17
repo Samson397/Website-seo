@@ -40,17 +40,27 @@ function compareChecklists(
   for (const [id, curr] of Array.from(currById.entries())) {
     const prev = prevById.get(id);
     if (!prev || prev.status === curr.status) continue;
-    const rank = { missing: 0, warning: 1, has: 2 };
-    if (rank[curr.status] > rank[prev.status]) improved.push(curr);
-    else if (rank[curr.status] < rank[prev.status]) regressed.push(curr);
+    const rank: Record<string, number> = {
+      fail: 0,
+      missing: 0,
+      attention: 1,
+      warning: 1,
+      pass: 2,
+      has: 2,
+    };
+    if ((rank[curr.status] ?? 0) > (rank[prev.status] ?? 0)) improved.push(curr);
+    else if ((rank[curr.status] ?? 0) < (rank[prev.status] ?? 0)) regressed.push(curr);
   }
+
+  const before = previous.passCount ?? previous.hasCount;
+  const after = current.passCount ?? current.hasCount;
 
   return {
     improved,
     regressed,
-    hasCountBefore: previous.hasCount,
-    hasCountAfter: current.hasCount,
-    hasCountDelta: current.hasCount - previous.hasCount,
+    hasCountBefore: before,
+    hasCountAfter: after,
+    hasCountDelta: after - before,
   };
 }
 

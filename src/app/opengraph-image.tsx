@@ -22,7 +22,7 @@ export default function OpenGraphImage() {
         }}
       >
         <div style={{ fontSize: 56, fontWeight: 700, marginBottom: 16 }}>
-          SEOScan
+          SEOHub
         </div>
         <div style={{ fontSize: 28, opacity: 0.9, textAlign: "center", maxWidth: 800 }}>
           What your site has &amp; what&apos;s missing

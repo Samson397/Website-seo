@@ -1,29 +1,29 @@
 {
-  "name": "seoscan",
-  "version": "0.1.0",
+  "name": "seohub",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
-    "vercel-build": "bash scripts/vercel-build.sh",
+    "build": "next build",
+    "vercel-build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate",
     "audit:competitors": "tsx scripts/competitor-audit.ts"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
+    "@neondatabase/serverless": "^1.1.0",
     "@vercel/analytics": "^2.0.1",
-    "bcryptjs": "^3.0.3",
+    "@vercel/kv": "^3.0.0",
     "cheerio": "^1.0.0",
+    "firebase-admin": "^14.2.0",
     "next": "^14.2.35",
-    "next-auth": "^4.24.14",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "resend": "^6.17.2",
+    "stripe": "^17.7.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.17.10",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
@@ -31,7 +31,6 @@
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.35",
     "postcss": "^8.4.49",
-    "prisma": "^5.22.0",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.23.0",
     "typescript": "^5.7.2"

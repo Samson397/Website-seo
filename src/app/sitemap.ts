@@ -1,9 +1,17 @@
 import { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/site-url";
+import { GUIDES } from "@/lib/guides";
 
 const siteUrl = getSiteUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  const guideEntries = GUIDES.map((g) => ({
+    url: `${siteUrl}/guides/${g.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
   return [
     {
       url: siteUrl,
@@ -12,23 +20,102 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: `${siteUrl}/history`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/tracker`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
       url: `${siteUrl}/competitors`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.9,
     },
     {
-      url: `${siteUrl}/login`,
+      url: `${siteUrl}/tools`,
       lastModified: new Date(),
-      changeFrequency: "yearly",
-      priority: 0.5,
+      changeFrequency: "weekly",
+      priority: 0.9,
     },
     {
-      url: `${siteUrl}/register`,
+      url: `${siteUrl}/tools/meta-preview`,
       lastModified: new Date(),
-      changeFrequency: "yearly",
-      priority: 0.5,
+      changeFrequency: "monthly",
+      priority: 0.7,
     },
+    {
+      url: `${siteUrl}/tools/robots`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/tools/headers`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/tools/redirects`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/tools/schema`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/tools/broken-links`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${siteUrl}/tools/keywords`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${siteUrl}/tools/rank-checker`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${siteUrl}/tools/content`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
+    {
+      url: `${siteUrl}/tools/sitemap-generator`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.65,
+    },
+    {
+      url: `${siteUrl}/tools/robots-generator`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.65,
+    },
+    {
+      url: `${siteUrl}/guides`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...guideEntries,
     {
       url: `${siteUrl}/privacy`,
       lastModified: new Date(),

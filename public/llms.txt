@@ -1,4 +1,4 @@
-# SEOScan
+# SEOHub
 
 > Free tool that scans any public website and reports what you have and what's missing for SEO, performance, security, and accessibility.
 
@@ -8,4 +8,4 @@
 - [Competitor audit](/competitors): Compare up to 10 external websites side by side
 - [Privacy Policy](/privacy): How we handle data
 - [Terms of Service](/terms): Terms of use
-- [About](/about): About SEOScan
+- [About](/about): About SEOHub

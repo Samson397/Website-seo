@@ -1,16 +1,30 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { CookieConsent } from "@/components/CookieConsent";
-import { AuthProvider } from "@/components/AuthProvider";
+import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
 import { getSiteUrl } from "@/lib/site-url";
 
+const display = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const body = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
 const siteUrl = getSiteUrl();
 
-const title = "SEOScan — Free Website SEO & Security Audit";
+const title = "SEOHub — Free full-site SEO audit you run every week";
 const description =
-  "Paste any URL. SEOScan shows what your site has and what's missing — SEO, speed, security, accessibility, and DNS. Free, no login.";
+  "Crawl every page, run 50+ checks, and track a watchlist on your device. Free, no login.";
+
+const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -21,7 +35,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: siteUrl,
-    siteName: "SEOScan",
+    siteName: "SEOHub",
     type: "website",
     locale: "en_GB",
   },
@@ -41,7 +55,7 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "SEOScan",
+    name: "SEOHub",
     description,
     url: siteUrl,
     applicationCategory: "BusinessApplication",
@@ -49,19 +63,24 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {adsenseClient ? (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+            crossOrigin="anonymous"
+          />
+        ) : null}
       </head>
-      <body className="antialiased">
-        <AuthProvider>
-          {children}
-          <CookieConsent />
-          <Analytics />
-        </AuthProvider>
+      <body className="font-body antialiased">
+        {children}
+        <CookieConsent />
+        <Analytics />
       </body>
     </html>
   );

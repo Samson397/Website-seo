@@ -1,0 +1,95 @@
+import { APP_NAME } from "@/lib/brand";
+import type { AuditReport } from "@/lib/types";
+import type { DigestSite } from "@/lib/digest";
+
+function overall(report: AuditReport): number {
+  return Math.round(
+    (report.scores.seo +
+      report.scores.performance +
+      report.scores.accessibility +
+      report.scores.security) /
+      4
+  );
+}
+
+export function reportEmailHtml(opts: {
+  report: AuditReport;
+  shareUrl?: string | null;
+  siteUrl: string;
+}): { subject: string; html: string; text: string } {
+  const { report, shareUrl, siteUrl } = opts;
+  let host = report.url;
+  try {
+    host = new URL(report.url).hostname;
+  } catch {
+    /* keep */
+  }
+  const score = overall(report);
+  const subject = `${APP_NAME} report — ${host} (score ${score})`;
+
+  const issues = report.issues
+    .slice(0, 8)
+    .map(
+      (i) =>
+        `<li style="margin:0 0 8px"><strong>${i.severity}</strong> — ${escapeHtml(i.title)}</li>`
+    )
+    .join("");
+
+  const html = `<!DOCTYPE html><html><body style="font-family:Georgia,serif;color:#0c1222;line-height:1.5;max-width:560px;margin:0 auto;padding:24px">
+  <p style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#0d9488;font-weight:700">${APP_NAME}</p>
+  <h1 style="font-size:28px;margin:8px 0 16px">Your SEO report for ${escapeHtml(host)}</h1>
+  <p>Overall score <strong>${score}</strong> · SEO ${report.scores.seo} · Speed ${report.scores.performance} · A11y ${report.scores.accessibility} · Security ${report.scores.security}</p>
+  <p>${report.summary.critical} critical · ${report.summary.warning} warnings · ${report.summary.info} info</p>
+  ${shareUrl ? `<p><a href="${shareUrl}" style="display:inline-block;background:#0d9488;color:#fff;text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:600">Open full report</a></p>` : ""}
+  <h2 style="font-size:18px;margin-top:28px">Top issues</h2>
+  <ul style="padding-left:18px">${issues || "<li>No issues listed</li>"}</ul>
+  <p style="margin-top:28px;font-size:13px;color:#5b6b85"><a href="${siteUrl}">Run another scan on ${APP_NAME}</a></p>
+</body></html>`;
+
+  const text = `${APP_NAME} report for ${host}
+Overall ${score}. SEO ${report.scores.seo}, Speed ${report.scores.performance}, A11y ${report.scores.accessibility}, Security ${report.scores.security}.
+${shareUrl ? `Full report: ${shareUrl}` : ""}
+Scan again: ${siteUrl}`;
+
+  return { subject, html, text };
+}
+
+export function digestEmailHtml(opts: {
+  sites: DigestSite[];
+  siteUrl: string;
+  unsubUrl: string;
+}): { subject: string; html: string; text: string } {
+  const { sites, siteUrl, unsubUrl } = opts;
+  const subject = `${APP_NAME} weekly watchlist — ${sites.length} site${sites.length === 1 ? "" : "s"}`;
+
+  const rows = sites
+    .map((s) => {
+      const score = s.lastOverall != null ? `Last score ${s.lastOverall}` : "Not scanned yet";
+      const scan = `${siteUrl}/?url=${encodeURIComponent(s.url)}`;
+      return `<li style="margin:0 0 12px"><strong>${escapeHtml(s.hostname)}</strong> — ${score}<br/><a href="${scan}">Scan now</a></li>`;
+    })
+    .join("");
+
+  const html = `<!DOCTYPE html><html><body style="font-family:Georgia,serif;color:#0c1222;line-height:1.5;max-width:560px;margin:0 auto;padding:24px">
+  <p style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#0d9488;font-weight:700">${APP_NAME}</p>
+  <h1 style="font-size:26px;margin:8px 0 16px">Weekly watchlist reminder</h1>
+  <p>Re-scan these sites to keep SEO scores fresh.</p>
+  <ul style="padding-left:18px">${rows}</ul>
+  <p style="margin-top:24px"><a href="${siteUrl}/history">Open History</a></p>
+  <p style="margin-top:32px;font-size:12px;color:#5b6b85"><a href="${unsubUrl}">Unsubscribe from weekly digests</a></p>
+</body></html>`;
+
+  const text = `${APP_NAME} weekly watchlist\n\n${sites
+    .map((s) => `- ${s.hostname}: ${s.lastOverall != null ? s.lastOverall : "n/a"}`)
+    .join("\n")}\n\nUnsubscribe: ${unsubUrl}`;
+
+  return { subject, html, text };
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}

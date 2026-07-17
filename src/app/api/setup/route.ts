@@ -1,21 +1,71 @@
 import { NextResponse } from "next/server";
-import { isDatabaseConfigured, prisma } from "@/lib/db";
+import { getStoreBackend, isStoreConfigured } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
 type Check = { key: string; label: string; ok: boolean; required: boolean };
 
 function checks(): Check[] {
+  const backend = getStoreBackend();
   return [
-    { key: "DATABASE_URL", label: "PostgreSQL database", ok: Boolean(process.env.DATABASE_URL), required: true },
-    { key: "NEXTAUTH_SECRET", label: "Auth secret", ok: Boolean(process.env.NEXTAUTH_SECRET), required: true },
-    { key: "NEXTAUTH_URL", label: "Auth URL (your site URL)", ok: Boolean(process.env.NEXTAUTH_URL), required: true },
-    { key: "CRON_SECRET", label: "Scheduled monitoring crons", ok: Boolean(process.env.CRON_SECRET), required: false },
-    { key: "PAGESPEED_API_KEY", label: "Google PageSpeed scores", ok: Boolean(process.env.PAGESPEED_API_KEY), required: false },
+    {
+      key: "NEON",
+      label: "Neon / Vercel Postgres (scan storage)",
+      ok: backend === "neon",
+      required: false,
+    },
+    {
+      key: "VERCEL_KV",
+      label: "Vercel KV (optional alternative)",
+      ok: backend === "vercel-kv",
+      required: false,
+    },
+    {
+      key: "FIREBASE",
+      label: "Firebase Firestore (optional alternative)",
+      ok: backend === "firebase",
+      required: false,
+    },
+    {
+      key: "INSIGHTS_SECRET",
+      label: "Private insights API secret",
+      ok: Boolean(process.env.INSIGHTS_SECRET),
+      required: false,
+    },
+    {
+      key: "PAGESPEED_API_KEY",
+      label: "Google PageSpeed scores",
+      ok: Boolean(process.env.PAGESPEED_API_KEY),
+      required: false,
+    },
     {
       key: "DATAFORSEO",
       label: "DataForSEO backlinks",
       ok: Boolean(process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD),
+      required: false,
+    },
+    {
+      key: "ADSENSE",
+      label: "Google AdSense ads",
+      ok: Boolean(process.env.NEXT_PUBLIC_ADSENSE_CLIENT),
+      required: false,
+    },
+    {
+      key: "STRIPE",
+      label: "Stripe Checkout ($1.99 full SEO unlock)",
+      ok: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),
+      required: false,
+    },
+    {
+      key: "RESEND",
+      label: "Resend (email reports + digests)",
+      ok: Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL),
+      required: false,
+    },
+    {
+      key: "CRON_SECRET",
+      label: "Cron secret (weekly digest)",
+      ok: Boolean(process.env.CRON_SECRET),
       required: false,
     },
   ];
@@ -23,32 +73,27 @@ function checks(): Check[] {
 
 export async function GET() {
   const items = checks();
-  const requiredOk = items.filter((c) => c.required).every((c) => c.ok);
-  const optionalOk = items.filter((c) => !c.required).filter((c) => c.ok).length;
-
-  let databaseConnected = false;
-  if (isDatabaseConfigured()) {
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      databaseConnected = true;
-    } catch {
-      databaseConnected = false;
-    }
-  }
-
-  const accountsReady = requiredOk && databaseConnected;
+  const optionalOk = items.filter((c) => c.ok).length;
 
   return NextResponse.json({
-    app: "seoscan",
-    accountsReady,
-    databaseConnected,
+    app: "seohub",
     scannerReady: true,
+    storeReady: isStoreConfigured(),
+    storeBackend: getStoreBackend(),
+    publicBenchmarks: false,
     checks: items,
-    missingRequired: items.filter((c) => c.required && !c.ok).map((c) => c.key),
     optionalConfigured: optionalOk,
+    setupDocs: {
+      neon: "docs/neon-setup.md",
+      vercelKv: "docs/vercel-kv-setup.md",
+      firebase: "docs/firebase-setup.md",
+    },
     urls: {
-      register: "/register",
-      dashboard: "/dashboard",
+      home: "/",
+      history: "/history",
+      competitors: "/competitors",
+      tools: "/tools",
+      privateInsights: "/api/insights",
       version: "/api/version",
     },
   });

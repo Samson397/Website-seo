@@ -1,21 +1,24 @@
 import { NextResponse } from "next/server";
+import { getStoreBackend, isStoreConfigured } from "@/lib/store";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   return NextResponse.json({
-    app: "seoscan",
-    version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
-    branch: process.env.VERCEL_GIT_COMMIT_REF ?? "local",
+    app: "seohub",
+    version: "0.3.0",
     features: {
-      checklist: true,
-      siteOverview: true,
       fullSiteCrawl: true,
+      competitorCompare: true,
+      localWatchlist: true,
+      privateInsights: Boolean(process.env.INSIGHTS_SECRET),
+      ads: Boolean(process.env.NEXT_PUBLIC_ADSENSE_CLIENT),
+      store: isStoreConfigured(),
+      storeBackend: getStoreBackend(),
+      webhook: Boolean(process.env.DATA_WEBHOOK_URL),
+      tools: ["meta-preview", "robots", "headers"],
       pageSpeed: Boolean(process.env.PAGESPEED_API_KEY),
-      dataForSeo: Boolean(
-        process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD
-      ),
-      accounts: Boolean(process.env.DATABASE_URL && process.env.NEXTAUTH_SECRET),
-      monitoring: Boolean(process.env.DATABASE_URL && process.env.CRON_SECRET),
-      uptimeMonitoring: Boolean(process.env.DATABASE_URL && process.env.CRON_SECRET),
+      backlinks: Boolean(process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD),
     },
   });
 }

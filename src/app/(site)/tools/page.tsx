@@ -1,0 +1,130 @@
+import Link from "next/link";
+import { PageHero } from "@/components/ui/PageHero";
+import { routes } from "@/lib/routes";
+
+const TOOL_GROUPS = [
+  {
+    label: "Research & tracking",
+    tools: [
+      {
+        href: routes.keywords,
+        title: "Keyword research",
+        description: "Extract phrases from a page plus Google autocomplete suggestions.",
+      },
+      {
+        href: routes.rankChecker,
+        title: "Rank checker",
+        description: "On-page keyword score and optional Google position via DataForSEO.",
+      },
+      {
+        href: routes.contentOptimizer,
+        title: "Content optimizer",
+        description: "Score copy against a target keyword with actionable fixes.",
+      },
+      {
+        href: routes.tracker,
+        title: "Keyword tracker",
+        description: "Save keywords on this device and re-check rank signals anytime.",
+      },
+    ],
+  },
+  {
+    label: "Technical & on-page",
+    tools: [
+      {
+        href: routes.metaPreview,
+        title: "Meta & SERP preview",
+        description: "Edit title and description live and preview Google-style results.",
+      },
+      {
+        href: routes.robotsInspector,
+        title: "robots.txt & sitemap inspector",
+        description: "Fetch robots rules and sitemap URL counts.",
+      },
+      {
+        href: routes.headers,
+        title: "Security headers",
+        description: "HSTS, CSP, X-Frame-Options, Referrer-Policy, and more.",
+      },
+      {
+        href: routes.redirects,
+        title: "Redirect chain",
+        description: "Follow hops to the final URL.",
+      },
+      {
+        href: routes.schema,
+        title: "JSON-LD schema",
+        description: "Extract and validate structured data blocks.",
+      },
+      {
+        href: routes.brokenLinks,
+        title: "Broken link checker",
+        description: "Probe outbound links for 4xx/5xx failures.",
+      },
+    ],
+  },
+  {
+    label: "Generators",
+    tools: [
+      {
+        href: routes.sitemapGenerator,
+        title: "Sitemap generator",
+        description: "Build a downloadable sitemap.xml from a URL list.",
+      },
+      {
+        href: routes.robotsGenerator,
+        title: "robots.txt generator",
+        description: "Create a starter robots.txt with sitemap and disallow rules.",
+      },
+    ],
+  },
+  {
+    label: "Compare & learn",
+    tools: [
+      {
+        href: routes.competitors,
+        title: "Competitor compare",
+        description: "Audit up to 10 sites side by side.",
+      },
+      {
+        href: routes.guides,
+        title: "Fix guides",
+        description: "Short how-tos for common audit failures.",
+      },
+    ],
+  },
+];
+
+export default function ToolsPage() {
+  return (
+    <main className="min-h-screen pb-16">
+      <PageHero
+        eyebrow="Full SEO toolkit"
+        title="Audit, research, optimize, generate."
+        description="Everything in SEOHub — free tools with no account required."
+      />
+
+      <div className="mx-auto mt-10 max-w-6xl space-y-12 px-4 sm:px-6">
+        {TOOL_GROUPS.map((group) => (
+          <section key={group.label}>
+            <h2 className="font-display text-xl font-semibold text-ink">{group.label}</h2>
+            <div className="mt-5 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {group.tools.map((tool) => (
+                <Link
+                  key={tool.href}
+                  href={tool.href}
+                  className="group border-t border-ink/10 pt-4 transition hover:border-teal"
+                >
+                  <h3 className="font-display text-lg font-semibold text-ink group-hover:text-teal">
+                    {tool.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-ink-muted">{tool.description}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </main>
+  );
+}

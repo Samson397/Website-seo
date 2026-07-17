@@ -1,13 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="16" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 320" fill="none" role="img" aria-label="SEOHub">
+  <!-- True transparent background -->
+  <g transform="translate(40, 4)">
+    <path
+      fill="#2563EB"
+      d="M100 8
+         C118 8 132 18 144 36
+         L176 92
+         C188 112 188 128 176 148
+         L144 204
+         C132 222 118 232 100 232
+         L60 232
+         C42 232 28 222 16 204
+         L-16 148
+         C-28 128 -28 112 -16 92
+         L16 36
+         C28 18 42 8 60 8
+         Z"
+      transform="translate(20,-8)"
+    />
+    <circle cx="92" cy="108" r="34" fill="none" stroke="#FFFFFF" stroke-width="16"/>
+    <path d="M78 94c8-10 22-12 32-6" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+    <path d="M116 132 L168 58" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
+    <path d="M148 42 L186 38 L168 78 Z" fill="#FFFFFF"/>
+  </g>
   <text
-    x="32"
-    y="42"
+    x="140"
+    y="300"
     text-anchor="middle"
-    fill="#2563eb"
-    font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    font-size="26"
-    font-weight="700"
+    fill="#2563EB"
+    font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+    font-size="44"
+    font-weight="800"
     letter-spacing="-1"
-  >SS</text>
+  >SEOHub</text>
 </svg>

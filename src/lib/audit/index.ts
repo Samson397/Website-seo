@@ -45,7 +45,11 @@ export async function runFullAudit(
 ): Promise<AuditReport> {
   resetIssueCounter();
 
-  const siteCrawl = options.siteCrawl ?? false;
+  // Full site crawl is on by default. Competitors can pass siteCrawl: false for a faster homepage audit.
+  const siteCrawl = options.siteCrawl !== false;
+  const onProgress = options.onProgress;
+
+  onProgress?.({ type: "stage", stage: "fetch", message: "Fetching starting page…" });
 
   const fetchResult = await safeFetch(url);
 
@@ -103,21 +107,23 @@ export async function runFullAudit(
   let siteWideIssues: ReturnType<typeof runDuplicateMetaAudit> = [];
 
   if (siteCrawl && fetchResult.html) {
-    const { pages: crawledPages, totalFound, allDiscovered } = await crawlSitePages(
+    onProgress?.({ type: "stage", stage: "sitemap", message: "Reading sitemap & discovering pages…" });
+    const { pages: crawledPages, totalFound, hitCap } = await crawlSitePages(
       fetchResult.finalUrl,
-      fetchResult.html
+      fetchResult.html,
+      (p) =>
+        onProgress?.({
+          type: "crawl",
+          scanned: p.scanned,
+          queued: p.queued,
+          lastPath: p.lastPath,
+        })
     );
-
-    const scannedUrls = new Set(crawledPages.map((p) => p.url));
-    const notScannedPaths = allDiscovered
-      .filter((u) => !scannedUrls.has(u))
-      .map((u) => {
-        try {
-          return new URL(u).pathname || "/";
-        } catch {
-          return u;
-        }
-      });
+    onProgress?.({
+      type: "stage",
+      stage: "checks",
+      message: `Running checks across ${crawledPages.length} pages…`,
+    });
 
     siteWideIssues = [
       ...runDuplicateMetaAudit(crawledPages),
@@ -128,26 +134,93 @@ export async function runFullAudit(
       ),
     ];
 
-    if (totalFound > crawledPages.length) {
+    if (hitCap) {
       siteWideIssues.push(
         createIssue({
           category: "seo",
           severity: "info",
-          title: `Large site — ${totalFound} pages found, ${crawledPages.length} scanned in detail`,
+          title: `Very large site — scanned ${crawledPages.length} pages (scan cap reached)`,
           description:
-            "We discovered every page from your sitemap and internal links. Duplicate-title checks run on scanned pages; the full page list is shown in the report.",
-          currentValue: `${totalFound} pages found`,
+            "This site has more pages than a single scan can cover. Every page we discovered within the limit was scanned in detail.",
+          currentValue: `${crawledPages.length} pages scanned`,
           recommendation:
-            "Review unscanned pages in the site list below, or run separate scans on important URLs for a full per-page audit.",
+            "Re-scan important sections by pasting a deeper starting URL, or review the page list below for gaps.",
         })
       );
     }
 
-    const allPagePaths = allDiscovered.map((u) => {
+    const missingCanonical = crawledPages.filter((p) => !p.canonical).length;
+    const thinPages = crawledPages.filter((p) => (p.wordCount ?? 0) > 0 && (p.wordCount ?? 0) < 100).length;
+    const noindexPages = crawledPages.filter((p) => (p.robots || "").toLowerCase().includes("noindex")).length;
+    const multiH1 = crawledPages.filter((p) => (p.h1Count ?? 0) > 1).length;
+    const errorPages = crawledPages.filter((p) => p.status >= 400).length;
+
+    if (missingCanonical > 0) {
+      siteWideIssues.push(
+        createIssue({
+          category: "seo",
+          severity: missingCanonical > 5 ? "warning" : "info",
+          title: `${missingCanonical} page${missingCanonical === 1 ? "" : "s"} missing canonical`,
+          description: "Canonical tags help Google pick the preferred URL for each page.",
+          currentValue: `${missingCanonical} / ${crawledPages.length}`,
+          recommendation: "Add a self-referencing canonical on every indexable page.",
+        })
+      );
+    }
+    if (thinPages > 0) {
+      siteWideIssues.push(
+        createIssue({
+          category: "seo",
+          severity: "warning",
+          title: `${thinPages} thin content page${thinPages === 1 ? "" : "s"} (< 100 words)`,
+          description: "Very short pages often rank poorly and can look low-quality.",
+          currentValue: `${thinPages} pages`,
+          recommendation: "Expand useful content or noindex true utility pages.",
+        })
+      );
+    }
+    if (noindexPages > 0) {
+      siteWideIssues.push(
+        createIssue({
+          category: "seo",
+          severity: "info",
+          title: `${noindexPages} page${noindexPages === 1 ? "" : "s"} marked noindex`,
+          description: "These pages ask search engines not to index them.",
+          currentValue: `${noindexPages} pages`,
+          recommendation: "Confirm noindex is intentional for each of these URLs.",
+        })
+      );
+    }
+    if (multiH1 > 0) {
+      siteWideIssues.push(
+        createIssue({
+          category: "seo",
+          severity: "info",
+          title: `${multiH1} page${multiH1 === 1 ? "" : "s"} with multiple H1 tags`,
+          description: "Best practice is a single H1 per page.",
+          currentValue: `${multiH1} pages`,
+          recommendation: "Keep one H1 and use H2/H3 for subsections.",
+        })
+      );
+    }
+    if (errorPages > 0) {
+      siteWideIssues.push(
+        createIssue({
+          category: "links",
+          severity: "critical",
+          title: `${errorPages} crawled page${errorPages === 1 ? "" : "s"} return HTTP errors`,
+          description: "Broken pages hurt crawl budget and user experience.",
+          currentValue: `${errorPages} pages`,
+          recommendation: "Fix or remove URLs that return 4xx/5xx responses.",
+        })
+      );
+    }
+
+    const allPagePaths = crawledPages.map((p) => {
       try {
-        return new URL(u).pathname || "/";
+        return new URL(p.url).pathname || "/";
       } catch {
-        return u;
+        return p.url;
       }
     });
 
@@ -156,18 +229,31 @@ export async function runFullAudit(
       pagesScanned: crawledPages.length,
       totalPagesFound: totalFound,
       pagesDiscovered: totalFound,
+      hitCap,
       allPagePaths,
-      pagesNotScanned: notScannedPaths.length > 0 ? notScannedPaths : undefined,
       pages: crawledPages.map((p) => ({
         url: p.url,
-        pathname: new URL(p.url).pathname,
+        pathname: (() => {
+          try {
+            return new URL(p.url).pathname;
+          } catch {
+            return p.url;
+          }
+        })(),
         title: p.title,
         description: p.description,
         hasH1: !!p.h1,
         status: p.status,
+        canonical: p.canonical,
+        robots: p.robots,
+        hasOg: p.hasOg,
+        wordCount: p.wordCount,
+        h1Count: p.h1Count,
       })),
     };
   }
+
+  onProgress?.({ type: "stage", stage: "score", message: "Scoring results…" });
 
   const pageMeta = extractPageMeta(ctx);
   const jsonLdText = cheerio.load(ctx.fetchResult.html)('script[type="application/ld+json"]').text();
