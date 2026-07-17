@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { CookieConsent } from "@/components/CookieConsent";
-import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { DM_Sans, Syne } from "next/font/google";
 import "./globals.css";
 
 import { ADSENSE_SCRIPT_SRC } from "@/lib/adsense";
 import { getSiteUrl } from "@/lib/site-url";
 
-const display = Fraunces({
+const display = Syne({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
 });
 
-const body = Source_Sans_3({
+const body = DM_Sans({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",

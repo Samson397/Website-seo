@@ -15,17 +15,17 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)",
+          background: "linear-gradient(155deg, #05090f 0%, #0d1726 50%, #0e8f86 140%)",
           color: "white",
-          fontFamily: "system-ui, sans-serif",
+          fontFamily: "ui-sans-serif, system-ui, sans-serif",
           padding: 48,
         }}
       >
-        <div style={{ fontSize: 56, fontWeight: 700, marginBottom: 16 }}>
+        <div style={{ fontSize: 64, fontWeight: 700, marginBottom: 16, letterSpacing: "-0.03em" }}>
           SEOHub
         </div>
-        <div style={{ fontSize: 28, opacity: 0.9, textAlign: "center", maxWidth: 800 }}>
-          What your site has &amp; what&apos;s missing
+        <div style={{ fontSize: 28, opacity: 0.72, textAlign: "center", maxWidth: 800 }}>
+          Full-site SEO, without the SaaS tax.
         </div>
       </div>
     ),

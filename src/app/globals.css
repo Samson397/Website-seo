@@ -3,17 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --ink: #0b1220;
+  --ink: #0c1222;
   --ink-soft: #162033;
-  --mist: #e8eef8;
-  --paper: #f5f7fc;
-  --teal: #2563eb;
-  --teal-bright: #3b82f6;
-  --brand: #2563eb;
-  --brand-bright: #3b82f6;
-  --amber: #f59e0b;
+  --mist: #e4e9f0;
+  --paper: #f2f4f8;
+  --brand: #0e8f86;
+  --brand-bright: #14b8a6;
+  --brand-soft: #d5f5f2;
+  --teal: #0e8f86;
+  --teal-bright: #14b8a6;
+  --amber: #d97706;
   --coral: #e11d48;
-  --glass: rgba(255, 255, 255, 0.78);
+  --glass: rgba(255, 255, 255, 0.08);
 }
 
 html {
@@ -23,21 +24,47 @@ html {
 body {
   font-family: var(--font-body), "Segoe UI", sans-serif;
   color: var(--ink);
-  background: var(--paper);
+  background:
+    radial-gradient(ellipse 80% 50% at 100% 0%, rgba(14, 143, 134, 0.08), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 0% 20%, rgba(56, 189, 248, 0.06), transparent 50%),
+    linear-gradient(180deg, #eef1f6 0%, var(--paper) 40%, #eceff5 100%);
+  background-attachment: fixed;
+  min-height: 100%;
 }
 
 .font-display {
-  font-family: var(--font-display), Georgia, serif;
+  font-family: var(--font-display), "Avenir Next", sans-serif;
 }
 
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes hero-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-1.5%, 1.2%, 0) scale(1.02);
+  }
+}
+
+@keyframes line-draw {
+  from {
+    stroke-dashoffset: 320;
+    opacity: 0.2;
+  }
+  to {
+    stroke-dashoffset: 70;
+    opacity: 1;
   }
 }
 
@@ -65,27 +92,6 @@ body {
   }
 }
 
-.animate-rise {
-  animation: rise-in 0.55s ease-out both;
-}
-
-.animate-rise-delay-1 {
-  animation: rise-in 0.55s ease-out 0.08s both;
-}
-
-.animate-rise-delay-2 {
-  animation: rise-in 0.55s ease-out 0.16s both;
-}
-
-.scan-pulse::before {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 9999px;
-  border: 2px solid rgba(59, 130, 246, 0.45);
-  animation: pulse-ring 1.6s ease-out infinite;
-}
-
 @keyframes radar-sweep {
   0% {
     transform: translate(-50%, 0) scale(0.55);
@@ -111,17 +117,42 @@ body {
   }
 }
 
+.animate-rise {
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-rise-delay-1 {
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+.animate-rise-delay-2 {
+  animation: rise-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+.animate-hero-drift {
+  animation: hero-drift 18s ease-in-out infinite;
+}
+
+.scan-pulse::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  border: 2px solid rgba(20, 184, 166, 0.45);
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+
 .scan-grid {
   background-image:
-    linear-gradient(rgba(37, 99, 235, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(37, 99, 235, 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(14, 143, 134, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 143, 134, 0.08) 1px, transparent 1px);
   background-size: 28px 28px;
   mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, black, transparent 75%);
 }
 
 .scan-radar {
-  border: 1px solid rgba(37, 99, 235, 0.35);
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.18), transparent 65%);
+  border: 1px solid rgba(14, 143, 134, 0.35);
+  background: radial-gradient(circle, rgba(20, 184, 166, 0.18), transparent 65%);
   animation: radar-sweep 2.8s ease-out infinite;
 }
 
@@ -131,10 +162,17 @@ body {
 
 .hero-mesh {
   background:
-    radial-gradient(ellipse 75% 55% at 12% 18%, rgba(37, 99, 235, 0.45), transparent 55%),
-    radial-gradient(ellipse 60% 50% at 88% 12%, rgba(59, 130, 246, 0.28), transparent 50%),
-    radial-gradient(ellipse 55% 60% at 70% 88%, rgba(14, 165, 233, 0.16), transparent 55%),
-    linear-gradient(155deg, #070d1a 0%, #101b30 48%, #0a1220 100%);
+    radial-gradient(ellipse 70% 60% at 85% 35%, rgba(14, 143, 134, 0.28), transparent 58%),
+    radial-gradient(ellipse 50% 45% at 10% 80%, rgba(56, 189, 248, 0.12), transparent 55%),
+    linear-gradient(165deg, #070d16 0%, #101a2a 52%, #0a121c 100%);
+}
+
+.hero-stage {
+  min-height: min(92vh, 860px);
+  background:
+    radial-gradient(ellipse 55% 70% at 78% 42%, rgba(14, 143, 134, 0.32), transparent 60%),
+    radial-gradient(ellipse 40% 50% at 12% 70%, rgba(56, 189, 248, 0.1), transparent 55%),
+    linear-gradient(155deg, #05090f 0%, #0d1726 46%, #081018 100%);
 }
 
 .glass-panel {

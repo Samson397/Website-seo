@@ -32,10 +32,10 @@ export default function Home() {
 function HomeShell({ children }: { children?: React.ReactNode }) {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-24 sm:pt-32">
+      <section className="hero-stage relative overflow-hidden px-4 pb-20 pt-28 text-white sm:px-6 sm:pb-28 sm:pt-36">
         <div className="relative mx-auto max-w-6xl">
-          <p className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">SEOHub</p>
-          <h1 className="font-display mt-4 max-w-3xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
+          <p className="font-display text-5xl font-semibold tracking-tight sm:text-7xl">SEOHub</p>
+          <h1 className="font-display mt-5 max-w-xl text-xl font-medium tracking-tight text-white/80 sm:text-2xl">
             The site check you run every week.
           </h1>
         </div>
@@ -223,35 +223,39 @@ function HomeScanApp() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-24 sm:pt-32">
+      <section className="hero-stage relative overflow-hidden text-white">
+        {/* Full-bleed product visual */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-40"
+          className="pointer-events-none absolute inset-y-0 right-0 w-full max-w-none opacity-90 sm:w-[62%]"
           aria-hidden
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-          }}
-        />
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero-audit.svg"
+            alt=""
+            className="animate-hero-drift h-full w-full object-cover object-left sm:object-contain sm:object-right"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#05090f] via-[#05090f]/55 to-transparent sm:via-[#05090f]/30" />
+          <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#05090f] to-transparent" />
+        </div>
 
-        <div className="relative mx-auto max-w-6xl">
-          <div className="animate-rise flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-mark.svg" alt="" width={56} height={56} className="h-14 w-14" />
-            <p className="font-display text-4xl font-semibold tracking-tight text-white sm:text-6xl">
+        <div className="relative mx-auto flex min-h-[min(92vh,860px)] max-w-6xl flex-col justify-center px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
+          <div className="animate-rise max-w-xl">
+            <p className="font-display text-5xl font-semibold tracking-tight text-white sm:text-7xl lg:text-8xl">
               SEOHub
             </p>
           </div>
-          <h1 className="font-display animate-rise-delay-1 mt-5 max-w-2xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
+          <h1 className="font-display animate-rise-delay-1 mt-6 max-w-lg text-2xl font-medium tracking-tight text-white/90 sm:text-3xl">
             Full-site SEO, without the SaaS tax.
           </h1>
-          <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-white/75 sm:text-lg">
+          <p className="animate-rise-delay-2 mt-4 max-w-md text-base leading-relaxed text-white/55 sm:text-lg">
             {paymentsOn
               ? `Free homepage preview. Unlock the full crawl for ${priceLabel} — no account.`
               : "Audit, keywords, rank checks, and tools — free to start, no account."}
           </p>
 
-          <div className="animate-rise-delay-2 glass-panel mt-8 max-w-2xl rounded-2xl border border-white/15 p-4 shadow-glow sm:p-5">
-            <UrlInput onSubmit={(url) => runAudit(url)} loading={loading} />
+          <div className="animate-rise-delay-2 mt-9 max-w-xl">
+            <UrlInput variant="hero" onSubmit={(url) => runAudit(url)} loading={loading} />
           </div>
         </div>
       </section>
@@ -336,12 +340,14 @@ function HomeScanApp() {
               <AdSlot />
             </div>
             <HomeFeatures />
-            <section className="mt-12 border-t border-ink/10 px-2 py-10 text-center sm:px-0">
-              <h2 className="font-display text-2xl font-semibold text-ink">More free tools</h2>
-              <p className="mx-auto mt-2 max-w-lg text-sm text-ink-muted">
+            <section className="mt-16 border-t border-ink/10 px-2 py-14 sm:px-0">
+              <h2 className="font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                More free tools
+              </h2>
+              <p className="mt-3 max-w-lg text-sm leading-relaxed text-ink-muted">
                 Keyword research, generators, and technical checkers stay free.
               </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3">
                 <ToolLink href={routes.history} label="History & watchlist" />
                 <ToolLink href={routes.keywords} label="Keyword research" />
                 <ToolLink href={routes.metaPreview} label="Meta & SERP preview" />
@@ -361,7 +367,7 @@ function ToolLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="rounded-xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-medium text-ink transition hover:border-brand/40 hover:bg-brand-soft"
+      className="text-sm font-medium text-ink underline decoration-ink/15 underline-offset-4 transition hover:text-brand hover:decoration-brand/40"
     >
       {label}
     </Link>

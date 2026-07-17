@@ -3,27 +3,26 @@ import { mainNav } from "@/lib/routes";
 
 export function RouteCards() {
   return (
-    <section className="mt-14">
+    <section className="mt-16">
       <div className="max-w-2xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">Explore</p>
-        <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight text-ink">
+        <p className="font-display text-sm font-semibold text-brand">Explore</p>
+        <h2 className="font-display mt-3 text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
           Scan once. Fix everywhere.
         </h2>
       </div>
-      <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 divide-y divide-ink/10 border-y border-ink/10">
         {mainNav
           .filter((item) => item.href !== "/")
-          .map((item, i) => (
+          .map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="group border-t border-ink/10 pt-4 transition hover:border-brand"
+              className="group flex flex-col gap-1 py-5 transition sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
             >
-              <span className="font-mono text-xs text-brand">0{i + 1}</span>
-              <h3 className="font-display mt-2 text-lg font-semibold text-ink group-hover:text-brand">
+              <h3 className="font-display text-lg font-semibold tracking-tight text-ink transition group-hover:text-brand">
                 {item.label}
               </h3>
-              <p className="mt-2 text-sm text-ink-muted">{item.description}</p>
+              <p className="max-w-md text-sm text-ink-muted sm:text-right">{item.description}</p>
             </Link>
           ))}
       </div>

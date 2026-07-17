@@ -17,8 +17,8 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
     <header
       className={
         isHero
-          ? "absolute inset-x-0 top-0 z-20 px-4 pt-5 sm:px-6"
-          : "border-b border-ink/10 bg-white/90 backdrop-blur-md"
+          ? "absolute inset-x-0 top-0 z-20 px-4 pt-6 sm:px-6"
+          : "border-b border-ink/8 bg-white/80 backdrop-blur-md"
       }
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
@@ -32,7 +32,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
           <span>SEOHub</span>
         </Link>
 
-        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">
+        <nav className="hidden items-center gap-6 lg:flex" aria-label="Main">
           {mainNav.map((item) => {
             const href = item.href;
             const active =
@@ -41,17 +41,24 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
               <Link
                 key={href}
                 href={href}
-                className={`rounded-lg px-2.5 py-2 text-sm font-medium transition ${
+                className={`relative text-sm font-medium transition ${
                   active
                     ? isHero
-                      ? "bg-white/15 text-white"
-                      : "bg-brand-soft text-brand"
+                      ? "text-white"
+                      : "text-ink"
                     : isHero
-                      ? "text-white/70 hover:bg-white/10 hover:text-white"
-                      : "text-ink-muted hover:bg-mist hover:text-ink"
+                      ? "text-white/55 hover:text-white"
+                      : "text-ink-muted hover:text-ink"
                 }`}
               >
                 {item.label}
+                {active ? (
+                  <span
+                    className={`absolute -bottom-1 left-0 h-px w-full ${
+                      isHero ? "bg-brand-bright" : "bg-brand"
+                    }`}
+                  />
+                ) : null}
               </Link>
             );
           })}
@@ -59,10 +66,10 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
 
         <Link
           href={routes.home}
-          className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
+          className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
             isHero
-              ? "bg-brand-bright text-ink"
-              : "bg-brand text-white hover:bg-brand-bright"
+              ? "bg-white text-ink hover:bg-brand-soft"
+              : "bg-ink text-white hover:bg-ink-soft"
           }`}
         >
           Run audit
@@ -70,7 +77,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
       </div>
 
       <nav
-        className="mx-auto mt-3 flex max-w-6xl gap-1 overflow-x-auto pb-1 lg:hidden"
+        className="mx-auto mt-4 flex max-w-6xl gap-4 overflow-x-auto pb-1 lg:hidden"
         aria-label="Main mobile"
       >
         {mainNav.map((item) => {
@@ -81,14 +88,14 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium ${
+              className={`shrink-0 border-b-2 pb-1 text-xs font-medium transition ${
                 active
                   ? isHero
-                    ? "bg-white text-ink"
-                    : "bg-brand text-white"
+                    ? "border-brand-bright text-white"
+                    : "border-brand text-ink"
                   : isHero
-                    ? "bg-white/10 text-white"
-                    : "bg-mist text-ink-muted"
+                    ? "border-transparent text-white/50"
+                    : "border-transparent text-ink-muted"
               }`}
             >
               {item.label}
