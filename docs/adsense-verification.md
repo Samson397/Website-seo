@@ -28,3 +28,13 @@ In an **incognito** window (no Vercel login):
 3. In AdSense → Sites, add/verify **exactly** that host (no `https://`, usually without `www` unless that is your canonical)
 
 Then retry **Verify**. If it still fails, wait and retry once the public HTML clearly shows the meta tag (Google can lag briefly after deploy).
+
+## CSP notes
+
+`next.config.js` allowlists AdSense + Funding Choices hosts, including:
+
+- `fundingchoicesmessages.google.com` (`script-src` / `frame-src` / `connect-src`)
+- `csi.gstatic.com` and `*.gstatic.com` (`connect-src`)
+- `ep1` / `ep2.adtrafficquality.google`
+
+If DevTools still reports a blocked Google host after deploy, add that exact host to the matching directive and redeploy.
