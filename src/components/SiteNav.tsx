@@ -29,7 +29,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
           }`}
         >
           <LogoMark size="sm" />
-          <span>SEOScan</span>
+          <span>SEOHub</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Main">

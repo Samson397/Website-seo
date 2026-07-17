@@ -3,8 +3,8 @@ import { PageHero } from "@/components/ui/PageHero";
 import { routes } from "@/lib/routes";
 
 export const metadata = {
-  title: "Privacy Policy — SEOScan",
-  description: "Privacy policy for SEOScan.",
+  title: "Privacy Policy — SEOHub",
+  description: "Privacy policy for SEOHub.",
 };
 
 export default function PrivacyPage() {
@@ -83,7 +83,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-display text-xl font-semibold text-ink">Accounts</h2>
           <p className="mt-2 leading-relaxed">
-            SEOScan does not require an account. There is no login, email signup, or user profile
+            SEOHub does not require an account. There is no login, email signup, or user profile
             database.
           </p>
         </section>

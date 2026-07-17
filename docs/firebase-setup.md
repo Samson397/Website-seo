@@ -1,4 +1,4 @@
-# SEOScan → Firebase setup (simple)
+# SEOHub → Firebase setup (simple)
 
 This stores anonymized public-site scan data in **Firestore**.  
 No emails. No user accounts. You view everything in the Firebase console.
@@ -40,7 +40,7 @@ Important: if Vercel/UI messes up newlines in `private_key`, paste the whole JSO
 
 ## 5. See your data
 
-1. Run a scan on your live SEOScan site
+1. Run a scan on your live SEOHub site
 2. Open Firebase → **Firestore Database**
 3. Open collection **`scan_events`**
 4. Each scan adds a document with hostname, scores, pages scanned, etc.

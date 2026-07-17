@@ -4,8 +4,8 @@ import { routes } from "@/lib/routes";
 import { GUIDES } from "@/lib/guides";
 
 export const metadata = {
-  title: "SEO fix guides — SEOScan",
-  description: "Short, practical guides for the most common SEOScan check failures.",
+  title: "SEO fix guides — SEOHub",
+  description: "Short, practical guides for the most common SEOHub check failures.",
 };
 
 export default function GuidesPage() {

@@ -10,9 +10,9 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { slug: string } }) {
   const guide = getGuide(params.slug);
-  if (!guide) return { title: "Guide — SEOScan" };
+  if (!guide) return { title: "Guide — SEOHub" };
   return {
-    title: `${guide.title} — SEOScan`,
+    title: `${guide.title} — SEOHub`,
     description: guide.summary,
   };
 }

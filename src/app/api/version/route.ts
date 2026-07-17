@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   return NextResponse.json({
-    app: "seoscan",
+    app: "seohub",
     version: "0.3.0",
     features: {
       fullSiteCrawl: true,

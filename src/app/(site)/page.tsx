@@ -32,7 +32,7 @@ function HomeShell({ children }: { children?: React.ReactNode }) {
       <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-24 sm:pt-32">
         <div className="relative mx-auto max-w-6xl">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
-            SEOScan
+            SEOHub
           </p>
           <h1 className="font-display mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
             The site check
@@ -179,7 +179,7 @@ function HomeScanApp() {
 
         <div className="relative mx-auto max-w-6xl">
           <p className="animate-rise text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
-            SEOScan
+            SEOHub
           </p>
           <h1 className="font-display animate-rise-delay-1 mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
             The site check

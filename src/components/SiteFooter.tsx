@@ -5,7 +5,7 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-ink/10 bg-ink py-10 text-white/70">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
-        <p className="font-display text-sm font-semibold text-white">SEOScan</p>
+        <p className="font-display text-sm font-semibold text-white">SEOHub</p>
         <nav className="flex flex-wrap justify-center gap-5 text-xs">
           <Link href={routes.history} className="hover:text-teal-bright">
             History

@@ -1,19 +1,19 @@
-# SEOScan
+# SEOHub
 
-Free **full-site** SEO, security, and accessibility auditor. Paste any public URL — no account.
+Free **full SEO toolkit**: site audit, keyword research, rank checks, content optimizer, and 15+ tools. No account.
 
-Live: [seoscan-five.vercel.app](https://seoscan-five.vercel.app)
+Live: [seohub.vercel.app](https://seohub.vercel.app)
 
 ## What it does
 
-- Crawls pages from sitemap + internal links (up to 200 pages per scan)
-- Runs **50+ checks** grouped by SEO, content, technical, social, security, accessibility, trust, and performance
-- Shows pass / fail / review results
-- **Watchlist + recent scans** saved in the browser (come back weekly without an account)
-- Competitor compare + free tools (meta preview, robots/sitemap, security headers)
-- Private scan-insight storage (Vercel KV) — **not** a public leaderboard
-- Optional **AdSense** slots
-- Export CSV / print PDF
+- **Full site audit** — crawl up to 200 pages, 50+ pass/fail/review checks
+- **Keyword research** — on-page phrases + Google suggestions (+ DataForSEO volume when configured)
+- **Rank checker** — on-page keyword score + optional Google position (DataForSEO)
+- **Content optimizer** — score pages against a target keyword
+- **Keyword tracker** — save keywords on this device and re-check anytime
+- **Watchlist + history** — weekly re-scan reminders in the browser
+- **Tools** — meta preview, redirects, schema, broken links, headers, robots/sitemap inspect & generators
+- **Compare & export** — competitor audits, CSV/JSON/PDF, shareable report links
 
 No login. No email signup. No private user profiles.
 
@@ -49,8 +49,8 @@ Alternatives: [KV](docs/vercel-kv-setup.md) · [Firebase](docs/firebase-setup.md
 | Variable | What it enables |
 |----------|-----------------|
 | `PAGESPEED_API_KEY` | Google Lighthouse Core Web Vitals |
-| `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlink data |
-| `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEOScan’s own SEO |
+| `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlinks, keyword volume, Google rank position |
+| `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEOHub’s own SEO |
 | `DATABASE_URL` / `POSTGRES_URL` | Neon on Vercel Storage (usually auto) |
 | `INSIGHTS_SECRET` | Unlocks private `GET /api/insights` for you only |
 | `KV_REST_API_*` / `FIREBASE_SERVICE_ACCOUNT` | Optional alternatives |

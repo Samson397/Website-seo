@@ -1,11 +1,11 @@
-# SEOScan → Vercel KV setup (easiest)
+# SEOHub → Vercel KV setup (easiest)
 
 Store anonymized scan data **inside Vercel**. No Firebase. No Postgres. No JSON keys to copy by hand.
 
 ## 1. Open your Vercel project
 
 1. Go to [https://vercel.com/dashboard](https://vercel.com/dashboard)
-2. Open the **SEOScan** project
+2. Open the **SEOHub** project
 
 ## 2. Create KV storage
 
@@ -34,7 +34,7 @@ Vercel automatically adds env vars to your project:
 1. Visit your site and run a scan
 2. Open Vercel → **Storage** → your KV database → **Data** browser  
    (or open the linked Upstash console)
-3. Look for key: `seoscan:scan_events`
+3. Look for key: `seohub:scan_events`
 
 Each scan pushes one JSON entry (hostname, scores, pages scanned, etc.).
 
@@ -43,7 +43,7 @@ Each scan pushes one JSON entry (hostname, scores, pages scanned, etc.).
 Scan data is **not** shown on a public page.
 
 **Option A — Vercel Storage UI**  
-Open Storage → your KV → browse key `seoscan:scan_events`.
+Open Storage → your KV → browse key `seohub:scan_events`.
 
 **Option B — Private API**  
 1. Add env var `INSIGHTS_SECRET` = any long random string  

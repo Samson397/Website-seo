@@ -1,19 +1,19 @@
 const FEATURES = [
   {
-    title: "Full site crawl, every scan",
-    text: "We discover pages from your sitemap and internal links, then check each one for titles, descriptions, H1s, and status codes — not just the homepage.",
+    title: "Full site audit",
+    text: "Crawl up to 200 pages from sitemap and internal links. 50+ checks with pass, fail, and review states.",
   },
   {
-    title: "50+ structured checks",
-    text: "Results are grouped by SEO, content, technical, social, security, accessibility, trust, and performance — with clear pass, fail, and review states.",
+    title: "Keyword research & tracking",
+    text: "Extract keyword ideas, score on-page rank signals, optimize content, and track keywords on this device.",
   },
   {
-    title: "Speed, security & trust",
-    text: "HTTPS, SSL expiry, security headers, mixed content, response time, compression, privacy/terms links, and email DNS (SPF/DMARC/DKIM) on custom domains.",
+    title: "Technical SEO toolkit",
+    text: "Redirects, schema, broken links, security headers, robots/sitemap inspect, plus generators.",
   },
   {
-    title: "Compare & export",
-    text: "Line up competitor URLs side by side, re-scan to compare changes, and export CSV or print a PDF of the report when you are ready to share fixes.",
+    title: "Compare, export, share",
+    text: "Competitor compare, weekly watchlist reminders, CSV/JSON/PDF export, and shareable report links.",
   },
 ];
 
@@ -21,13 +21,13 @@ export function HomeFeatures() {
   return (
     <section className="mt-14 space-y-8 pb-8">
       <div className="max-w-2xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal">Why SEOScan</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal">Why SEOHub</p>
         <h2 className="font-display mt-2 text-3xl font-semibold tracking-tight text-ink">
-          One scan. The whole site.
+          A full SEO stack — without the SaaS tax.
         </h2>
         <p className="mt-3 text-ink-muted">
-          Built for founders and marketers who want a clear technical picture without an account
-          or a sales funnel.
+          Audit, research keywords, check ranks, optimize content, and monitor sites weekly. No login
+          required.
         </p>
       </div>
 

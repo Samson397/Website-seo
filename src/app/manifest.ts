@@ -2,8 +2,8 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "SEOScan",
-    short_name: "SEOScan",
+    name: "SEOHub",
+    short_name: "SEOHub",
     description: "Free website SEO, security, and performance scan",
     start_url: "/",
     display: "standalone",

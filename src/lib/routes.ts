@@ -2,6 +2,7 @@
 export const routes = {
   home: "/",
   history: "/history",
+  tracker: "/tracker",
   competitors: "/competitors",
   tools: "/tools",
   metaPreview: "/tools/meta-preview",
@@ -10,6 +11,11 @@ export const routes = {
   redirects: "/tools/redirects",
   schema: "/tools/schema",
   brokenLinks: "/tools/broken-links",
+  keywords: "/tools/keywords",
+  rankChecker: "/tools/rank-checker",
+  contentOptimizer: "/tools/content",
+  sitemapGenerator: "/tools/sitemap-generator",
+  robotsGenerator: "/tools/robots-generator",
   guides: "/guides",
   about: "/about",
   privacy: "/privacy",
@@ -27,7 +33,12 @@ export const mainNav = [
   {
     href: routes.history,
     label: "History",
-    description: "Recent scans and watchlist saved on this device",
+    description: "Recent scans, watchlist, and weekly re-check reminders",
+  },
+  {
+    href: routes.tracker,
+    label: "Keywords",
+    description: "Track target keywords and on-page rank signals on this device",
   },
   {
     href: routes.competitors,
@@ -37,7 +48,7 @@ export const mainNav = [
   {
     href: routes.tools,
     label: "Tools",
-    description: "Meta preview, redirects, schema, broken links, and more",
+    description: "Keywords, content, generators, redirects, schema, and more",
   },
 ] as const;
 

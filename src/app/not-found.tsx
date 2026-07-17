@@ -4,7 +4,7 @@ import { routes } from "@/lib/routes";
 export default function NotFound() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-paper px-4 text-center">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal">SEOScan</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal">SEOHub</p>
       <h1 className="font-display mt-3 text-3xl font-semibold text-ink sm:text-4xl">
         Page not found
       </h1>

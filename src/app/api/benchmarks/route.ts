@@ -9,7 +9,7 @@ export async function GET() {
     {
       error: "Gone",
       message:
-        "Public benchmarks are disabled. Use /api/insights with your INSIGHTS_SECRET, or view seoscan:scan_events in Vercel KV.",
+        "Public benchmarks are disabled. Use /api/insights with your INSIGHTS_SECRET, or view seohub:scan_events in Vercel KV.",
     },
     { status: 410 }
   );

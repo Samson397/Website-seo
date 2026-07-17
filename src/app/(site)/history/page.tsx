@@ -8,7 +8,9 @@ import {
   clearWatchlist,
   getScanHistory,
   getWatchlist,
+  getWatchlistDueForRescan,
   toggleWatch,
+  WATCH_RESCAN_DAYS,
   type HistoryEntry,
   type WatchItem,
 } from "@/lib/local-history";
@@ -19,9 +21,12 @@ export default function HistoryPage() {
   const [watchlist, setWatchlist] = useState<WatchItem[]>([]);
   const [ready, setReady] = useState(false);
 
+  const [due, setDue] = useState<WatchItem[]>([]);
+
   function refresh() {
     setHistory(getScanHistory());
     setWatchlist(getWatchlist());
+    setDue(getWatchlistDueForRescan());
     setReady(true);
   }
 
@@ -41,6 +46,28 @@ export default function HistoryPage() {
       />
 
       <div className="mx-auto mt-10 max-w-6xl space-y-12 px-4 sm:px-6">
+        {due.length > 0 && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-soft/50 px-5 py-4">
+            <p className="font-medium text-amber-950">
+              {due.length} watched site{due.length === 1 ? "" : "s"} due for a weekly re-scan
+            </p>
+            <p className="mt-1 text-sm text-amber-900/80">
+              Last scan older than {WATCH_RESCAN_DAYS} days — keep scores fresh.
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-2">
+              {due.map((item) => (
+                <Link
+                  key={item.hostname}
+                  href={scanUrlFor(item.url)}
+                  className="rounded-lg bg-ink px-3 py-1.5 text-xs font-semibold text-white hover:bg-ink-soft"
+                >
+                  Scan {item.hostname}
+                </Link>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {empty && (
           <div className="border-t border-ink/10 px-2 py-12 text-center">
             <h2 className="font-display text-xl font-semibold text-ink">No scans yet</h2>

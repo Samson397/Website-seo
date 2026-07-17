@@ -4,7 +4,7 @@ import { URL } from "url";
 const FETCH_TIMEOUT_MS = 15000;
 const MAX_BODY_BYTES = 5 * 1024 * 1024;
 const USER_AGENT =
-  "WebsiteSEO-Auditor/1.0 (+https://github.com/Samson397/Website-seo)";
+  "SEOHub/1.0 (+https://github.com/Samson397/Website-seo)";
 
 const BLOCKED_HOSTNAMES = new Set([
   "localhost",

@@ -3,8 +3,8 @@ import { PageHero, PrimaryCta, SecondaryCta } from "@/components/ui/PageHero";
 import { routes } from "@/lib/routes";
 
 export const metadata = {
-  title: "About — SEOScan",
-  description: "About the free SEOScan full-site audit tool.",
+  title: "About — SEOHub",
+  description: "About the free SEOHub full-site audit tool.",
 };
 
 export default function AboutPage() {
@@ -13,7 +13,7 @@ export default function AboutPage() {
       <PageHero
         eyebrow="About"
         title="A weekly site check, without the SaaS."
-        description="SEOScan crawls public websites and runs 50+ checks — free, no account, no email collection."
+        description="SEOHub crawls public websites and runs 50+ checks — free, no account, no email collection."
         actions={
           <>
             <PrimaryCta href={routes.home}>Run a free scan</PrimaryCta>

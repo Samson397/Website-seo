@@ -39,13 +39,13 @@ function exportCsv(report: AuditReport) {
       .join(",")
   );
   const csv = [headers.join(","), ...rows].join("\n");
-  downloadBlob(csv, `seoscan-${hostnameSlug(report)}-${Date.now()}.csv`, "text/csv;charset=utf-8");
+  downloadBlob(csv, `seohub-${hostnameSlug(report)}-${Date.now()}.csv`, "text/csv;charset=utf-8");
 }
 
 function exportJson(report: AuditReport) {
   downloadBlob(
     JSON.stringify(report, null, 2),
-    `seoscan-${hostnameSlug(report)}-${Date.now()}.json`,
+    `seohub-${hostnameSlug(report)}-${Date.now()}.json`,
     "application/json"
   );
 }
@@ -53,7 +53,7 @@ function exportJson(report: AuditReport) {
 function exportPdfHtml(report: AuditReport) {
   const hostname = hostnameSlug(report);
   const html = `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>SEOScan — ${hostname}</title>
+<html lang="en"><head><meta charset="utf-8"><title>SEOHub — ${hostname}</title>
 <style>
   :root { --ink:#0c1222; --teal:#0d9488; --mist:#e8eef6; }
   body { font-family: Georgia, 'Times New Roman', serif; max-width: 820px; margin: 2rem auto; padding: 0 1.25rem; color: var(--ink); line-height: 1.5; }
@@ -70,7 +70,7 @@ function exportPdfHtml(report: AuditReport) {
   pre { background: #0c1222; color: #5eead4; padding: 0.75rem; border-radius: 8px; font-size: 0.75rem; overflow-x: auto; }
   @media print { body { margin: 0; } .noprint { display: none; } }
 </style></head><body>
-  <p class="brand">SEOScan report</p>
+  <p class="brand">SEOHub report</p>
   <h1>Website audit</h1>
   <p><strong>URL:</strong> ${report.url}<br/>
   <strong>Scanned:</strong> ${new Date(report.scannedAt).toLocaleString()}
@@ -103,7 +103,7 @@ function exportPdfHtml(report: AuditReport) {
   const url = URL.createObjectURL(blob);
   const win = window.open(url, "_blank");
   if (!win) {
-    downloadBlob(html, `seoscan-${hostname}-${Date.now()}.html`, "text/html;charset=utf-8");
+    downloadBlob(html, `seohub-${hostname}-${Date.now()}.html`, "text/html;charset=utf-8");
   }
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }

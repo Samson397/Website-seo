@@ -1,9 +1,13 @@
 import type { AuditReport } from "@/lib/types";
 
-const HISTORY_KEY = "seoscan-scan-history-v1";
-const WATCHLIST_KEY = "seoscan-watchlist-v1";
+const HISTORY_KEY = "seohub-scan-history-v1";
+const HISTORY_KEY_LEGACY = "seoscan-scan-history-v1";
+const WATCHLIST_KEY = "seohub-watchlist-v1";
+const WATCHLIST_KEY_LEGACY = "seoscan-watchlist-v1";
 const MAX_HISTORY = 25;
 const MAX_WATCH = 12;
+/** Re-scan watchlist items after this many days */
+export const WATCH_RESCAN_DAYS = 7;
 
 export interface HistoryEntry {
   url: string;
@@ -38,11 +42,17 @@ function hostnameFromUrl(url: string): string {
   }
 }
 
-function readJson<T>(key: string, fallback: T): T {
+function readJson<T>(key: string, legacyKey: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
+    if (raw) return JSON.parse(raw) as T;
+    const legacy = localStorage.getItem(legacyKey);
+    if (legacy) {
+      const parsed = JSON.parse(legacy) as T;
+      localStorage.setItem(key, legacy);
+      return parsed;
+    }
+    return fallback;
   } catch {
     return fallback;
   }
@@ -58,7 +68,7 @@ function writeJson(key: string, value: unknown) {
 
 export function getScanHistory(): HistoryEntry[] {
   if (typeof window === "undefined") return [];
-  return readJson<HistoryEntry[]>(HISTORY_KEY, []);
+  return readJson<HistoryEntry[]>(HISTORY_KEY, HISTORY_KEY_LEGACY, []);
 }
 
 export function saveScanToHistory(report: AuditReport): HistoryEntry[] {
@@ -77,7 +87,6 @@ export function saveScanToHistory(report: AuditReport): HistoryEntry[] {
   const next = [entry, ...prev].slice(0, MAX_HISTORY);
   writeJson(HISTORY_KEY, next);
 
-  // Keep watchlist scores fresh if this domain is watched
   const watch = getWatchlist();
   const idx = watch.findIndex((w) => w.hostname === entry.hostname);
   if (idx >= 0) {
@@ -94,7 +103,15 @@ export function saveScanToHistory(report: AuditReport): HistoryEntry[] {
 
 export function getWatchlist(): WatchItem[] {
   if (typeof window === "undefined") return [];
-  return readJson<WatchItem[]>(WATCHLIST_KEY, []);
+  return readJson<WatchItem[]>(WATCHLIST_KEY, WATCHLIST_KEY_LEGACY, []);
+}
+
+export function getWatchlistDueForRescan(): WatchItem[] {
+  const cutoff = Date.now() - WATCH_RESCAN_DAYS * 24 * 60 * 60 * 1000;
+  return getWatchlist().filter((w) => {
+    if (!w.lastScannedAt) return true;
+    return new Date(w.lastScannedAt).getTime() < cutoff;
+  });
 }
 
 export function isWatched(url: string): boolean {
@@ -130,4 +147,3 @@ export function clearScanHistory(): void {
 export function clearWatchlist(): void {
   writeJson(WATCHLIST_KEY, []);
 }
-

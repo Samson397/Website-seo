@@ -12,14 +12,14 @@ async function checkLink(href: string): Promise<{ url: string; status: number; o
     let res = await fetch(href, {
       method: "HEAD",
       redirect: "follow",
-      headers: { "User-Agent": "SEOScanBot/1.0 (+https://seoscan.app)" },
+      headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)" },
       signal: AbortSignal.timeout(8000),
     });
     if (res.status === 405 || res.status === 501) {
       res = await fetch(href, {
         method: "GET",
         redirect: "follow",
-        headers: { "User-Agent": "SEOScanBot/1.0 (+https://seoscan.app)" },
+        headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)" },
         signal: AbortSignal.timeout(8000),
       });
     }
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const parsed = new URL(target);
 
     const pageRes = await fetch(target, {
-      headers: { "User-Agent": "SEOScanBot/1.0 (+https://seoscan.app)", Accept: "text/html" },
+      headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)", Accept: "text/html" },
       redirect: "follow",
       signal: AbortSignal.timeout(15000),
     });

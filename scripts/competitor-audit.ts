@@ -1,5 +1,5 @@
 /**
- * Run SEOScan audits against external websites and write a comparison report.
+ * Run SEOHub audits against external websites and write a comparison report.
  *
  * Usage:
  *   npm run audit:competitors
@@ -78,7 +78,7 @@ function buildMarkdown(results: AuditResult[]): string {
     "",
     `Generated: ${new Date().toISOString()}`,
     "",
-    "Audited with SEOScan's `runFullAudit` (homepage only, no full site crawl).",
+    "Audited with SEOHub's `runFullAudit` (homepage only, no full site crawl).",
     "",
     "## Executive Summary",
     "",
@@ -173,10 +173,10 @@ function buildMarkdown(results: AuditResult[]): string {
   }
 
   lines.push(
-    "## Insights for SEOScan",
+    "## Insights for SEOHub",
     "",
     "1. **Performance is the differentiator** — many competitors score well on SEO basics but lag on Core Web Vitals.",
-    "2. **Security headers** — several tools miss HSTS, CSP, or X-Frame-Options; SEOScan can highlight this gap.",
+    "2. **Security headers** — several tools miss HSTS, CSP, or X-Frame-Options; SEOHub can highlight this gap.",
     "3. **Accessibility** — image alt text and heading structure remain weak across the category.",
     "4. **Dogfooding opportunity** — run periodic competitor audits to track category benchmarks.",
     ""

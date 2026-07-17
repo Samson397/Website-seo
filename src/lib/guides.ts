@@ -18,7 +18,7 @@ export const GUIDES: Guide[] = [
     body: [
       "Every indexable page needs one unique <title>. Duplicate titles dilute rankings and confuse SERPs.",
       "Put the primary keyword near the front, keep the brand at the end, and stay under ~60 characters so Google doesn’t truncate.",
-      "After you change titles, re-scan with SEOScan to confirm the crawl picks up the new values across the site.",
+      "After you change titles, re-scan with SEOHub to confirm the crawl picks up the new values across the site.",
     ],
   },
   {
@@ -64,7 +64,7 @@ export const GUIDES: Guide[] = [
     category: "Links",
     relatedCheckIds: ["broken-link"],
     body: [
-      "Use SEOScan’s broken link tool on key templates (home, nav, footer, blog posts).",
+      "Use SEOHub’s broken link tool on key templates (home, nav, footer, blog posts).",
       "Prefer updating the href to a live equivalent over deleting useful navigation.",
       "For retired URLs, 301 to the best replacement — don’t leave soft 404s.",
     ],

@@ -13,7 +13,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const report = await getSharedReport(params.id).catch(() => null);
-  if (!report) return { title: "Report not found — SEOScan" };
+  if (!report) return { title: "Report not found — SEOHub" };
   let host = "site";
   try {
     host = new URL(report.url).hostname;
@@ -21,8 +21,8 @@ export async function generateMetadata({ params }: PageProps) {
     // ignore
   }
   return {
-    title: `SEOScan report — ${host}`,
-    description: `Shared SEOScan audit for ${host}`,
+    title: `SEOHub report — ${host}`,
+    description: `Shared SEOHub audit for ${host}`,
     robots: { index: false, follow: false },
   };
 }
@@ -35,7 +35,7 @@ export default async function SharedReportPage({ params }: PageProps) {
     <main className="min-h-screen pb-16">
       <PageHero
         eyebrow="Shared report"
-        title="SEOScan results"
+        title="SEOHub results"
         description="Read-only snapshot of a full site audit."
         actions={<PrimaryCta href={routes.home}>Run your own free scan</PrimaryCta>}
       />

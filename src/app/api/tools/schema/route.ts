@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const target = normalizeUrl(url);
 
     const res = await fetch(target, {
-      headers: { "User-Agent": "SEOScanBot/1.0 (+https://seoscan.app)", Accept: "text/html" },
+      headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)", Accept: "text/html" },
       redirect: "follow",
       signal: AbortSignal.timeout(15000),
     });

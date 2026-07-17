@@ -3,7 +3,7 @@ import { kv } from "@vercel/kv";
 import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase";
 
 /** Redis list key for Vercel KV / Upstash */
-export const SCAN_EVENTS_KV_KEY = "seoscan:scan_events";
+export const SCAN_EVENTS_KV_KEY = "seohub:scan_events";
 export const SCAN_EVENTS_COLLECTION = "scan_events";
 const MAX_EVENTS = 5000;
 

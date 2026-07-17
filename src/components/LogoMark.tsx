@@ -12,7 +12,7 @@ export function LogoMark({ size = "md" }: { size?: keyof typeof sizes }) {
   return (
     <Image
       src="/logo.svg"
-      alt="SEOScan"
+      alt="SEOHub"
       width={px}
       height={px}
       priority

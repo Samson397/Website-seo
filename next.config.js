@@ -2,7 +2,7 @@
 
 const isDev = process.env.NODE_ENV !== "production";
 
-// Baseline from SEOScan audit recommendations; extended for Next.js + Vercel Analytics.
+// Baseline from SEOHub audit recommendations; extended for Next.js + Vercel Analytics.
 const contentSecurityPolicy = [
   "default-src 'self'",
   isDev

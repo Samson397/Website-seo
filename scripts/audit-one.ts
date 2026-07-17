@@ -1,7 +1,7 @@
 import { runFullAudit } from "../src/lib/audit";
 
 async function main() {
-  const url = process.argv[2] ?? "https://seoscan-five.vercel.app";
+  const url = process.argv[2] ?? "https://seohub.vercel.app";
   const report = await runFullAudit(url, { siteCrawl: false });
   const overall = Math.round(
     (report.scores.seo +

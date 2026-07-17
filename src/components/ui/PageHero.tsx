@@ -9,7 +9,7 @@ interface PageHeroProps {
 }
 
 /** Shared premium dark hero used across marketing and tool pages. */
-export function PageHero({ eyebrow = "SEOScan", title, description, children, actions }: PageHeroProps) {
+export function PageHero({ eyebrow = "SEOHub", title, description, children, actions }: PageHeroProps) {
   return (
     <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-28 text-white sm:px-6 sm:pb-16 sm:pt-32">
       <div

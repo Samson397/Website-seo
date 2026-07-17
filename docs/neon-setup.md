@@ -1,11 +1,11 @@
-# SEOScan → Neon on Vercel (your setup)
+# SEOHub → Neon on Vercel (your setup)
 
 You already have Neon connected, e.g. **neon-apricot-blanket**.  
-SEOScan uses the official `@neondatabase/serverless` driver + `DATABASE_URL` (same as the Vercel Neon Quickstart).
+SEOHub uses the official `@neondatabase/serverless` driver + `DATABASE_URL` (same as the Vercel Neon Quickstart).
 
 ## 1. Confirm the project is linked
 
-1. Vercel → SEOScan project → **Storage**
+1. Vercel → SEOHub project → **Storage**
 2. Open **neon-apricot-blanket** (or your Neon install)
 3. Make sure it is connected to this Vercel project (env vars available)
 
@@ -56,7 +56,7 @@ CREATE INDEX IF NOT EXISTS shared_reports_created_at_idx
 ON shared_reports (created_at DESC);
 ```
 
-## 3. Redeploy SEOScan
+## 3. Redeploy SEOHub
 
 Deployments → latest → **Redeploy**  
 (so production has `DATABASE_URL`)

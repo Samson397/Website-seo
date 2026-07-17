@@ -3,14 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const STORAGE_KEY = "seoscan-cookie-accepted";
+const STORAGE_KEY = "seohub-cookie-accepted";
+const STORAGE_KEY_LEGACY = "seoscan-cookie-accepted";
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     try {
-      if (!localStorage.getItem(STORAGE_KEY)) setVisible(true);
+      if (!localStorage.getItem(STORAGE_KEY) && !localStorage.getItem(STORAGE_KEY_LEGACY))
+        setVisible(true);
     } catch {
       setVisible(true);
     }
@@ -29,7 +31,7 @@ export function CookieConsent() {
 
   return (
     <div
-      id="seoscan-cookie-consent"
+      id="seohub-cookie-consent"
       className="cookie-consent-banner fixed bottom-0 left-0 right-0 z-50 border-t border-ink/10 bg-ink p-4 pb-[max(1rem,env(safe-area-inset-bottom))] text-white shadow-lg"
       role="dialog"
       aria-label="Cookie consent"

@@ -58,7 +58,7 @@ export async function GET() {
   const optionalOk = items.filter((c) => c.ok).length;
 
   return NextResponse.json({
-    app: "seoscan",
+    app: "seohub",
     scannerReady: true,
     storeReady: isStoreConfigured(),
     storeBackend: getStoreBackend(),

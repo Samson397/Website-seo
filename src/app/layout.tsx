@@ -20,7 +20,7 @@ const body = Source_Sans_3({
 
 const siteUrl = getSiteUrl();
 
-const title = "SEOScan — Free full-site SEO audit you run every week";
+const title = "SEOHub — Free full-site SEO audit you run every week";
 const description =
   "Crawl every page, run 50+ checks, and track a watchlist on your device. Free, no login.";
 
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     title,
     description,
     url: siteUrl,
-    siteName: "SEOScan",
+    siteName: "SEOHub",
     type: "website",
     locale: "en_GB",
   },
@@ -55,7 +55,7 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "SEOScan",
+    name: "SEOHub",
     description,
     url: siteUrl,
     applicationCategory: "BusinessApplication",

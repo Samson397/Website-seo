@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       const res = await fetch(current.toString(), {
         method: "GET",
         redirect: "manual",
-        headers: { "User-Agent": "SEOScanBot/1.0 (+https://seoscan.app)" },
+        headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)" },
         signal: AbortSignal.timeout(12000),
       });
       const location = res.headers.get("location");
