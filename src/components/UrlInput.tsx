@@ -40,7 +40,7 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
         </button>
       </div>
       <p className="text-center text-xs text-ink-muted sm:text-left">
-        Full site crawl is always on — we find pages from your sitemap and links, then check each one.
+        Free preview scores the homepage. Unlock for a full-site crawl and detailed fixes.
       </p>
     </form>
   );

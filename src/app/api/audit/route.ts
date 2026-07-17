@@ -6,6 +6,7 @@ import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
 import { verifyPaidSession } from "@/lib/stripe-unlock-server";
+import { toFreePreviewReport } from "@/lib/free-preview";
 
 /** Allow longer full-site crawls on platforms that support it (e.g. Vercel Pro). */
 export const maxDuration = 300;
@@ -66,23 +67,26 @@ export async function POST(request: NextRequest) {
 
     void recordScanTelemetry(report);
 
+    let responseReport =
+      tier === "free" ? toFreePreviewReport(report) : { ...report, tier: "full" as const };
+
     if (tier === "full" && share && canPersistReports()) {
       try {
-        report.shareId = await saveSharedReport(report);
+        responseReport = {
+          ...responseReport,
+          shareId: await saveSharedReport(responseReport),
+        };
       } catch (err) {
         console.error("[audit] share save failed", err instanceof Error ? err.message : err);
       }
     }
 
-    return NextResponse.json(
-      { ...report, tier },
-      {
-        headers: {
-          "X-RateLimit-Remaining": String(limited.remaining),
-          "X-SEOHub-Tier": tier,
-        },
-      }
-    );
+    return NextResponse.json(responseReport, {
+      headers: {
+        "X-RateLimit-Remaining": String(limited.remaining),
+        "X-SEOHub-Tier": tier,
+      },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Audit failed";
     const status = message.includes("not allowed") || message.includes("resolve") ? 400 : 500;

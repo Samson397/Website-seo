@@ -75,8 +75,8 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
         Unlock the full site SEO scan
       </h3>
       <p className="mt-3 max-w-xl text-sm text-white/70 sm:text-base">
-        Free covers the homepage. Pay {priceLabel} once for a crawl of up to 200 pages, full
-        Pass/Fail checklist, shareable report, and site-wide issues — no account.
+        Free shows scores and a few locked issue titles. Pay {priceLabel} once for full fixes,
+        checklist, site crawl (up to 200 pages), exports, and shareable report — no account.
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <button

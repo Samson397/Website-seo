@@ -16,7 +16,7 @@ const FEATURES = [
   },
   {
     title: "Pay only when you need depth",
-    text: "Homepage preview is free. Unlock full-site crawl, exports, and shareable reports for a one-time fee.",
+    text: "Free shows scores and locked issue titles. Unlock full fixes, checklist, crawl, and exports for a one-time fee.",
   },
 ];
 
