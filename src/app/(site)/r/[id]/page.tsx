@@ -4,6 +4,7 @@ import { getSharedReport } from "@/lib/reports";
 import { SharedReportView } from "@/components/SharedReportView";
 import { PageHero, PrimaryCta } from "@/components/ui/PageHero";
 import { routes } from "@/lib/routes";
+import { formatUrlDisplay } from "@/lib/url-display";
 
 export const dynamic = "force-dynamic";
 
@@ -31,18 +32,33 @@ export default async function SharedReportPage({ params }: PageProps) {
   const report = await getSharedReport(params.id).catch(() => null);
   if (!report) notFound();
 
+  let host = formatUrlDisplay(report.url);
+  try {
+    host = new URL(report.url).hostname;
+  } catch {
+    /* keep */
+  }
+
+  const overall = Math.round(
+    (report.scores.seo +
+      report.scores.performance +
+      report.scores.accessibility +
+      report.scores.security) /
+      4
+  );
+
   return (
     <main className="min-h-screen pb-16">
       <PageHero
         eyebrow="Shared report"
-        title="SEOHub results"
-        description="Read-only snapshot of a full site audit."
+        title={<>{host}</>}
+        description={`Overall score ${overall}. Read-only snapshot of a SEOHub site audit.`}
         actions={<PrimaryCta href={routes.home}>Run your own free scan</PrimaryCta>}
       />
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <p className="mt-6 text-sm text-ink-muted">
           Or{" "}
-          <Link href={routes.guides} className="text-teal hover:underline">
+          <Link href={routes.guides} className="text-brand hover:underline">
             browse fix guides
           </Link>
           .

@@ -9,12 +9,6 @@ interface IssueCardProps {
   onToggleResolved?: (id: string) => void;
 }
 
-const SEVERITY_STYLES = {
-  critical: "border-red-200 bg-red-50 text-red-800",
-  warning: "border-yellow-200 bg-yellow-50 text-yellow-800",
-  info: "border-blue-200 bg-blue-50 text-blue-800",
-};
-
 const CATEGORY_LABELS: Record<string, string> = {
   seo: "SEO",
   performance: "Performance",
@@ -34,69 +28,77 @@ export function IssueCard({ issue, resolved, onToggleResolved }: IssueCardProps)
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const rail =
+    issue.severity === "critical"
+      ? "severity-rail-critical"
+      : issue.severity === "warning"
+        ? "severity-rail-warning"
+        : "severity-rail-info";
+
   return (
-    <div
-      className={`rounded-lg border bg-white p-5 shadow-sm transition ${
-        resolved ? "border-green-200 opacity-60" : "border-slate-200"
+    <article
+      className={`relative overflow-hidden rounded-2xl border bg-white transition ${
+        resolved ? "border-accent/20 opacity-60" : "border-ink/8 shadow-sm hover:border-brand/25"
       }`}
     >
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        {onToggleResolved && (
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-600">
-            <input
-              type="checkbox"
-              checked={resolved}
-              onChange={() => onToggleResolved(issue.id)}
-              className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-500"
-            />
-            <span className={resolved ? "line-through" : ""}>Done</span>
-          </label>
+      <div className={`absolute inset-y-0 left-0 w-1.5 ${rail}`} />
+      <div className="p-5 pl-6">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {onToggleResolved && (
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-muted">
+              <input
+                type="checkbox"
+                checked={resolved}
+                onChange={() => onToggleResolved(issue.id)}
+                className="h-4 w-4 rounded border-ink/20 text-accent focus:ring-brand"
+              />
+              <span className={resolved ? "line-through" : ""}>Done</span>
+            </label>
+          )}
+          <span className="rounded-md bg-mist px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-muted">
+            {issue.severity}
+          </span>
+          <span className="rounded-md bg-brand-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">
+            {CATEGORY_LABELS[issue.category] || issue.category}
+          </span>
+        </div>
+
+        <h3 className={`font-display text-lg font-semibold text-ink ${resolved ? "line-through" : ""}`}>
+          {issue.title}
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-ink-muted">{issue.description}</p>
+
+        {issue.currentValue && (
+          <p className="mt-3 rounded-xl bg-paper px-3 py-2 font-mono text-xs text-ink-soft">
+            Current: {issue.currentValue}
+          </p>
         )}
-        <span
-          className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase ${SEVERITY_STYLES[issue.severity]}`}
-        >
-          {issue.severity}
-        </span>
-        <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-          {CATEGORY_LABELS[issue.category] || issue.category}
-        </span>
-      </div>
 
-      <h3 className={`text-lg font-semibold text-slate-900 ${resolved ? "line-through" : ""}`}>
-        {issue.title}
-      </h3>
-      <p className="mt-2 text-sm text-slate-600">{issue.description}</p>
-
-      {issue.currentValue && (
-        <div className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm">
-          <span className="font-medium text-slate-700">Current: </span>
-          <span className="text-slate-600">{issue.currentValue}</span>
+        <div className="mt-4 rounded-xl border border-brand/15 bg-brand-soft/40 px-3 py-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-brand">Recommendation</p>
+          <p className="mt-1 text-sm text-ink">{issue.recommendation}</p>
         </div>
-      )}
 
-      <p className="mt-3 text-sm">
-        <span className="font-medium text-slate-700">Recommendation: </span>
-        <span className="text-slate-600">{issue.recommendation}</span>
-      </p>
-
-      {issue.fixSnippet && (
-        <div className="mt-4">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Fix snippet
-            </span>
-            <button
-              onClick={copyFix}
-              className="rounded-md bg-slate-800 px-3 py-1 text-xs font-medium text-white transition hover:bg-slate-700"
-            >
-              {copied ? "Copied!" : "Copy fix"}
-            </button>
+        {issue.fixSnippet && (
+          <div className="mt-3">
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted">
+                Fix snippet
+              </p>
+              <button
+                type="button"
+                onClick={() => void copyFix()}
+                className="text-xs font-semibold text-brand hover:text-brand-deep"
+              >
+                {copied ? "Copied" : "Copy fix"}
+              </button>
+            </div>
+            <pre className="overflow-x-auto rounded-xl bg-ink px-3 py-3 text-xs text-brand-bright">
+              <code>{issue.fixSnippet}</code>
+            </pre>
           </div>
-          <pre className="overflow-x-auto rounded-md bg-slate-900 p-3 text-xs text-green-400">
-            <code>{issue.fixSnippet}</code>
-          </pre>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </article>
   );
 }

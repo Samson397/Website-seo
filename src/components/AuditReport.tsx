@@ -99,71 +99,68 @@ export function AuditReportView({
         <ScanComparisonPanel previous={previousReport} current={report} />
       )}
 
-      <div className="rounded-2xl border border-ink/10 bg-white p-6 shadow-sm">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">Report</p>
-            <h2 className="font-display mt-1 text-2xl font-semibold text-ink">Audit results</h2>
-            <p className="mt-1 break-all text-sm text-ink-muted">{formatUrlDisplay(report.url)}</p>
-            <p className="text-xs text-ink-muted/80">
-              Scanned {new Date(report.scannedAt).toLocaleString()}
-            </p>
+      <div className="report-shell animate-rise overflow-hidden rounded-3xl">
+        <div className="border-b border-ink/5 bg-gradient-to-br from-ink via-brand-deep to-brand px-6 py-7 text-white sm:px-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-bright">
+                Full audit report
+              </p>
+              <h2 className="font-display mt-2 text-3xl font-semibold tracking-tight">
+                {formatUrlDisplay(report.url)}
+              </h2>
+              <p className="mt-2 text-sm text-white/65">
+                Scanned {new Date(report.scannedAt).toLocaleString()}
+                {report.tier === "full" ? " · Full-site crawl" : " · Homepage preview"}
+              </p>
+            </div>
+            <div className="flex flex-col items-stretch gap-3 sm:items-end">
+              <div className="flex flex-wrap gap-2">
+                {onRescan && (
+                  <button
+                    onClick={onRescan}
+                    disabled={rescanLoading}
+                    className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:bg-brand-bright disabled:opacity-60"
+                  >
+                    {rescanLoading ? "Re-scanning…" : "Re-scan"}
+                  </button>
+                )}
+                <ExportButtons report={report} />
+                <EmailReportButton report={report} />
+              </div>
+              <ShareReportButton report={report} />
+            </div>
           </div>
-          <div className="flex flex-col items-stretch gap-3 sm:items-end">
-            <div className="flex flex-wrap gap-2">
-              {onRescan && (
-                <button
-                  onClick={onRescan}
-                  disabled={rescanLoading}
-                  className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink-soft disabled:opacity-60"
-                >
-                  {rescanLoading ? "Re-scanning…" : "Re-scan"}
-                </button>
+        </div>
+
+        <div className="px-6 py-7 sm:px-8">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            <ScoreGauge label="SEO" score={report.scores.seo} />
+            <ScoreGauge label="Performance" score={report.scores.performance} />
+            <ScoreGauge label="Accessibility" score={report.scores.accessibility} />
+            <ScoreGauge label="Security" score={report.scores.security} />
+          </div>
+
+          {report.performanceMetrics && (
+            <div className="mt-8 grid grid-cols-2 gap-3 rounded-2xl border border-ink/5 bg-mist/60 p-4 sm:grid-cols-5">
+              {report.performanceMetrics.lcp && (
+                <Metric label="LCP" value={report.performanceMetrics.lcp} />
               )}
-              <ExportButtons report={report} />
-              <EmailReportButton report={report} />
+              {report.performanceMetrics.cls && (
+                <Metric label="CLS" value={report.performanceMetrics.cls} />
+              )}
+              {report.performanceMetrics.inp && (
+                <Metric label="INP" value={report.performanceMetrics.inp} />
+              )}
+              {report.performanceMetrics.fcp && (
+                <Metric label="FCP" value={report.performanceMetrics.fcp} />
+              )}
+              {report.performanceMetrics.ttfb && (
+                <Metric label="TTFB" value={report.performanceMetrics.ttfb} />
+              )}
             </div>
-            <ShareReportButton report={report} />
-            <div className="flex flex-wrap gap-2 text-sm">
-              <span className="rounded-lg bg-rose-100 px-3 py-1 font-medium text-rose-700">
-                {report.summary.critical} critical
-              </span>
-              <span className="rounded-lg bg-amber-soft px-3 py-1 font-medium text-amber-900">
-                {report.summary.warning} warnings
-              </span>
-              <span className="rounded-lg bg-teal-soft px-3 py-1 font-medium text-teal">
-                {report.summary.info} info
-              </span>
-            </div>
-          </div>
+          )}
         </div>
-
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-          <ScoreGauge label="SEO" score={report.scores.seo} />
-          <ScoreGauge label="Performance" score={report.scores.performance} />
-          <ScoreGauge label="Accessibility" score={report.scores.accessibility} />
-          <ScoreGauge label="Security" score={report.scores.security} />
-        </div>
-
-        {report.performanceMetrics && (
-          <div className="mt-6 grid grid-cols-2 gap-3 rounded-xl bg-paper p-4 sm:grid-cols-5">
-            {report.performanceMetrics.lcp && (
-              <Metric label="LCP" value={report.performanceMetrics.lcp} />
-            )}
-            {report.performanceMetrics.cls && (
-              <Metric label="CLS" value={report.performanceMetrics.cls} />
-            )}
-            {report.performanceMetrics.inp && (
-              <Metric label="INP" value={report.performanceMetrics.inp} />
-            )}
-            {report.performanceMetrics.fcp && (
-              <Metric label="FCP" value={report.performanceMetrics.fcp} />
-            )}
-            {report.performanceMetrics.ttfb && (
-              <Metric label="TTFB" value={report.performanceMetrics.ttfb} />
-            )}
-          </div>
-        )}
       </div>
 
       {report.serpPreview && (
@@ -178,15 +175,15 @@ export function AuditReportView({
 
       {report.crawl?.enabled && <SiteCrawlPanel crawl={report.crawl} />}
 
-      <div id="audit-issues">
-        <div className="mb-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">Issues</p>
-          <h3 className="font-display mt-1 text-xl font-semibold text-ink">Everything we found</h3>
-          <p className="text-sm text-ink-muted">
+      <div id="audit-issues" className="animate-rise-delay-1">
+        <div className="mb-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">Issues</p>
+          <h3 className="font-display mt-1 text-2xl font-semibold text-ink">Everything we found</h3>
+          <p className="mt-1 text-sm text-ink-muted">
             SEO, security, performance, accessibility, links, and domain — with fix recommendations.
           </p>
         </div>
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => (
               <button
@@ -195,7 +192,7 @@ export function AuditReportView({
                 className={`rounded-xl px-4 py-1.5 text-sm font-medium transition ${
                   filter === cat.key
                     ? "bg-ink text-white"
-                    : "bg-white text-ink-muted ring-1 ring-ink/10 hover:bg-paper"
+                    : "bg-white text-ink-muted ring-1 ring-ink/10 hover:bg-brand-soft"
                 }`}
               >
                 {cat.label}
