@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
+import Link from "next/link";
 import { UrlInput } from "@/components/UrlInput";
 import { AuditReportView } from "@/components/AuditReport";
 import { ProblemsSummary } from "@/components/ProblemsSummary";
-import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
+import { ChecksPanel } from "@/components/ChecksPanel";
 import { HomeFeatures } from "@/components/HomeFeatures";
 import { RouteCards } from "@/components/RouteCards";
-import Link from "next/link";
-import { SaveScanBanner } from "@/components/HomeAuthLinks";
+import { routes } from "@/lib/routes";
 import type { AuditReport, AuditCategory } from "@/lib/types";
 
 export default function Home() {
@@ -17,17 +17,10 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lastUrl = useRef<string>("");
-  const lastSiteCrawl = useRef<boolean>(false);
-  const checklistRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [issueFilter, setIssueFilter] = useState<AuditCategory | "all">("all");
 
-  useEffect(() => {
-    if (report && checklistRef.current) {
-      checklistRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [report]);
-
-  async function runAudit(url: string, siteCrawl: boolean, isRescan = false) {
+  async function runAudit(url: string, isRescan = false) {
     setLoading(true);
     setError(null);
 
@@ -42,7 +35,7 @@ export default function Home() {
       const response = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, siteCrawl }),
+        body: JSON.stringify({ url }),
       });
 
       const data = await response.json();
@@ -50,15 +43,17 @@ export default function Home() {
         const msg = data.error || "Audit failed";
         if (msg.includes("timeout") || msg.includes("TIMEOUT") || response.status === 504) {
           throw new Error(
-            "The scan took too long. Try again with 'Full site scan' unchecked for a faster result."
+            "The scan took too long on this host. Try again in a moment — large sites can take up to a minute."
           );
         }
         throw new Error(msg);
       }
 
       lastUrl.current = url;
-      lastSiteCrawl.current = siteCrawl;
       setReport(data);
+      requestAnimationFrame(() => {
+        resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       if (isRescan && previousReport) {
@@ -70,86 +65,73 @@ export default function Home() {
     }
   }
 
-  function handleAudit(url: string, siteCrawl: boolean) {
-    runAudit(url, siteCrawl, false);
-  }
-
   function handleRescan() {
-    if (lastUrl.current) {
-      runAudit(lastUrl.current, lastSiteCrawl.current, true);
-    }
+    if (lastUrl.current) runAudit(lastUrl.current, true);
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-8">
-      {/* Hero — compact on mobile so the form is never covered */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 px-4 pb-8 pt-10 text-white sm:px-6 sm:pb-24 sm:pt-14">
+    <main className="min-h-screen pb-16">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-24 sm:pt-32">
         <div
-          className="pointer-events-none absolute inset-0 opacity-30"
+          className="pointer-events-none absolute inset-0 opacity-40"
           aria-hidden
           style={{
             backgroundImage:
-              "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 40%)",
+              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
           }}
         />
-        <div className="relative mx-auto max-w-5xl text-center">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">Scan a website</h1>
-          <p className="mx-auto mt-3 max-w-xl text-base text-blue-100 sm:mt-4 sm:text-lg">
-            Find what&apos;s wrong — SEO, security, speed, and accessibility. Paste any website URL.
+
+        <div className="relative mx-auto max-w-6xl">
+          <p className="animate-rise text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
+            SEOScan
           </p>
-          <p className="mt-3 text-xs text-blue-200/90 sm:hidden">
-            Free · 50+ checks · <Link href="/register" className="underline">Save &amp; monitor</Link>
+          <h1 className="font-display animate-rise-delay-1 mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
+            See every page.
+            <span className="block text-teal-bright">Fix what search sees.</span>
+          </h1>
+          <p className="animate-rise-delay-2 mt-5 max-w-xl text-base text-white/75 sm:text-lg">
+            Paste a URL. We crawl your full site and run 50+ SEO, security, speed, and
+            accessibility checks — free, no account.
           </p>
-          <div className="mt-5 hidden flex-wrap justify-center gap-2 text-sm sm:flex">
-            {["SEO & security checks", "50+ issues found", "Uptime monitoring", "Weekly scans"].map((badge) => (
-              <span
-                key={badge}
-                className="rounded-full bg-white/15 px-3 py-1 ring-1 ring-white/20 backdrop-blur-sm"
-              >
-                {badge}
-              </span>
-            ))}
+
+          <div className="animate-rise-delay-2 glass-panel mt-8 max-w-2xl rounded-2xl border border-white/15 p-4 shadow-glow sm:p-5">
+            <UrlInput onSubmit={(url) => runAudit(url)} loading={loading} />
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        {/* Search card — below hero on mobile, slight overlap on desktop only */}
-        <div className="relative z-10 mt-5 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/50 sm:-mt-14 sm:p-8">
-          <UrlInput onSubmit={handleAudit} loading={loading} />
-        </div>
-
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {loading && (
-          <div className="mt-8 rounded-2xl border border-blue-100 bg-white p-10 text-center shadow-sm">
-            <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <p className="font-medium text-slate-700">Scanning for SEO, security &amp; performance issues…</p>
-            <p className="mt-1 text-sm text-slate-400">Usually 20–40 seconds</p>
+          <div className="relative -mt-8 rounded-2xl border border-ink/10 bg-white p-10 text-center shadow-sm">
+            <div className="scan-pulse relative mx-auto mb-5 h-12 w-12">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal border-t-transparent" />
+            </div>
+            <p className="font-display text-xl font-semibold text-ink">Crawling your site…</p>
+            <p className="mt-2 text-sm text-ink-muted">
+              Finding pages from sitemap &amp; links, then checking each one. Large sites may take
+              up to a minute.
+            </p>
           </div>
         )}
 
         {error && (
-          <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+          <div className="mt-8 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
             {error}
           </div>
         )}
 
         {report && !loading && (
-          <div className="mt-10 space-y-8 pb-12">
-            <SaveScanBanner url={report.url} report={report} siteCrawl={lastSiteCrawl.current} />
-            <div ref={checklistRef}>
-              <ProblemsSummary
-                report={report}
-                onJumpToCategory={(category) => {
-                  setIssueFilter(category);
-                  document.getElementById("audit-issues")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              />
-            </div>
-            {report.checklist && (
-              <div id="what-you-have">
-                <SiteChecklistPanel checklist={report.checklist} />
-              </div>
-            )}
+          <div ref={resultsRef} className="mt-10 space-y-8 pb-12">
+            <ProblemsSummary
+              report={report}
+              onJumpToCategory={(category) => {
+                setIssueFilter(category);
+                document
+                  .getElementById("audit-issues")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
+            {report.checklist && <ChecksPanel checklist={report.checklist} />}
             <AuditReportView
               report={report}
               previousReport={previousReport}
@@ -166,9 +148,32 @@ export default function Home() {
           <>
             <RouteCards />
             <HomeFeatures />
+            <section className="mt-12 rounded-2xl border border-ink/10 bg-white px-6 py-10 text-center shadow-sm sm:px-10">
+              <h2 className="font-display text-2xl font-semibold text-ink">More free tools</h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm text-ink-muted">
+                Quick utilities that reuse the same audit engine — no login required.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <ToolLink href={routes.metaPreview} label="Meta & SERP preview" />
+                <ToolLink href={routes.robotsInspector} label="robots.txt & sitemap" />
+                <ToolLink href={routes.headers} label="Security headers" />
+                <ToolLink href={routes.competitors} label="Competitor compare" />
+              </div>
+            </section>
           </>
         )}
       </div>
     </main>
+  );
+}
+
+function ToolLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="rounded-xl border border-ink/10 bg-paper px-4 py-2.5 text-sm font-medium text-ink transition hover:border-teal/40 hover:bg-teal-soft"
+    >
+      {label}
+    </Link>
   );
 }

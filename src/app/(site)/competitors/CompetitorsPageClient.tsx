@@ -31,6 +31,7 @@ export default function CompetitorsPageClient() {
           const response = await fetch("/api/audit", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            // Homepage-focused for speed when comparing many sites
             body: JSON.stringify({ url, siteCrawl: false }),
           });
 
@@ -63,31 +64,36 @@ export default function CompetitorsPageClient() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-12">
-      <div className="border-b border-slate-200 bg-white px-4 py-8 sm:px-6">
-        <div className="mx-auto max-w-5xl">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Compare competitors</h1>
-          <p className="mt-2 max-w-2xl text-slate-600">
-            Route: <code className="rounded bg-slate-100 px-1.5 py-0.5 text-sm">/competitors</code> —
-            audit up to 10 websites and rank them side by side.
+    <main className="min-h-screen pb-12">
+      <section className="hero-mesh px-4 pb-12 pt-28 text-white sm:px-6 sm:pt-32">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
+            SEOScan
+          </p>
+          <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
+            Compare competitors
+          </h1>
+          <p className="mt-4 max-w-2xl text-white/75">
+            Audit up to 10 public websites side by side. Each site gets the same 50+ homepage
+            checks so you can rank gaps quickly.
           </p>
         </div>
-      </div>
+      </section>
 
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-        <div className="relative z-10 mt-6 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xl shadow-slate-200/50 sm:p-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="relative z-10 -mt-6 rounded-2xl border border-ink/10 bg-white p-5 shadow-glow sm:p-8">
           <CompetitorUrlInput onSubmit={auditCompetitors} loading={loading} progress={progress} />
         </div>
 
         {loading && !progress && (
-          <div className="mt-8 rounded-2xl border border-blue-100 bg-white p-10 text-center shadow-sm">
-            <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <p className="font-medium text-slate-700">Starting competitor audits…</p>
+          <div className="mt-8 rounded-2xl border border-ink/10 bg-white p-10 text-center shadow-sm">
+            <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-4 border-teal border-t-transparent" />
+            <p className="font-medium text-ink">Starting competitor audits…</p>
           </div>
         )}
 
         {error && (
-          <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+          <div className="mt-8 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
             {error}
           </div>
         )}
@@ -99,18 +105,14 @@ export default function CompetitorsPageClient() {
         )}
 
         {!results && !loading && (
-          <section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">How it works</h2>
+          <section className="mt-10 border-t border-ink/10 pt-8 text-sm text-ink-muted">
+            <h2 className="font-display text-lg font-semibold text-ink">How it works</h2>
             <ol className="mt-3 list-inside list-decimal space-y-2">
-              <li>Add competitor domains — e.g. rival shops, agencies, or other sites in your niche.</li>
-              <li>Each site is scanned independently with the same 50+ checks as a normal SEOScan audit.</li>
-              <li>Results are ranked by overall score so you can see who is ahead and where gaps are.</li>
-              <li>Click any site in the table to expand its full audit report.</li>
+              <li>Add competitor domains in your niche.</li>
+              <li>Each homepage is scanned with the same check suite.</li>
+              <li>Results are ranked by overall score so gaps are obvious.</li>
+              <li>Expand any row for the full report.</li>
             </ol>
-            <p className="mt-4 text-slate-500">
-              Tip: only audit public websites you are allowed to scan. This tool does not include
-              your own site unless you enter it.
-            </p>
           </section>
         )}
       </div>

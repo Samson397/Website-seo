@@ -130,14 +130,14 @@ export function ProblemsSummary({ report, onJumpToCategory }: ProblemsSummaryPro
         </div>
       )}
 
-      {report.checklist && report.checklist.missingCount > 0 && (
+      {report.checklist && (report.checklist.failCount ?? report.checklist.missingCount) > 0 && (
         <p className="mt-4 text-sm text-slate-600">
           Plus{" "}
-          <span className="font-semibold text-red-700">
-            {report.checklist.missingCount} missing item
-            {report.checklist.missingCount === 1 ? "" : "s"}
+          <span className="font-semibold text-rose-700">
+            {report.checklist.failCount ?? report.checklist.missingCount} failed check
+            {(report.checklist.failCount ?? report.checklist.missingCount) === 1 ? "" : "s"}
           </span>{" "}
-          in the checklist below (things your site should have but doesn&apos;t).
+          in the full scan results below.
         </p>
       )}
     </div>

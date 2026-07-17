@@ -15,9 +15,12 @@ export function overallScore(report: AuditReport): number {
 export function checklistPassRate(report: AuditReport): number | null {
   const checklist = report.checklist;
   if (!checklist) return null;
-  const total = checklist.hasCount + checklist.missingCount + checklist.warningCount;
+  const pass = checklist.passCount ?? checklist.hasCount;
+  const fail = checklist.failCount ?? checklist.missingCount;
+  const attention = checklist.attentionCount ?? checklist.warningCount;
+  const total = pass + fail + attention;
   if (total === 0) return null;
-  return Math.round((checklist.hasCount / total) * 100);
+  return Math.round((pass / total) * 100);
 }
 
 export function rankCompetitorResults(results: CompetitorAuditResult[]): CompetitorAuditResult[] {

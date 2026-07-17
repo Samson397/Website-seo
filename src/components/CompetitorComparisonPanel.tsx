@@ -5,7 +5,7 @@ import type { CompetitorAuditResult } from "@/lib/competitor-scores";
 import { checklistPassRate, overallScore, rankCompetitorResults } from "@/lib/competitor-scores";
 import { formatUrlDisplay } from "@/lib/url-display";
 import { AuditReportView } from "@/components/AuditReport";
-import { SiteChecklistPanel } from "@/components/SiteChecklistPanel";
+import { ChecksPanel } from "@/components/ChecksPanel";
 
 interface CompetitorComparisonPanelProps {
   results: CompetitorAuditResult[];
@@ -128,7 +128,7 @@ export function CompetitorComparisonPanel({ results }: CompetitorComparisonPanel
           </div>
           <div className="p-4 space-y-8">
             {ranked[expandedIndex].report!.checklist && (
-              <SiteChecklistPanel checklist={ranked[expandedIndex].report!.checklist!} />
+              <ChecksPanel checklist={ranked[expandedIndex].report!.checklist!} />
             )}
             <AuditReportView report={ranked[expandedIndex].report!} />
           </div>

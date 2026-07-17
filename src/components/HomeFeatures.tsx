@@ -1,65 +1,45 @@
 const FEATURES = [
   {
-    title: "SEO & Google visibility",
-    icon: "📋",
-    text: "We check your page title, meta description, H1 heading, canonical URL, Open Graph tags, Twitter cards, JSON-LD schema, robots.txt, XML sitemap, favicon, and internal links. Turn on full site scan to discover every page on your site and catch duplicate titles or descriptions across pages.",
+    title: "Full site crawl, every scan",
+    text: "We discover pages from your sitemap and internal links, then check each one for titles, descriptions, H1s, and status codes — not just the homepage.",
   },
   {
-    title: "Speed & security",
-    icon: "⚡",
-    text: "Measure server response time, HTML weight, compression, and JavaScript load. We verify HTTPS, SSL certificate expiry, security headers, and mixed content. Optional PageSpeed integration adds Lighthouse performance and Core Web Vitals when configured on your deployment.",
+    title: "50+ structured checks",
+    text: "Results are grouped by SEO, content, technical, social, security, accessibility, trust, and performance — with clear pass, fail, and review states.",
   },
   {
-    title: "Trust & accessibility",
-    icon: "✓",
-    text: "Find missing privacy or terms links, contact and about pages, form labels, image alt text, mobile viewport settings, and broken links. Every issue includes plain-English guidance and a copy-paste fix snippet where possible so you can improve quickly without guessing.",
+    title: "Speed, security & trust",
+    text: "HTTPS, SSL expiry, security headers, mixed content, response time, compression, privacy/terms links, and email DNS (SPF/DMARC/DKIM) on custom domains.",
   },
   {
-    title: "Uptime & SSL monitoring",
-    icon: "🛡️",
-    text: "Create a free account and we check your site daily for uptime and SSL expiry. Results are saved to your dashboard — sign in anytime to see status, history, and trends. Use Check now for an instant test.",
-  },
-  {
-    title: "Domain intelligence",
-    icon: "🌐",
-    text: "For custom domains we inspect DNS, domain registration expiry, SPF, DMARC, and DKIM email records. Platform hosts like vercel.app skip email DNS checks because those records cannot be set there. Export your report to CSV or PDF and re-scan after you make changes.",
+    title: "Compare & export",
+    text: "Line up competitor URLs side by side, re-scan to compare changes, and export CSV or print a PDF of the report when you are ready to share fixes.",
   },
 ];
 
 export function HomeFeatures() {
   return (
-    <section className="mt-10 space-y-8 pb-24 sm:mt-16 sm:pb-8">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-slate-900">Everything we check in one scan</h2>
-        <p className="mx-auto mt-3 max-w-2xl text-slate-600">
-          SEOScan is a free website auditor built for business owners and marketers. Paste any
-          public URL — no account required — and get a clear report of what your site already
-          has and what is still missing for search engines, visitors, and security. Each scan
-          takes about thirty seconds and covers more than fifty individual checks.
+    <section className="mt-14 space-y-8 pb-8">
+      <div className="max-w-2xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal">Why SEOScan</p>
+        <h2 className="font-display mt-2 text-3xl font-semibold tracking-tight text-ink">
+          One scan. The whole site.
+        </h2>
+        <p className="mt-3 text-ink-muted">
+          Built for founders and marketers who want a clear technical picture without an account
+          or a sales funnel.
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        {FEATURES.map((f) => (
-          <article
-            key={f.title}
-            className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:border-blue-200 hover:shadow-md"
-          >
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
-              {f.icon}
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900">{f.title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">{f.text}</p>
+      <div className="grid gap-6 sm:grid-cols-2">
+        {FEATURES.map((f, i) => (
+          <article key={f.title} className="border-t border-ink/10 pt-5">
+            <span className="font-mono text-xs text-teal">0{i + 1}</span>
+            <h3 className="font-display mt-2 text-xl font-semibold text-ink">{f.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-ink-muted">{f.text}</p>
           </article>
         ))}
       </div>
-
-      <p className="rounded-xl bg-slate-100/80 px-5 py-4 text-center text-sm text-slate-600">
-        Results appear in a simple Has &amp; Missing checklist at the top, plus detailed scores
-        for SEO, performance, accessibility, and security. We use analytics cookies to improve
-        SEOScan — see our Privacy Policy. Scans run on demand; we do not store your audit history
-        on our servers after the report is delivered.
-      </p>
     </section>
   );
 }

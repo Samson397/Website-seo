@@ -8,94 +8,66 @@ interface SiteCrawlPanelProps {
 
 export function SiteCrawlPanel({ crawl }: SiteCrawlPanelProps) {
   const total = crawl.totalPagesFound ?? crawl.pagesDiscovered;
-  const notScanned = Math.max(0, total - crawl.pagesScanned);
-  const scannedByPath = new Map(
-    crawl.pages.map((p) => [p.pathname || "/", p])
-  );
-
-  const allPaths =
-    crawl.allPagePaths && crawl.allPagePaths.length > 0
-      ? crawl.allPagePaths
-      : crawl.pages.map((p) => p.pathname || "/");
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-lg font-semibold text-slate-900">
-        {total} page{total === 1 ? "" : "s"} found on your site
-      </h3>
-
-      {notScanned > 0 ? (
-        <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-          <p>
-            We discovered <strong>{total}</strong> pages from your sitemap and internal links.
-            Detailed SEO checks (title, description, H1) ran on{" "}
-            <strong>{crawl.pagesScanned}</strong> page{crawl.pagesScanned === 1 ? "" : "s"}.
-          </p>
-          <p className="mt-1 text-blue-800">
-            Every page is listed below. Pages without a title are listed but not fully scanned
-            yet — common on very large sites.
-          </p>
-        </div>
-      ) : (
-        <p className="mt-2 text-sm text-slate-600">
-          All {total} page{total === 1 ? "" : "s"} were found and scanned in detail.
+    <div className="overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-sm">
+      <div className="border-b border-ink/5 px-5 py-5 sm:px-6">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">Site map</p>
+        <h3 className="font-display mt-1 text-xl font-semibold text-ink sm:text-2xl">
+          {total} page{total === 1 ? "" : "s"} scanned
+        </h3>
+        <p className="mt-2 text-sm text-ink-muted">
+          Every page discovered from your sitemap and internal links was checked for title,
+          description, H1, and HTTP status
+          {crawl.hitCap
+            ? " (scan reached the size limit for very large sites)."
+            : "."}
         </p>
-      )}
+      </div>
 
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-[500px] text-left text-sm">
+      <div className="overflow-x-auto px-2 sm:px-4">
+        <table className="w-full min-w-[520px] text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-200 text-xs uppercase text-slate-500">
-              <th className="pb-2 pr-4 font-medium">Page</th>
-              <th className="pb-2 pr-4 font-medium">Title</th>
-              <th className="pb-2 pr-4 font-medium">Description</th>
-              <th className="pb-2 font-medium">Status</th>
+            <tr className="border-b border-ink/10 text-[11px] uppercase tracking-wide text-ink-muted">
+              <th className="px-3 py-3 font-medium">Page</th>
+              <th className="px-3 py-3 font-medium">Title</th>
+              <th className="px-3 py-3 font-medium">Description</th>
+              <th className="px-3 py-3 font-medium">Status</th>
             </tr>
           </thead>
           <tbody>
-            {allPaths.map((pathname) => {
-              const page = scannedByPath.get(pathname);
-              if (page) {
-                return (
-                  <tr key={pathname} className="border-b border-slate-100">
-                    <td className="py-2 pr-4 font-mono text-xs text-slate-600">{pathname}</td>
-                    <td
-                      className="max-w-[180px] truncate py-2 pr-4 text-slate-800"
-                      title={page.title}
-                    >
-                      {page.title}
-                    </td>
-                    <td
-                      className="max-w-[200px] truncate py-2 pr-4 text-slate-500"
-                      title={page.description}
-                    >
-                      {page.description || "—"}
-                    </td>
-                    <td className="py-2">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          page.status >= 400
-                            ? "bg-red-100 text-red-700"
-                            : page.hasH1
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {page.status >= 400 ? `HTTP ${page.status}` : page.hasH1 ? "OK" : "No H1"}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              }
-
+            {crawl.pages.map((page) => {
+              const pathname = page.pathname || "/";
               return (
-                <tr key={pathname} className="border-b border-slate-100 bg-slate-50/50">
-                  <td className="py-2 pr-4 font-mono text-xs text-slate-600">{pathname}</td>
-                  <td className="py-2 pr-4 text-slate-400">—</td>
-                  <td className="py-2 pr-4 text-slate-400">—</td>
-                  <td className="py-2">
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
-                      Listed
+                <tr key={page.url} className="border-b border-ink/5 last:border-0">
+                  <td className="px-3 py-2.5 font-mono text-xs text-ink-muted">{pathname}</td>
+                  <td
+                    className="max-w-[180px] truncate px-3 py-2.5 text-ink"
+                    title={page.title}
+                  >
+                    {page.title}
+                  </td>
+                  <td
+                    className="max-w-[200px] truncate px-3 py-2.5 text-ink-muted"
+                    title={page.description}
+                  >
+                    {page.description || "—"}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <span
+                      className={`inline-flex rounded-md px-2 py-0.5 text-xs font-semibold ${
+                        page.status >= 400
+                          ? "bg-rose-100 text-rose-700"
+                          : page.hasH1
+                            ? "bg-teal-soft text-teal-800"
+                            : "bg-amber-soft text-amber-900"
+                      }`}
+                    >
+                      {page.status >= 400
+                        ? `HTTP ${page.status}`
+                        : page.hasH1
+                          ? "OK"
+                          : "No H1"}
                     </span>
                   </td>
                 </tr>

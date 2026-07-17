@@ -1,63 +1,34 @@
 # SEOScan
 
-Free website SEO auditor with optional **accounts, saved sites, scan history, and weekly monitoring**.
+Free **full-site** SEO, security, and accessibility auditor. Paste any public URL — no account.
 
 Live: [seoscan-five.vercel.app](https://seoscan-five.vercel.app)
 
 ## What it does
 
-**Without an account (always free)**
-- Paste any URL → instant SEO, performance, accessibility, and security audit
-- 35+ Has/Missing checklist in plain English
-- Full site scan — discovers all pages from sitemap + links, reports full site map
-- Export CSV / PDF
+- Crawls pages from sitemap + internal links (up to 200 pages per scan)
+- Runs **50+ checks** grouped by SEO, content, technical, social, security, accessibility, trust, and performance
+- Shows pass / fail / review results (not a vague “have / don’t have” list)
+- Competitor compare (up to 10 sites)
+- Free tools: meta/SERP preview, robots.txt & sitemap inspector, security headers checker
+- Export CSV / print PDF
 
-**With a free account**
-- Save up to 3 websites
-- Scan history and score trends over time
-- Weekly auto-rescan saved to your dashboard (when monitoring is enabled)
+No login. No saved projects. No monitoring accounts.
 
 ---
 
-## Deploy to Vercel (step by step)
-
-### 1. Deploy the app (no keys needed)
+## Deploy to Vercel
 
 1. Open [Deploy to Vercel](https://vercel.com/new/clone?repository-url=https://github.com/Samson397/Website-seo)
-2. Deploy — the **scanner works immediately** without any environment variables
+2. Deploy — the scanner works without environment variables
 
-### 2. Add a database (for accounts)
-
-1. In Vercel → your project → **Storage** → create **Postgres** (or use [Neon](https://neon.tech) free tier)
-2. Connect it to the project — Vercel sets `DATABASE_URL` automatically
-
-### 3. Add required env vars (accounts)
-
-In Vercel → **Settings → Environment Variables**, add:
-
-| Variable | How to get it |
-|----------|---------------|
-| `NEXTAUTH_SECRET` | Run `openssl rand -base64 32` and paste the result |
-| `NEXTAUTH_URL` | Your site URL, e.g. `https://seoscan-five.vercel.app` |
-
-Redeploy. The build runs `prisma db push` automatically when `DATABASE_URL` is set.
-
-### 4. Verify setup
-
-Visit `https://your-site.vercel.app/api/setup` — you should see `"accountsReady": true`.
-
-Then go to `/register` and create an account.
-
-### 5. Optional extras (add when you want them)
+### Optional env vars
 
 | Variable | What it enables |
 |----------|-----------------|
-| `CRON_SECRET` | Weekly SEO + daily uptime crons (any random string) |
 | `PAGESPEED_API_KEY` | Google Lighthouse Core Web Vitals |
 | `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlink data |
-| `NEXT_PUBLIC_SITE_URL` | Canonical URL for your own site's SEO |
-
-**Cron:** Vercel sends `Authorization: Bearer <CRON_SECRET>` to `/api/cron/monitor` every Monday 9:00 UTC when `CRON_SECRET` is set.
+| `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEOScan’s own SEO |
 
 ---
 
@@ -68,48 +39,40 @@ git clone https://github.com/Samson397/Website-seo.git
 cd Website-seo
 npm install
 cp .env.example .env.local
-# Edit .env.local — add DATABASE_URL and NEXTAUTH_SECRET for accounts
-npm run db:push   # create tables (first time only)
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Check setup: [http://localhost:3000/api/setup](http://localhost:3000/api/setup)
-
 ---
 
 ## API
 
-### Scan a URL (no auth)
+### Full site audit
 
 ```bash
 curl -X POST https://your-site.vercel.app/api/audit \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "siteCrawl": false}'
+  -d '{"url": "https://example.com"}'
 ```
 
-### Setup status
+Pass `"siteCrawl": false` for a faster homepage-only audit (used by competitor compare).
+
+### Setup / version
 
 ```bash
 curl https://your-site.vercel.app/api/setup
+curl https://your-site.vercel.app/api/version
 ```
-
-### Projects (auth required — browser session)
-
-Sign in at `/login`, then use the dashboard or:
-
-- `GET /api/projects` — list your sites
-- `POST /api/projects` — `{ "url": "https://example.com" }`
-- `POST /api/projects/{id}/scan` — run a saved scan
 
 ---
 
 ## Tech stack
 
 - Next.js 14 (App Router), TypeScript, Tailwind CSS
-- Prisma + PostgreSQL
-- Cheerio, Vercel Analytics, optional PageSpeed + DataForSEO
+- Cheerio for HTML analysis
+- Vercel Analytics
+- Optional PageSpeed + DataForSEO
 
 ## License
 

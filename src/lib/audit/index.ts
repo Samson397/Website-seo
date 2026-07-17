@@ -45,7 +45,8 @@ export async function runFullAudit(
 ): Promise<AuditReport> {
   resetIssueCounter();
 
-  const siteCrawl = options.siteCrawl ?? false;
+  // Full site crawl is on by default. Competitors can pass siteCrawl: false for a faster homepage audit.
+  const siteCrawl = options.siteCrawl !== false;
 
   const fetchResult = await safeFetch(url);
 
@@ -103,21 +104,10 @@ export async function runFullAudit(
   let siteWideIssues: ReturnType<typeof runDuplicateMetaAudit> = [];
 
   if (siteCrawl && fetchResult.html) {
-    const { pages: crawledPages, totalFound, allDiscovered } = await crawlSitePages(
+    const { pages: crawledPages, totalFound, hitCap } = await crawlSitePages(
       fetchResult.finalUrl,
       fetchResult.html
     );
-
-    const scannedUrls = new Set(crawledPages.map((p) => p.url));
-    const notScannedPaths = allDiscovered
-      .filter((u) => !scannedUrls.has(u))
-      .map((u) => {
-        try {
-          return new URL(u).pathname || "/";
-        } catch {
-          return u;
-        }
-      });
 
     siteWideIssues = [
       ...runDuplicateMetaAudit(crawledPages),
@@ -128,26 +118,26 @@ export async function runFullAudit(
       ),
     ];
 
-    if (totalFound > crawledPages.length) {
+    if (hitCap) {
       siteWideIssues.push(
         createIssue({
           category: "seo",
           severity: "info",
-          title: `Large site — ${totalFound} pages found, ${crawledPages.length} scanned in detail`,
+          title: `Very large site — scanned ${crawledPages.length} pages (scan cap reached)`,
           description:
-            "We discovered every page from your sitemap and internal links. Duplicate-title checks run on scanned pages; the full page list is shown in the report.",
-          currentValue: `${totalFound} pages found`,
+            "This site has more pages than a single scan can cover. Every page we discovered within the limit was scanned for title, description, and H1.",
+          currentValue: `${crawledPages.length} pages scanned`,
           recommendation:
-            "Review unscanned pages in the site list below, or run separate scans on important URLs for a full per-page audit.",
+            "Re-scan important sections by pasting a deeper starting URL, or review the page list below for gaps.",
         })
       );
     }
 
-    const allPagePaths = allDiscovered.map((u) => {
+    const allPagePaths = crawledPages.map((p) => {
       try {
-        return new URL(u).pathname || "/";
+        return new URL(p.url).pathname || "/";
       } catch {
-        return u;
+        return p.url;
       }
     });
 
@@ -156,11 +146,17 @@ export async function runFullAudit(
       pagesScanned: crawledPages.length,
       totalPagesFound: totalFound,
       pagesDiscovered: totalFound,
+      hitCap,
       allPagePaths,
-      pagesNotScanned: notScannedPaths.length > 0 ? notScannedPaths : undefined,
       pages: crawledPages.map((p) => ({
         url: p.url,
-        pathname: new URL(p.url).pathname,
+        pathname: (() => {
+          try {
+            return new URL(p.url).pathname;
+          } catch {
+            return p.url;
+          }
+        })(),
         title: p.title,
         description: p.description,
         hasH1: !!p.h1,

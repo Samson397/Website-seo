@@ -58,13 +58,14 @@ export interface PageSummary {
 export interface CrawlSummary {
   enabled: boolean;
   pagesScanned: number;
-  /** Total unique pages found via sitemap + links */
+  /** Total unique pages found and scanned via sitemap + links + BFS */
   totalPagesFound: number;
   /** @deprecated use totalPagesFound — kept for older clients */
   pagesDiscovered: number;
-  /** All discovered page paths (may exceed pagesScanned on large sites) */
+  /** True when the site is larger than the scan cap */
+  hitCap?: boolean;
+  /** All scanned page paths */
   allPagePaths?: string[];
-  pagesNotScanned?: string[];
   pages: PageSummary[];
 }
 
@@ -114,14 +115,31 @@ export interface SiteOverview {
   };
 }
 
+export type CheckCategory =
+  | "seo"
+  | "content"
+  | "technical"
+  | "social"
+  | "security"
+  | "accessibility"
+  | "trust"
+  | "performance";
+
 export interface SiteChecklist {
+  passCount: number;
+  failCount: number;
+  attentionCount: number;
+  /** @deprecated use passCount */
   hasCount: number;
+  /** @deprecated use failCount */
   missingCount: number;
+  /** @deprecated use attentionCount */
   warningCount: number;
   items: {
     id: string;
     label: string;
-    status: "has" | "missing" | "warning";
+    status: "pass" | "fail" | "attention";
+    category: CheckCategory;
     explanation: string;
     fixHint?: string;
   }[];
@@ -129,6 +147,7 @@ export interface SiteChecklist {
 }
 
 export interface AuditOptions {
+  /** @deprecated Full site crawl is always on */
   siteCrawl?: boolean;
 }
 

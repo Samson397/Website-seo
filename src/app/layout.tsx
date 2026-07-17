@@ -1,16 +1,28 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { CookieConsent } from "@/components/CookieConsent";
-import { AuthProvider } from "@/components/AuthProvider";
+import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
 import { getSiteUrl } from "@/lib/site-url";
 
+const display = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const body = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-body",
+  display: "swap",
+});
+
 const siteUrl = getSiteUrl();
 
-const title = "SEOScan — Free Website SEO & Security Audit";
+const title = "SEOScan — Free full-site SEO & security audit";
 const description =
-  "Paste any URL. SEOScan shows what your site has and what's missing — SEO, speed, security, accessibility, and DNS. Free, no login.";
+  "Paste any URL. SEOScan crawls your pages and runs 50+ SEO, speed, security, and accessibility checks. Free, no login.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -49,19 +61,17 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${display.variable} ${body.variable}`}>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="antialiased">
-        <AuthProvider>
-          {children}
-          <CookieConsent />
-          <Analytics />
-        </AuthProvider>
+      <body className="font-body antialiased">
+        {children}
+        <CookieConsent />
+        <Analytics />
       </body>
     </html>
   );

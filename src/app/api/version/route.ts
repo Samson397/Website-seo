@@ -1,21 +1,17 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   return NextResponse.json({
     app: "seoscan",
-    version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
-    branch: process.env.VERCEL_GIT_COMMIT_REF ?? "local",
+    version: "0.2.0",
     features: {
-      checklist: true,
-      siteOverview: true,
       fullSiteCrawl: true,
+      competitorCompare: true,
+      tools: ["meta-preview", "robots", "headers"],
       pageSpeed: Boolean(process.env.PAGESPEED_API_KEY),
-      dataForSeo: Boolean(
-        process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD
-      ),
-      accounts: Boolean(process.env.DATABASE_URL && process.env.NEXTAUTH_SECRET),
-      monitoring: Boolean(process.env.DATABASE_URL && process.env.CRON_SECRET),
-      uptimeMonitoring: Boolean(process.env.DATABASE_URL && process.env.CRON_SECRET),
+      backlinks: Boolean(process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD),
     },
   });
 }

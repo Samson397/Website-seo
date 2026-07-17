@@ -2,35 +2,29 @@ import * as cheerio from "cheerio";
 import { DnsInfo, DomainInfo, SslInfo } from "@/lib/audit/domain-intel";
 import { TechnologyInfo } from "@/lib/audit/technology";
 import { SocialProfile } from "@/lib/audit/social";
-import { AuditContext } from "@/lib/types";
+import { AuditContext, CheckCategory, SiteChecklist } from "@/lib/types";
 import { supportsEmailDnsChecks } from "@/lib/platform-domain";
 
-export type ChecklistStatus = "has" | "missing" | "warning";
+export type ChecklistStatus = "pass" | "fail" | "attention";
 
 export interface ChecklistItem {
   id: string;
   label: string;
   status: ChecklistStatus;
+  category: CheckCategory;
   explanation: string;
   fixHint?: string;
-}
-
-export interface SiteChecklist {
-  hasCount: number;
-  missingCount: number;
-  warningCount: number;
-  items: ChecklistItem[];
-  summary: string;
 }
 
 function item(
   id: string,
   label: string,
   status: ChecklistStatus,
+  category: CheckCategory,
   explanation: string,
   fixHint?: string
 ): ChecklistItem {
-  return { id, label, status, explanation, fixHint };
+  return { id, label, status, category, explanation, fixHint };
 }
 
 function countWords(html: string): number {
@@ -74,340 +68,506 @@ export function buildSiteChecklist(
   const hostname = new URL(baseUrl).hostname;
   const checkEmailDns = supportsEmailDnsChecks(hostname);
   const items: ChecklistItem[] = [];
+  const headers = ctx.fetchResult.headers;
 
+  // ——— SEO ———
   const title = $("title").first().text().trim();
   items.push(
     title.length >= 10
-      ? item("title", "Page title", "has", `Your page has a title: "${title.substring(0, 50)}${title.length > 50 ? "…" : ""}"`)
-      : item("title", "Page title", "missing", "Your page has no title tag. Google uses this as the headline in search results.", "Add a <title> tag describing your page.")
+      ? item("title", "Page title", "pass", "seo", `Title present (${title.length} chars).`)
+      : item("title", "Page title", "fail", "seo", "No usable title tag for search results.", "Add a descriptive <title> (about 50–60 characters).")
+  );
+  items.push(
+    title.length > 0 && title.length <= 60
+      ? item("title-length", "Title length", "pass", "seo", "Title length looks good for Google snippets.")
+      : title.length > 60
+        ? item("title-length", "Title length", "attention", "seo", `Title is ${title.length} characters — may be truncated.`, "Aim for 50–60 characters.")
+        : item("title-length", "Title length", "fail", "seo", "Title is too short or missing.", "Write a clear 50–60 character title.")
   );
 
   const desc = $('meta[name="description"]').attr("content")?.trim();
   items.push(
     desc && desc.length >= 50
-      ? item("description", "Meta description", "has", "You have a description that can appear in Google search results.")
-      : item("description", "Meta description", "missing", "No description for Google to show under your link in search results.", "Add a meta description (120–160 characters).")
+      ? item("description", "Meta description", "pass", "seo", `Description present (${desc.length} chars).`)
+      : item("description", "Meta description", "fail", "seo", "Missing or weak meta description.", "Add a meta description of 120–160 characters.")
+  );
+  items.push(
+    desc && desc.length >= 120 && desc.length <= 160
+      ? item("description-length", "Description length", "pass", "seo", "Description length fits typical SERP display.")
+      : desc
+        ? item("description-length", "Description length", "attention", "seo", `Description is ${desc.length} characters.`, "Target 120–160 characters.")
+        : item("description-length", "Description length", "fail", "seo", "No description to measure.", "Add a meta description.")
   );
 
   items.push(
     $("h1").length === 1
-      ? item("h1", "Main heading (H1)", "has", "Your page has one clear main heading.")
+      ? item("h1", "Single H1 heading", "pass", "seo", "One clear main heading.")
       : $("h1").length === 0
-        ? item("h1", "Main heading (H1)", "missing", "No H1 found. Every page needs one main heading.", "Add one <h1> tag with your page topic.")
-        : item("h1", "Main heading (H1)", "warning", `Found ${$("h1").length} H1 tags. Use only one per page.`, "Keep a single H1 and use H2 for subsections.")
+        ? item("h1", "Single H1 heading", "fail", "seo", "No H1 found.", "Add one <h1> with the page topic.")
+        : item("h1", "Single H1 heading", "attention", "seo", `Found ${$("h1").length} H1 tags.`, "Keep a single H1; use H2 for sections.")
   );
 
+  const h2Count = $("h2").length;
   items.push(
-    baseUrl.startsWith("https://")
-      ? item("https", "Secure connection (HTTPS)", "has", "Your site uses HTTPS — visitors see the padlock icon.")
-      : item("https", "Secure connection (HTTPS)", "missing", "Your site is not on HTTPS. Browsers may show 'Not Secure'.", "Install an SSL certificate and redirect HTTP to HTTPS.")
-  );
-
-  items.push(
-    $('meta[name="viewport"]').attr("content")?.includes("width=device-width")
-      ? item("viewport", "Mobile-friendly viewport", "has", "Your page is set up to display correctly on phones.")
-      : item("viewport", "Mobile-friendly viewport", "missing", "Missing viewport tag — your site may look broken on mobile.", 'Add <meta name="viewport" content="width=device-width, initial-scale=1">')
-  );
-
-  items.push(
-    $('link[rel="icon"]').length > 0 || $('link[rel="shortcut icon"]').length > 0
-      ? item("favicon", "Favicon (tab icon)", "has", "Your site has a favicon for browser tabs.")
-      : item("favicon", "Favicon (tab icon)", "missing", "No favicon — browser tabs show a generic icon.", "Add favicon.ico or a favicon link in your <head>.")
-  );
-
-  const ogTitle = $('meta[property="og:title"]').attr("content");
-  const ogImage = $('meta[property="og:image"]').attr("content");
-  items.push(
-    ogTitle && ogImage
-      ? item("og", "Social sharing preview", "has", "Links shared on Facebook/LinkedIn will show a title and image.")
-      : item("og", "Social sharing preview", "missing", "Missing Open Graph tags — shared links may look plain.", "Add og:title, og:description, and og:image meta tags.")
+    h2Count >= 1
+      ? item("h2", "Section headings (H2)", "pass", "seo", `${h2Count} H2 heading${h2Count === 1 ? "" : "s"} structure the page.`)
+      : item("h2", "Section headings (H2)", "attention", "seo", "No H2 headings — content may look flat to crawlers.", "Break content into sections with H2s.")
   );
 
   items.push(
     $('link[rel="canonical"]').attr("href")
-      ? item("canonical", "Canonical URL", "has", "You told search engines which URL is the official version of this page.")
-      : item("canonical", "Canonical URL", "missing", "No canonical URL — duplicate pages may confuse Google.", 'Add <link rel="canonical" href="...">')
+      ? item("canonical", "Canonical URL", "pass", "seo", "Canonical URL is set.")
+      : item("canonical", "Canonical URL", "fail", "seo", "No canonical URL.", 'Add <link rel="canonical" href="...">')
+  );
+
+  const robotsMeta = ($('meta[name="robots"]').attr("content") || "").toLowerCase();
+  items.push(
+    !robotsMeta.includes("noindex")
+      ? item("robots-meta", "Robots meta allows indexing", "pass", "seo", robotsMeta ? `robots meta: ${robotsMeta}` : "No blocking robots meta.")
+      : item("robots-meta", "Robots meta allows indexing", "fail", "seo", "Page is marked noindex.", "Remove noindex unless intentional.")
+  );
+
+  items.push(
+    extras.isIndexable
+      ? item("indexable", "Page is indexable", "pass", "seo", "Search engines may include this page.")
+      : item("indexable", "Page is indexable", "fail", "seo", "Indexing appears blocked.", "Remove noindex / X-Robots-Tag blockers.")
+  );
+
+  items.push(
+    hasRobotsTxt
+      ? item("robots", "robots.txt", "pass", "seo", "robots.txt is reachable.")
+      : item("robots", "robots.txt", "fail", "seo", "No robots.txt at site root.", "Add robots.txt at /robots.txt")
+  );
+
+  items.push(
+    hasSitemap
+      ? item("sitemap", "XML sitemap", "pass", "seo", "sitemap.xml found.")
+      : item("sitemap", "XML sitemap", "fail", "seo", "No sitemap.xml found.", "Publish sitemap.xml and submit it in Search Console.")
+  );
+
+  items.push(
+    $('link[rel="alternate"][hreflang]').length > 0
+      ? item("hreflang", "Hreflang tags", "pass", "seo", "Hreflang alternates detected.")
+      : item("hreflang", "Hreflang tags", "attention", "seo", "No hreflang — fine for single-language sites.", "Add hreflang if you serve multiple languages/regions.")
+  );
+
+  items.push(
+    /breadcrumb|BreadcrumbList/i.test($.html())
+      ? item("breadcrumbs", "Breadcrumbs", "pass", "seo", "Breadcrumb markup or links detected.")
+      : item("breadcrumbs", "Breadcrumbs", "attention", "seo", "No breadcrumbs detected.", "Add breadcrumb navigation and BreadcrumbList schema.")
   );
 
   items.push(
     $('script[type="application/ld+json"]').length > 0
-      ? item("schema", "Structured data (Schema)", "has", "Structured data helps Google show rich results (stars, FAQs, etc.).")
-      : item("schema", "Structured data (Schema)", "missing", "No structured data found — you may miss rich search results.", "Add JSON-LD schema for your content type.")
+      ? item("schema", "Structured data present", "pass", "seo", "JSON-LD structured data found.")
+      : item("schema", "Structured data present", "fail", "seo", "No structured data.", "Add JSON-LD for your content type.")
+  );
+
+  items.push(
+    extras.hasValidSchema
+      ? item("schema-valid", "Structured data valid", "pass", "seo", "Structured data parsed cleanly.")
+      : item("schema-valid", "Structured data valid", "attention", "seo", "Structured data missing or has errors.", "Validate JSON-LD and include @context.")
+  );
+
+  items.push(
+    extras.hasFaqSchema
+      ? item("faq-schema", "FAQ schema", "pass", "seo", "FAQPage schema detected.")
+      : item("faq-schema", "FAQ schema", "attention", "seo", "No FAQ schema.", "Add FAQPage JSON-LD if you have FAQs.")
+  );
+
+  items.push(
+    extras.hasOrganizationSchema
+      ? item("org-schema", "Organization schema", "pass", "seo", "Organization / LocalBusiness schema found.")
+      : item("org-schema", "Organization schema", "attention", "seo", "No Organization schema.", "Add Organization or LocalBusiness JSON-LD.")
+  );
+
+  if (hasBacklinks) {
+    items.push(
+      backlinkCount && backlinkCount > 0
+        ? item("backlinks", "Backlinks detected", "pass", "seo", `${backlinkCount} backlinks found.`)
+        : item("backlinks", "Backlinks detected", "attention", "seo", "No backlinks in available data.", "Earn links with useful content and outreach.")
+    );
+  }
+
+  // ——— Content ———
+  const wordCount = countWords(ctx.fetchResult.html);
+  items.push(
+    wordCount >= 300
+      ? item("content", "Content depth", "pass", "content", `${wordCount} words on the page.`)
+      : wordCount >= 100
+        ? item("content", "Content depth", "attention", "content", `Only ${wordCount} words.`, "Aim for 300+ useful words.")
+        : item("content", "Content depth", "fail", "content", `Only ${wordCount} words — thin content.`, "Add substantial original content.")
   );
 
   const imgs = $("img");
   const imgsNoAlt = imgs.filter((_, el) => $(el).attr("alt") === undefined).length;
   items.push(
     imgs.length === 0
-      ? item("alt", "Image descriptions (alt text)", "warning", "No images on this page.", "Add relevant images with alt text for SEO and accessibility.")
+      ? item("alt", "Image alt text", "attention", "content", "No images on this page.")
       : imgsNoAlt === 0
-        ? item("alt", "Image descriptions (alt text)", "has", "All images have alt text.")
-        : item("alt", "Image descriptions (alt text)", "missing", `${imgsNoAlt} of ${imgs.length} images missing alt text.`, 'Add alt="description" to every image.')
+        ? item("alt", "Image alt text", "pass", "content", "All images have alt attributes.")
+        : item("alt", "Image alt text", "fail", "content", `${imgsNoAlt} of ${imgs.length} images missing alt.`, 'Add alt="…" to every image.')
   );
 
   items.push(
-    $("html").attr("lang")
-      ? item("lang", "Page language", "has", `Language set to "${$("html").attr("lang")}" — helps screen readers and Google.`)
-      : item("lang", "Page language", "missing", "No language set on the page.", 'Add lang="en" (or your language) to the <html> tag.')
-  );
-
-  const hasPrivacy = /privacy/i.test($.html());
-  items.push(
-    hasPrivacy
-      ? item("privacy", "Privacy policy link", "has", "A privacy policy link was found on the page.")
-      : item("privacy", "Privacy policy link", "missing", "No privacy policy link found — needed if you collect emails or use cookies.", "Add a Privacy Policy link in your footer.")
-  );
-
-  const hasContact = /contact|about|get-in-touch/i.test($.html());
-  items.push(
-    hasContact
-      ? item("contact", "Contact or About page", "has", "Visitors can find a way to reach you or learn about you.")
-      : item("contact", "Contact or About page", "missing", "No contact or about link found — hurts trust.", "Add Contact or About links in your navigation or footer.")
+    extras.brokenImageCount === 0
+      ? item("images-ok", "Images load", "pass", "content", "Checked images responded successfully.")
+      : item("images-ok", "Images load", "fail", "content", `${extras.brokenImageCount} broken image(s).`, "Fix or replace broken image URLs.")
   );
 
   items.push(
-    hasRobotsTxt
-      ? item("robots", "robots.txt file", "has", "Search engine crawlers can read your robots.txt rules.")
-      : item("robots", "robots.txt file", "missing", "No robots.txt at your site root.", "Create a robots.txt file at yoursite.com/robots.txt")
+    extras.brokenLinkCount === 0
+      ? item("links", "Broken links", "pass", "content", "No broken links in the checked sample.")
+      : item("links", "Broken links", "fail", "content", `${extras.brokenLinkCount} broken link(s).`, "Fix or remove links that error.")
+  );
+
+  const hasDates = $('time, meta[property="article:published_time"], meta[name="date"]').length > 0;
+  items.push(
+    hasDates
+      ? item("dates", "Publish / update dates", "pass", "content", "Date markup found.")
+      : item("dates", "Publish / update dates", "attention", "content", "No visible date markup.", "Add <time> or article:published_time for articles.")
   );
 
   items.push(
-    hasSitemap
-      ? item("sitemap", "XML sitemap", "has", "Google can discover all your pages via sitemap.xml.")
-      : item("sitemap", "XML sitemap", "missing", "No sitemap.xml found — Google may miss pages.", "Create sitemap.xml and submit it in Google Search Console.")
+    $('meta[name="author"], a[rel="author"], [itemprop="author"]').length > 0
+      ? item("author", "Author markup", "pass", "content", "Author information detected.")
+      : item("author", "Author markup", "attention", "content", "No author markup.", "Add author meta or byline for editorial content.")
+  );
+
+  // ——— Technical ———
+  items.push(
+    baseUrl.startsWith("https://")
+      ? item("https", "HTTPS", "pass", "technical", "Site served over HTTPS.")
+      : item("https", "HTTPS", "fail", "technical", "Not using HTTPS.", "Install SSL and redirect HTTP → HTTPS.")
+  );
+
+  items.push(
+    $('meta[name="viewport"]').attr("content")?.includes("width=device-width")
+      ? item("viewport", "Mobile viewport", "pass", "technical", "Viewport meta is mobile-ready.")
+      : item("viewport", "Mobile viewport", "fail", "technical", "Missing mobile viewport.", 'Add <meta name="viewport" content="width=device-width, initial-scale=1">')
+  );
+
+  items.push(
+    $('link[rel="icon"], link[rel="shortcut icon"]').length > 0
+      ? item("favicon", "Favicon", "pass", "technical", "Favicon link present.")
+      : item("favicon", "Favicon", "fail", "technical", "No favicon.", "Add a favicon link in <head>.")
+  );
+
+  items.push(
+    extras.hasManifest
+      ? item("manifest", "Web app manifest", "pass", "technical", "manifest.json found.")
+      : item("manifest", "Web app manifest", "attention", "technical", "No web app manifest.", "Add manifest.json for PWA / install support.")
+  );
+
+  items.push(
+    extras.hasLlmsTxt
+      ? item("llms", "llms.txt", "pass", "technical", "llms.txt present for AI crawlers.")
+      : item("llms", "llms.txt", "attention", "technical", "No llms.txt.", "Add /llms.txt with guidance for AI systems.")
+  );
+
+  items.push(
+    !extras.hasRedirectChain
+      ? item("redirects", "No redirect chain", "pass", "technical", "URL resolves cleanly.")
+      : item("redirects", "No redirect chain", "attention", "technical", "Multiple redirects before content.", "Collapse to a single 301 where possible.")
+  );
+
+  items.push(
+    extras.wwwDuplicate
+      ? item("www", "www consistency", "attention", "technical", "www and non-www both appear reachable.", "301-redirect to one preferred host.")
+      : item("www", "www consistency", "pass", "technical", "No www / non-www conflict detected.")
+  );
+
+  const encoding = headers["content-encoding"] || "";
+  items.push(
+    encoding.includes("gzip") || encoding.includes("br") || encoding.includes("zstd")
+      ? item("compression", "Compression", "pass", "technical", `Compression: ${encoding}.`)
+      : item("compression", "Compression", "fail", "technical", "No gzip/Brotli detected.", "Enable compression on the server or CDN.")
+  );
+
+  const cache = headers["cache-control"] || headers["etag"] || headers["last-modified"];
+  items.push(
+    cache
+      ? item("caching", "Caching headers", "pass", "technical", "Cache-related headers present.")
+      : item("caching", "Caching headers", "attention", "technical", "No Cache-Control / ETag / Last-Modified.", "Add caching headers for static assets.")
+  );
+
+  items.push(
+    $('link[rel="preconnect"], link[rel="dns-prefetch"]').length > 0
+      ? item("preconnect", "Preconnect / DNS-prefetch", "pass", "technical", "Resource hints found.")
+      : item("preconnect", "Preconnect / DNS-prefetch", "attention", "technical", "No preconnect hints.", "Add preconnect for critical third-party origins.")
+  );
+
+  items.push(
+    $("img[loading='lazy'], img[loading=\"lazy\"]").length > 0 || imgs.length === 0
+      ? item("lazy", "Image lazy-loading", "pass", "technical", imgs.length === 0 ? "No images to lazy-load." : "Lazy-loading used on images.")
+      : item("lazy", "Image lazy-loading", "attention", "technical", "No loading=\"lazy\" on images.", "Lazy-load below-the-fold images.")
+  );
+
+  // ——— Social ———
+  const ogTitle = $('meta[property="og:title"]').attr("content");
+  const ogDesc = $('meta[property="og:description"]').attr("content");
+  const ogImage = $('meta[property="og:image"]').attr("content");
+  const ogUrl = $('meta[property="og:url"]').attr("content");
+
+  items.push(
+    ogTitle
+      ? item("og-title", "Open Graph title", "pass", "social", "og:title is set.")
+      : item("og-title", "Open Graph title", "fail", "social", "Missing og:title.", "Add og:title meta tag.")
+  );
+  items.push(
+    ogDesc
+      ? item("og-description", "Open Graph description", "pass", "social", "og:description is set.")
+      : item("og-description", "Open Graph description", "fail", "social", "Missing og:description.", "Add og:description meta tag.")
+  );
+  items.push(
+    ogImage
+      ? item("og-image", "Open Graph image", "pass", "social", "og:image is set.")
+      : item("og-image", "Open Graph image", "fail", "social", "Missing og:image.", "Add a 1200×630 social image.")
+  );
+  items.push(
+    ogUrl
+      ? item("og-url", "Open Graph URL", "pass", "social", "og:url is set.")
+      : item("og-url", "Open Graph URL", "attention", "social", "Missing og:url.", "Add og:url matching the canonical.")
+  );
+
+  items.push(
+    $('meta[name="twitter:card"]').attr("content")
+      ? item("twitter-card", "Twitter card type", "pass", "social", "twitter:card is set.")
+      : item("twitter-card", "Twitter card type", "fail", "social", "Missing twitter:card.", 'Add twitter:card = summary_large_image.')
+  );
+  items.push(
+    $('meta[name="twitter:title"], meta[property="twitter:title"]').attr("content")
+      ? item("twitter-title", "Twitter title", "pass", "social", "Twitter title present.")
+      : item("twitter-title", "Twitter title", "attention", "social", "No twitter:title (may fall back to OG).", "Add twitter:title for X previews.")
+  );
+  items.push(
+    $('meta[name="twitter:image"], meta[property="twitter:image"]').attr("content")
+      ? item("twitter-image", "Twitter image", "pass", "social", "Twitter image present.")
+      : item("twitter-image", "Twitter image", "attention", "social", "No twitter:image.", "Add twitter:image or rely on og:image.")
   );
 
   items.push(
     socialProfiles.length > 0
-      ? item("social", "Social media links", "has", `Found: ${socialProfiles.map((p) => p.platform).join(", ")}`)
-      : item("social", "Social media links", "missing", "No social profile links found on the page.", "Link your Facebook, Instagram, LinkedIn, etc. in the footer.")
+      ? item("social", "Social profile links", "pass", "social", `Found: ${socialProfiles.map((p) => p.platform).join(", ")}`)
+      : item("social", "Social profile links", "attention", "social", "No social profile links on the page.", "Link social profiles in the footer.")
   );
 
-  const hasAnalytics = technologies.some((t) => t.category === "Analytics");
   items.push(
-    hasAnalytics
-      ? item("analytics", "Visitor tracking (Analytics)", "has", `Detected: ${technologies.filter((t) => t.category === "Analytics").map((t) => t.name).join(", ")}`)
-      : item("analytics", "Visitor tracking (Analytics)", "warning", "No analytics detected — you can't measure traffic.", "Install Google Analytics 4 or similar.")
+    $('link[rel="apple-touch-icon"]').length > 0
+      ? item("apple-icon", "Apple touch icon", "pass", "social", "Apple touch icon present.")
+      : item("apple-icon", "Apple touch icon", "attention", "social", "No Apple touch icon.", 'Add <link rel="apple-touch-icon" …>.')
+  );
+
+  // ——— Security ———
+  items.push(
+    sslInfo.daysUntilExpiry !== undefined && sslInfo.daysUntilExpiry > 30
+      ? item("ssl", "SSL certificate", "pass", "security", `Valid for ${sslInfo.daysUntilExpiry} more days.`)
+      : sslInfo.daysUntilExpiry !== undefined && sslInfo.daysUntilExpiry > 0
+        ? item("ssl", "SSL certificate", "attention", "security", `Expires in ${sslInfo.daysUntilExpiry} days.`)
+        : item("ssl", "SSL certificate", "fail", "security", "SSL issue or expiry soon.", "Renew the certificate.")
+  );
+
+  const hasHsts = Boolean(headers["strict-transport-security"]);
+  const hasFrame = Boolean(headers["x-frame-options"] || headers["content-security-policy"]?.includes("frame-ancestors"));
+  const hasCto = Boolean(headers["x-content-type-options"]);
+  const hasCsp = Boolean(headers["content-security-policy"]);
+  const hasReferrer = Boolean(headers["referrer-policy"]);
+  const hasPerms = Boolean(headers["permissions-policy"] || headers["feature-policy"]);
+
+  items.push(
+    hasHsts
+      ? item("hsts", "HSTS header", "pass", "security", "Strict-Transport-Security present.")
+      : item("hsts", "HSTS header", "fail", "security", "Missing HSTS.", "Add Strict-Transport-Security.")
+  );
+  items.push(
+    hasFrame
+      ? item("xfo", "Clickjacking protection", "pass", "security", "Frame restrictions present.")
+      : item("xfo", "Clickjacking protection", "fail", "security", "No X-Frame-Options / frame-ancestors.", "Add X-Frame-Options or CSP frame-ancestors.")
+  );
+  items.push(
+    hasCto
+      ? item("xcto", "X-Content-Type-Options", "pass", "security", "nosniff is set.")
+      : item("xcto", "X-Content-Type-Options", "attention", "security", "Missing X-Content-Type-Options.", "Add X-Content-Type-Options: nosniff.")
+  );
+  items.push(
+    hasCsp
+      ? item("csp", "Content-Security-Policy", "pass", "security", "CSP header present.")
+      : item("csp", "Content-Security-Policy", "attention", "security", "No CSP header.", "Add a Content-Security-Policy.")
+  );
+  items.push(
+    hasReferrer
+      ? item("referrer", "Referrer-Policy", "pass", "security", "Referrer-Policy present.")
+      : item("referrer", "Referrer-Policy", "attention", "security", "No Referrer-Policy.", "Add Referrer-Policy: strict-origin-when-cross-origin.")
+  );
+  items.push(
+    hasPerms
+      ? item("permissions", "Permissions-Policy", "pass", "security", "Permissions-Policy present.")
+      : item("permissions", "Permissions-Policy", "attention", "security", "No Permissions-Policy.", "Restrict camera/mic/geolocation as needed.")
+  );
+
+  items.push(
+    extras.hasMixedContent
+      ? item("mixed", "No mixed content", "fail", "security", "HTTP assets on an HTTPS page.", "Upgrade all asset URLs to https://")
+      : item("mixed", "No mixed content", "pass", "security", "No mixed HTTP content detected.")
+  );
+
+  items.push(
+    extras.hasSecurityTxt
+      ? item("security-txt", "security.txt", "pass", "security", "security.txt found.")
+      : item("security-txt", "security.txt", "attention", "security", "No /.well-known/security.txt.", "Publish security.txt with a Contact field.")
+  );
+
+  // ——— Accessibility ———
+  items.push(
+    $("html").attr("lang")
+      ? item("lang", "HTML lang", "pass", "accessibility", `lang="${$("html").attr("lang")}"`)
+      : item("lang", "HTML lang", "fail", "accessibility", "No lang on <html>.", 'Add lang="en" (or your language).')
+  );
+
+  items.push(
+    extras.hasMainLandmark
+      ? item("main-landmark", "Main landmark", "pass", "accessibility", "<main> landmark present.")
+      : item("main-landmark", "Main landmark", "attention", "accessibility", "No <main> element.", "Wrap primary content in <main>.")
+  );
+
+  items.push(
+    $('a[href="#main"], a[href="#content"], .skip-link, a.skip').length > 0
+      ? item("skip", "Skip link", "pass", "accessibility", "Skip-to-content link found.")
+      : item("skip", "Skip link", "attention", "accessibility", "No skip link detected.", "Add a skip link as the first focusable element.")
+  );
+
+  const unlabeledInputs = $("input, select, textarea")
+    .filter((_, el) => {
+      const type = ($(el).attr("type") || "").toLowerCase();
+      if (type === "hidden" || type === "submit" || type === "button") return false;
+      const id = $(el).attr("id");
+      const aria = $(el).attr("aria-label") || $(el).attr("aria-labelledby");
+      if (aria) return false;
+      if (id && $(`label[for="${id}"]`).length > 0) return false;
+      return $(el).closest("label").length === 0;
+    }).length;
+  items.push(
+    unlabeledInputs === 0
+      ? item("forms", "Labeled form fields", "pass", "accessibility", "Form fields have labels.")
+      : item("forms", "Labeled form fields", "fail", "accessibility", `${unlabeledInputs} unlabeled field(s).`, "Associate a <label> with each input.")
+  );
+
+  items.push(
+    $("button, [role='button']").length === 0 ||
+      $("button:not([aria-label]):not([aria-labelledby])")
+        .filter((_, el) => !$(el).text().trim() && !$(el).attr("title"))
+        .length === 0
+      ? item("buttons", "Accessible buttons", "pass", "accessibility", "Buttons have accessible names.")
+      : item("buttons", "Accessible buttons", "attention", "accessibility", "Some icon buttons lack accessible names.", "Add aria-label to icon-only buttons.")
+  );
+
+  // ——— Trust ———
+  items.push(
+    /privacy/i.test($.html())
+      ? item("privacy", "Privacy policy", "pass", "trust", "Privacy policy link found.")
+      : item("privacy", "Privacy policy", "fail", "trust", "No privacy policy link.", "Add a Privacy Policy in the footer.")
+  );
+
+  items.push(
+    /terms|terms-of-service|terms-and-conditions|\/tos/i.test($.html())
+      ? item("terms", "Terms of service", "pass", "trust", "Terms link found.")
+      : item("terms", "Terms of service", "attention", "trust", "No terms link.", "Add Terms of Service if you have accounts or forms.")
+  );
+
+  items.push(
+    /contact|about|get-in-touch/i.test($.html())
+      ? item("contact", "Contact / About", "pass", "trust", "Contact or About path found.")
+      : item("contact", "Contact / About", "fail", "trust", "No contact/about link.", "Add Contact or About in navigation.")
+  );
+
+  const hasCookieBanner =
+    /cookie-consent|cookiebot|onetrust|cookiebanner|gdpr|iubenda|termly|osano|analytics cookies|uses cookies/i.test(
+      $.html()
+    );
+  items.push(
+    hasCookieBanner
+      ? item("cookies", "Cookie notice", "pass", "trust", "Cookie / consent notice detected.")
+      : item("cookies", "Cookie notice", "attention", "trust", "No cookie banner detected.", "Add consent UI if you use tracking cookies.")
+  );
+
+  items.push(
+    domainInfo.daysUntilExpiry !== undefined && domainInfo.daysUntilExpiry > 30
+      ? item("domain", "Domain registration", "pass", "trust", `Expires in ${domainInfo.daysUntilExpiry} days.`)
+      : domainInfo.daysUntilExpiry !== undefined && domainInfo.daysUntilExpiry > 0
+        ? item("domain", "Domain registration", "attention", "trust", `Domain expires in ${domainInfo.daysUntilExpiry} days.`)
+        : item("domain", "Domain registration", "attention", "trust", "Could not verify domain expiry.")
   );
 
   if (checkEmailDns) {
     items.push(
       dnsInfo.hasSpf
-        ? item("spf", "Email SPF record", "has", "SPF helps your emails reach inboxes instead of spam.")
-        : item("spf", "Email SPF record", "missing", "No SPF record — emails from your domain may go to spam.", "Add an SPF TXT record to your DNS.")
+        ? item("spf", "SPF record", "pass", "trust", "SPF DNS record present.")
+        : item("spf", "SPF record", "fail", "trust", "No SPF record.", "Add an SPF TXT record.")
     );
-
     items.push(
       dnsInfo.hasDmarc
-        ? item("dmarc", "Email DMARC record", "has", "DMARC protects your domain from email spoofing.")
-        : item("dmarc", "Email DMARC record", "missing", "No DMARC record found.", "Add a DMARC record at _dmarc.yourdomain.com")
+        ? item("dmarc", "DMARC record", "pass", "trust", "DMARC present.")
+        : item("dmarc", "DMARC record", "fail", "trust", "No DMARC record.", "Add _dmarc TXT record.")
     );
-  }
-
-  items.push(
-    sslInfo.daysUntilExpiry !== undefined && sslInfo.daysUntilExpiry > 30
-      ? item("ssl", "SSL certificate valid", "has", `Certificate valid for ${sslInfo.daysUntilExpiry} more days.`)
-      : sslInfo.daysUntilExpiry !== undefined && sslInfo.daysUntilExpiry > 0
-        ? item("ssl", "SSL certificate valid", "warning", `SSL expires in ${sslInfo.daysUntilExpiry} days — renew soon!`)
-        : item("ssl", "SSL certificate valid", "missing", "SSL certificate issue or expiring very soon.", "Renew your SSL certificate immediately.")
-  );
-
-  items.push(
-    domainInfo.daysUntilExpiry !== undefined && domainInfo.daysUntilExpiry > 30
-      ? item("domain", "Domain registration", "has", `Domain registered, expires in ${domainInfo.daysUntilExpiry} days.`)
-      : domainInfo.daysUntilExpiry !== undefined && domainInfo.daysUntilExpiry > 0
-        ? item("domain", "Domain registration", "warning", `Domain expires in ${domainInfo.daysUntilExpiry} days!`)
-        : item("domain", "Domain registration", "warning", "Could not verify domain expiry — check with your registrar.")
-  );
-
-  const encoding = ctx.fetchResult.headers["content-encoding"] || "";
-  items.push(
-    encoding.includes("gzip") || encoding.includes("br")
-      ? item("compression", "Page compression", "has", "Your server compresses pages for faster loading.")
-      : item("compression", "Page compression", "missing", "No gzip/Brotli compression — pages load slower.", "Enable compression on your server or CDN.")
-  );
-
-  const responseMs = ctx.fetchResult.responseTimeMs;
-  items.push(
-    responseMs !== undefined && responseMs < 1000
-      ? item("speed", "Server response speed", "has", `Server responded in ${responseMs}ms — good speed.`)
-      : responseMs !== undefined && responseMs < 3000
-        ? item("speed", "Server response speed", "warning", `Server took ${responseMs}ms to respond — could be faster.`)
-        : item("speed", "Server response speed", "missing", "Server is very slow or unreachable.", "Use faster hosting or a CDN.")
-  );
-
-  if (hasBacklinks) {
-    items.push(
-      backlinkCount && backlinkCount > 0
-        ? item("backlinks", "Other sites linking to you", "has", `${backlinkCount} backlinks found from other websites.`)
-        : item("backlinks", "Other sites linking to you", "missing", "No other websites link to yours yet.", "Create great content and reach out to earn links.")
-    );
-  }
-
-  const hasTerms = /terms|terms-of-service|terms-and-conditions|\/tos/i.test($.html());
-  items.push(
-    hasTerms
-      ? item("terms", "Terms of service", "has", "A terms of service link was found on the page.")
-      : item("terms", "Terms of service", "warning", "No terms of service link — recommended if you have forms or accounts.", "Add a Terms of Service link in your footer.")
-  );
-
-  items.push(
-    $('meta[name="twitter:card"]').attr("content")
-      ? item("twitter", "Twitter/X share preview", "has", "Your page has Twitter/X card tags for sharing.")
-      : item("twitter", "Twitter/X share preview", "missing", "Missing Twitter/X card tags — links shared on X may look plain.", 'Add <meta name="twitter:card" content="summary_large_image">')
-  );
-
-  items.push(
-    $('link[rel="apple-touch-icon"]').length > 0
-      ? item("apple-icon", "Apple touch icon", "has", "Your site has an icon for iPhone home screens.")
-      : item("apple-icon", "Apple touch icon", "missing", "No Apple touch icon — iPhone bookmarks use a generic icon.", 'Add <link rel="apple-touch-icon" href="/apple-touch-icon.png">')
-  );
-
-  const hasCookieBanner =
-    /seoscan-cookie-consent|cookie-consent-banner|cookiebot|onetrust|cookie-consent|cookiebanner|gdpr|iubenda|termly|osano|analytics cookies|uses cookies/i.test(
-      $.html()
-    );
-  items.push(
-    hasCookieBanner
-      ? item("cookies", "Cookie consent notice", "has", "A cookie consent or privacy banner was detected.")
-      : item("cookies", "Cookie consent notice", "warning", "No cookie banner detected — may be required in EU/UK if you use analytics or cookies.", "Add a cookie consent banner if you track visitors or use cookies.")
-  );
-
-  items.push(
-    extras.hasManifest
-      ? item("manifest", "Web app manifest", "has", "manifest.json found — supports mobile install and PWA features.")
-      : item("manifest", "Web app manifest", "missing", "No manifest.json — missing PWA and mobile install support.", "Add a manifest.json at your site root.")
-  );
-
-  items.push(
-    extras.hasLlmsTxt
-      ? item("llms", "AI crawler instructions (llms.txt)", "has", "llms.txt tells AI systems how to use your content.")
-      : item("llms", "AI crawler instructions (llms.txt)", "warning", "No llms.txt — AI crawlers may not know how to treat your site.", "Add an llms.txt file at your site root.")
-  );
-
-  if (checkEmailDns) {
     items.push(
       dnsInfo.hasDkim
-        ? item("dkim", "Email DKIM record", "has", "DKIM helps verify your emails are genuinely from you.")
-        : item("dkim", "Email DKIM record", "missing", "No DKIM record found — email authentication is incomplete.", "Add DKIM records from your email provider to DNS.")
+        ? item("dkim", "DKIM record", "pass", "trust", "DKIM detected.")
+        : item("dkim", "DKIM record", "attention", "trust", "No DKIM detected.", "Enable DKIM with your email provider.")
     );
   }
 
-  const headers = ctx.fetchResult.headers;
-  const hasHsts = Boolean(headers["strict-transport-security"]);
-  const hasFrameOptions = Boolean(headers["x-frame-options"]);
+  // ——— Performance ———
+  const responseMs = ctx.fetchResult.responseTimeMs;
   items.push(
-    hasHsts && hasFrameOptions
-      ? item("sec-headers", "Security headers", "has", "Key security headers (HSTS, X-Frame-Options) are present.")
-      : hasHsts || hasFrameOptions
-        ? item("sec-headers", "Security headers", "warning", "Some security headers are missing — site is partially protected.", "Add HSTS and X-Frame-Options headers on your server.")
-        : item("sec-headers", "Security headers", "missing", "Missing security headers — easier target for clickjacking and downgrade attacks.", "Add Strict-Transport-Security and X-Frame-Options headers.")
+    responseMs !== undefined && responseMs < 800
+      ? item("speed", "Server response time", "pass", "performance", `Responded in ${responseMs}ms.`)
+      : responseMs !== undefined && responseMs < 2000
+        ? item("speed", "Server response time", "attention", "performance", `Responded in ${responseMs}ms.`)
+        : item("speed", "Server response time", "fail", "performance", responseMs ? `Slow response: ${responseMs}ms.` : "Could not measure response time.", "Use faster hosting or a CDN.")
   );
 
+  const htmlBytes = Buffer.byteLength(ctx.fetchResult.html || "", "utf8");
   items.push(
-    extras.hasMixedContent
-      ? item("mixed", "Mixed content (HTTP on HTTPS)", "missing", "Page loads insecure HTTP resources on an HTTPS page — browsers may block them.", "Change all resource URLs to https://")
-      : item("mixed", "Mixed content (HTTP on HTTPS)", "has", "No mixed HTTP content detected on this HTTPS page.")
+    htmlBytes < 200_000
+      ? item("html-size", "HTML size", "pass", "performance", `HTML is ${(htmlBytes / 1024).toFixed(0)} KB.`)
+      : item("html-size", "HTML size", "attention", "performance", `HTML is ${(htmlBytes / 1024).toFixed(0)} KB — quite large.`, "Reduce inline scripts/styles and unused markup.")
   );
 
+  const scriptCount = $("script[src]").length;
   items.push(
-    extras.wwwDuplicate
-      ? item("www", "www vs non-www setup", "warning", "Both www and non-www versions work — can cause duplicate content in Google.", "Pick one version and 301-redirect the other.")
-      : item("www", "www vs non-www setup", "has", "No duplicate www/non-www conflict detected.")
+    scriptCount <= 15
+      ? item("scripts", "External scripts", "pass", "performance", `${scriptCount} external script(s).`)
+      : item("scripts", "External scripts", "attention", "performance", `${scriptCount} external scripts — may hurt load time.`, "Defer non-critical JS and remove unused tags.")
   );
 
-  const wordCount = countWords(ctx.fetchResult.html);
+  const hasAnalytics = technologies.some((t) => t.category === "Analytics");
   items.push(
-    wordCount >= 300
-      ? item("content", "Enough page content", "has", `Page has ${wordCount} words — good depth for search engines.`)
-      : wordCount >= 100
-        ? item("content", "Enough page content", "warning", `Only ${wordCount} words — thin content may rank poorly.`, "Add more useful, original text (aim for 300+ words).")
-        : item("content", "Enough page content", "missing", `Only ${wordCount} words — Google may see this as low quality.`, "Add substantial content that covers your topic.")
+    hasAnalytics
+      ? item("analytics", "Analytics installed", "pass", "performance", `Detected: ${technologies.filter((t) => t.category === "Analytics").map((t) => t.name).join(", ")}`)
+      : item("analytics", "Analytics installed", "attention", "performance", "No analytics detected.", "Install GA4 or similar if you need traffic insights.")
   );
 
-  items.push(
-    extras.brokenLinkCount === 0
-      ? item("links", "Broken links", "has", "No broken links found on checked links.")
-      : item("links", "Broken links", "missing", `${extras.brokenLinkCount} broken link${extras.brokenLinkCount === 1 ? "" : "s"} found — hurts SEO and user experience.`, "Fix or remove links that return 404 or errors.")
-  );
-
-  items.push(
-    extras.isIndexable
-      ? item("indexable", "Google can index this page", "has", "No noindex directive — search engines may include this page in results.")
-      : item("indexable", "Google can index this page", "missing", "This page is blocked from indexing.", "Remove noindex from meta robots unless intentional.")
-  );
-
-  items.push(
-    extras.hasValidSchema
-      ? item("schema-valid", "Structured data is valid", "has", "JSON-LD structured data parsed without errors.")
-      : item("schema-valid", "Structured data is valid", "warning", "Structured data has errors or is missing @context.", "Fix JSON-LD syntax and include @context.")
-  );
-
-  items.push(
-    extras.brokenImageCount === 0
-      ? item("images-ok", "Images load correctly", "has", "Checked images returned successfully.")
-      : item("images-ok", "Images load correctly", "missing", `${extras.brokenImageCount} broken image${extras.brokenImageCount === 1 ? "" : "s"} found.`, "Fix or replace images that return errors.")
-  );
-
-  items.push(
-    !extras.hasRedirectChain
-      ? item("redirects", "Clean URL (no redirect chain)", "has", "Page loads without a long redirect chain.")
-      : item("redirects", "Clean URL (no redirect chain)", "warning", "Multiple redirects detected before the page loads.", "Use a single direct URL or one 301 redirect.")
-  );
-
-  items.push(
-    extras.hasFaqSchema
-      ? item("faq-schema", "FAQ structured data", "has", "FAQ schema detected — may show FAQ rich results in Google.")
-      : item("faq-schema", "FAQ structured data", "warning", "No FAQ schema found.", "Add FAQPage JSON-LD if you have frequently asked questions.")
-  );
-
-  items.push(
-    extras.hasOrganizationSchema
-      ? item("org-schema", "Business/Organization schema", "has", "Organization or LocalBusiness schema helps Google understand your brand.")
-      : item("org-schema", "Business/Organization schema", "warning", "No Organization schema found.", "Add Organization or LocalBusiness JSON-LD in your site footer or about page.")
-  );
-
-  items.push(
-    extras.hasSecurityTxt
-      ? item("security-txt", "security.txt file", "has", "security.txt helps researchers report vulnerabilities.")
-      : item("security-txt", "security.txt file", "warning", "No /.well-known/security.txt found.", "Publish security.txt with a Contact field.")
-  );
-
-  items.push(
-    extras.hasMainLandmark
-      ? item("main-landmark", "Main content landmark", "has", "Page uses a <main> element for accessibility.")
-      : item("main-landmark", "Main content landmark", "warning", "No <main> element found.", "Wrap primary content in <main>.")
-  );
-
-  const unlabeledInputs = $("input, select, textarea")
-    .filter((_, el) => {
-      const id = $(el).attr("id");
-      const aria = $(el).attr("aria-label") || $(el).attr("aria-labelledby");
-      if (aria) return false;
-      if (id && $(`label[for="${id}"]`).length > 0) return false;
-      const wrapped = $(el).closest("label").length > 0;
-      return !wrapped;
-    }).length;
-  items.push(
-    unlabeledInputs === 0
-      ? item("forms", "Accessible form fields", "has", "Form inputs have labels for screen readers.")
-      : item("forms", "Accessible form fields", "missing", `${unlabeledInputs} form field${unlabeledInputs === 1 ? "" : "s"} missing labels.`, 'Add <label for="id"> matching each input id.')
-  );
-
-  const hasCount = items.filter((i) => i.status === "has").length;
-  const missingCount = items.filter((i) => i.status === "missing").length;
-  const warningCount = items.filter((i) => i.status === "warning").length;
+  const passCount = items.filter((i) => i.status === "pass").length;
+  const failCount = items.filter((i) => i.status === "fail").length;
+  const attentionCount = items.filter((i) => i.status === "attention").length;
 
   let summary: string;
-  if (missingCount === 0 && warningCount === 0) {
-    summary = "Great job — your site has everything we checked for!";
-  } else if (missingCount <= 3) {
-    summary = `Your site looks good overall. Fix ${missingCount} missing item${missingCount === 1 ? "" : "s"} below to improve further.`;
-  } else if (missingCount <= 8) {
-    summary = `Your site is missing ${missingCount} important things. Fixing these will help Google and visitors trust you more.`;
+  if (failCount === 0 && attentionCount === 0) {
+    summary = `All ${items.length} checks passed on this page.`;
+  } else if (failCount === 0) {
+    summary = `${passCount} passed · ${attentionCount} need attention across ${items.length} checks.`;
   } else {
-    summary = `Your site is missing ${missingCount} key items. Start with the ones marked in red — they matter most.`;
+    summary = `${failCount} failed · ${attentionCount} need attention · ${passCount} passed (${items.length} checks).`;
   }
 
-  return { hasCount, missingCount, warningCount, items, summary };
+  return {
+    passCount,
+    failCount,
+    attentionCount,
+    hasCount: passCount,
+    missingCount: failCount,
+    warningCount: attentionCount,
+    items,
+    summary,
+  };
 }
