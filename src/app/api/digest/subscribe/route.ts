@@ -56,18 +56,22 @@ export async function POST(req: NextRequest) {
     const unsubUrl = `${siteUrl}/api/digest/unsubscribe?token=${unsubToken}`;
 
     if (isResendConfigured()) {
-      try {
-        await sendEmail({
-          to: email,
-          subject: `${APP_NAME} weekly digest confirmed`,
-          html: `<p>You're signed up for weekly watchlist reminders on ${APP_NAME}.</p>
+      const result = await sendEmail({
+        to: email,
+        subject: `${APP_NAME} weekly digest confirmed`,
+        html: `<p>You're signed up for weekly watchlist reminders on ${APP_NAME}.</p>
             <p>We'll email you once a week with your watched sites.</p>
             <p><a href="${siteUrl}/history">Open History</a></p>
             <p style="font-size:12px;color:#666"><a href="${unsubUrl}">Unsubscribe</a></p>`,
-          text: `Weekly digest confirmed on ${APP_NAME}. Unsubscribe: ${unsubUrl}`,
-        });
-      } catch (err) {
-        console.error("[digest/subscribe] confirm email failed", err);
+        text: `Weekly digest confirmed on ${APP_NAME}. Unsubscribe: ${unsubUrl}`,
+        idempotencyKey: `digest-confirm/${unsubToken}`,
+        tags: [
+          { name: "category", value: "digest_confirm" },
+          { name: "product", value: "seohub" },
+        ],
+      });
+      if (!result.ok) {
+        console.error("[digest/subscribe] confirm email failed", result.error);
       }
     }
 

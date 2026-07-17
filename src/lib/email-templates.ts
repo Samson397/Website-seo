@@ -36,11 +36,11 @@ export function reportEmailHtml(opts: {
     .join("");
 
   const html = `<!DOCTYPE html><html><body style="font-family:Georgia,serif;color:#0c1222;line-height:1.5;max-width:560px;margin:0 auto;padding:24px">
-  <p style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#0d9488;font-weight:700">${APP_NAME}</p>
+  <p style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#2563EB;font-weight:700">${APP_NAME}</p>
   <h1 style="font-size:28px;margin:8px 0 16px">Your SEO report for ${escapeHtml(host)}</h1>
   <p>Overall score <strong>${score}</strong> · SEO ${report.scores.seo} · Speed ${report.scores.performance} · A11y ${report.scores.accessibility} · Security ${report.scores.security}</p>
   <p>${report.summary.critical} critical · ${report.summary.warning} warnings · ${report.summary.info} info</p>
-  ${shareUrl ? `<p><a href="${shareUrl}" style="display:inline-block;background:#0d9488;color:#fff;text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:600">Open full report</a></p>` : ""}
+  ${shareUrl ? `<p><a href="${shareUrl}" style="display:inline-block;background:#2563EB;color:#fff;text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:600">Open full report</a></p>` : ""}
   <h2 style="font-size:18px;margin-top:28px">Top issues</h2>
   <ul style="padding-left:18px">${issues || "<li>No issues listed</li>"}</ul>
   <p style="margin-top:28px;font-size:13px;color:#5b6b85"><a href="${siteUrl}">Run another scan on ${APP_NAME}</a></p>
@@ -71,7 +71,7 @@ export function digestEmailHtml(opts: {
     .join("");
 
   const html = `<!DOCTYPE html><html><body style="font-family:Georgia,serif;color:#0c1222;line-height:1.5;max-width:560px;margin:0 auto;padding:24px">
-  <p style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#0d9488;font-weight:700">${APP_NAME}</p>
+  <p style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#2563EB;font-weight:700">${APP_NAME}</p>
   <h1 style="font-size:26px;margin:8px 0 16px">Weekly watchlist reminder</h1>
   <p>Re-scan these sites to keep SEO scores fresh.</p>
   <ul style="padding-left:18px">${rows}</ul>
