@@ -17,7 +17,7 @@ Payments fail with “not configured” until these exist on the **Vercel projec
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Matching `pk_test_…` / `pk_live_…` (same mode as secret) |
 | `STRIPE_PRICE_ID` | Price ID from **the same Stripe account + mode** (e.g. `price_…`) |
 | `NEXT_PUBLIC_STRIPE_PRICE_DISPLAY` | `$1.99` |
-| `NEXT_PUBLIC_SITE_URL` | Canonical production URL, e.g. `https://your-app.vercel.app` |
+| `NEXT_PUBLIC_SITE_URL` | `https://www.seohub.online` (never a `*.vercel.app` URL in production) |
 
 Notes:
 

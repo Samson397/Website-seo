@@ -21,7 +21,9 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <SiteNav variant={useHeroNav ? "hero" : "default"} />
-      {children}
+      <div id="main" tabIndex={-1}>
+        {children}
+      </div>
       <SiteFooter />
     </>
   );

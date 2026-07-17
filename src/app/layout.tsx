@@ -22,7 +22,7 @@ const siteUrl = getSiteUrl();
 
 const title = "SEOHub — Free full-site SEO audit you run every week";
 const description =
-  "Crawl every page, run 50+ checks, and track a watchlist on your device. Free, no login.";
+  "Crawl every page, run 50+ Pass/Fail SEO checks, and track a watchlist on your device. Free homepage preview, no account required.";
 
 const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
@@ -78,6 +78,12 @@ export default function RootLayout({
         ) : null}
       </head>
       <body className="font-body antialiased">
+        <a
+          href="#main"
+          className="skip-link rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white"
+        >
+          Skip to main content
+        </a>
         {children}
         <CookieConsent />
         <Analytics />
