@@ -72,6 +72,7 @@ export async function GET() {
     },
     urls: {
       home: "/",
+      history: "/history",
       competitors: "/competitors",
       tools: "/tools",
       privateInsights: "/api/insights",

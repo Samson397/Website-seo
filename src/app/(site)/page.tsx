@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { UrlInput } from "@/components/UrlInput";
 import { AuditReportView } from "@/components/AuditReport";
 import { ProblemsSummary } from "@/components/ProblemsSummary";
@@ -18,6 +19,37 @@ import { routes } from "@/lib/routes";
 import type { AuditReport, AuditCategory } from "@/lib/types";
 
 export default function Home() {
+  return (
+    <Suspense fallback={<HomeShell />}>
+      <HomeScanApp />
+    </Suspense>
+  );
+}
+
+function HomeShell({ children }: { children?: React.ReactNode }) {
+  return (
+    <main className="min-h-screen pb-16">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-24 sm:pt-32">
+        <div className="relative mx-auto max-w-6xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
+            SEOScan
+          </p>
+          <h1 className="font-display mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
+            The site check
+            <span className="block text-teal-bright">you run every week.</span>
+          </h1>
+          <p className="mt-5 max-w-xl text-base text-white/75 sm:text-lg">
+            Full-site crawl, 50+ checks, and a watchlist on this device — free, no account.
+          </p>
+        </div>
+      </section>
+      {children}
+    </main>
+  );
+}
+
+function HomeScanApp() {
+  const searchParams = useSearchParams();
   const [report, setReport] = useState<AuditReport | null>(null);
   const [previousReport, setPreviousReport] = useState<AuditReport | null>(null);
   const [loading, setLoading] = useState(false);
@@ -25,6 +57,7 @@ export default function Home() {
   const [historyTick, setHistoryTick] = useState(0);
   const [scanningUrl, setScanningUrl] = useState("");
   const lastUrl = useRef<string>("");
+  const autoStarted = useRef<string | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const [issueFilter, setIssueFilter] = useState<AuditCategory | "all">("all");
 
@@ -77,6 +110,15 @@ export default function Home() {
     }
   }
 
+  // History / watchlist "Scan now" links land here as /?url=...
+  useEffect(() => {
+    const url = searchParams.get("url")?.trim();
+    if (!url || autoStarted.current === url) return;
+    autoStarted.current = url;
+    void runAudit(url);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- start once per url param
+  }, [searchParams]);
+
   function handleRescan() {
     if (lastUrl.current) runAudit(lastUrl.current, true);
   }
@@ -112,9 +154,7 @@ export default function Home() {
       </section>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {!report && !loading && (
-          <ScanHistoryPanel onRescan={(url) => runAudit(url)} refreshToken={historyTick} />
-        )}
+        {!report && !loading && <ScanHistoryPanel refreshToken={historyTick} />}
 
         {loading && <ScanLoadingPanel url={scanningUrl || lastUrl.current} />}
 
@@ -128,8 +168,11 @@ export default function Home() {
           <div ref={resultsRef} className="mt-10 space-y-8 pb-12">
             <div className="flex flex-wrap items-center gap-3">
               <WatchToggle report={report} />
+              <Link href={routes.history} className="text-sm font-medium text-teal hover:underline">
+                View History
+              </Link>
               <p className="text-sm text-ink-muted">
-                Watchlist + history stay on this browser so you can re-check anytime.
+                Saved on this browser — re-check anytime.
               </p>
             </div>
 
@@ -173,6 +216,7 @@ export default function Home() {
                 Quick utilities that reuse the same audit engine — no login required.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <ToolLink href={routes.history} label="History & watchlist" />
                 <ToolLink href={routes.metaPreview} label="Meta & SERP preview" />
                 <ToolLink href={routes.robotsInspector} label="robots.txt & sitemap" />
                 <ToolLink href={routes.headers} label="Security headers" />

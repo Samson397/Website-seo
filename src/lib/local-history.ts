@@ -122,3 +122,12 @@ export function toggleWatch(url: string, report?: AuditReport): WatchItem[] {
   writeJson(WATCHLIST_KEY, next);
   return next;
 }
+
+export function clearScanHistory(): void {
+  writeJson(HISTORY_KEY, []);
+}
+
+export function clearWatchlist(): void {
+  writeJson(WATCHLIST_KEY, []);
+}
+
