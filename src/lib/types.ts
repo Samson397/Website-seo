@@ -53,6 +53,11 @@ export interface PageSummary {
   description: string;
   hasH1: boolean;
   status: number;
+  canonical?: string;
+  robots?: string;
+  hasOg?: boolean;
+  wordCount?: number;
+  h1Count?: number;
 }
 
 export interface CrawlSummary {
@@ -147,8 +152,10 @@ export interface SiteChecklist {
 }
 
 export interface AuditOptions {
-  /** @deprecated Full site crawl is always on */
+  /** Homepage-only when false (competitors). Default true. */
   siteCrawl?: boolean;
+  /** Optional progress callbacks for streaming UI */
+  onProgress?: (event: Exclude<ScanProgressEvent, { type: "done" } | { type: "error" }>) => void;
 }
 
 export interface AuditReport {
@@ -163,7 +170,15 @@ export interface AuditReport {
   crawl?: CrawlSummary;
   siteOverview?: SiteOverview;
   checklist?: SiteChecklist;
+  /** Present when the report was saved for sharing */
+  shareId?: string;
 }
+
+export type ScanProgressEvent =
+  | { type: "stage"; stage: string; message: string }
+  | { type: "crawl"; scanned: number; queued: number; lastPath?: string }
+  | { type: "done"; report: AuditReport }
+  | { type: "error"; error: string };
 
 export interface FetchResult {
   url: string;

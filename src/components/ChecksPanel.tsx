@@ -1,7 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
+import { GUIDES } from "@/lib/guides";
+import { routes } from "@/lib/routes";
 import type { CheckCategory, SiteChecklist } from "@/lib/types";
+
+function guideForCheck(checkId: string) {
+  const id = checkId.toLowerCase();
+  return GUIDES.find((g) =>
+    (g.relatedCheckIds || []).some((related) => id.includes(related) || related.includes(id))
+  );
+}
 
 interface ChecksPanelProps {
   checklist: SiteChecklist;
@@ -165,6 +175,19 @@ export function ChecksPanel({ checklist }: ChecksPanelProps) {
                           {check.fixHint}
                         </p>
                       )}
+                      {check.status !== "pass" &&
+                        (() => {
+                          const guide = guideForCheck(check.id);
+                          if (!guide) return null;
+                          return (
+                            <Link
+                              href={`${routes.guides}/${guide.slug}`}
+                              className="mt-1.5 inline-block text-xs font-semibold text-ink underline decoration-teal/40 underline-offset-2 hover:text-teal"
+                            >
+                              Read guide: {guide.title}
+                            </Link>
+                          );
+                        })()}
                     </div>
                   </li>
                 );

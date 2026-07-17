@@ -7,6 +7,12 @@ export interface CrawledPageMeta {
   description: string;
   h1: string;
   status: number;
+  /** Deeper per-page signals */
+  canonical?: string;
+  robots?: string;
+  hasOg?: boolean;
+  wordCount?: number;
+  h1Count?: number;
 }
 
 /**
@@ -156,12 +162,22 @@ export async function discoverPages(entryUrl: string, html: string): Promise<Dis
 
 export function extractMetaFromHtml(url: string, html: string, status: number): CrawledPageMeta {
   const $ = cheerio.load(html);
+  $("script, style, noscript").remove();
+  const text = $.text().replace(/\s+/g, " ").trim();
+  const wordCount = text.split(/\s+/).filter((w) => w.length > 0).length;
+  const h1Count = $("h1").length;
+
   return {
     url,
     title: $("title").first().text().trim() || "(no title)",
     description: $('meta[name="description"]').attr("content")?.trim() || "",
     h1: $("h1").first().text().trim() || "",
     status,
+    canonical: $('link[rel="canonical"]').attr("href")?.trim() || "",
+    robots: $('meta[name="robots"]').attr("content")?.trim() || "",
+    hasOg: Boolean($('meta[property="og:title"]').attr("content")),
+    wordCount,
+    h1Count,
   };
 }
 
@@ -179,6 +195,11 @@ export async function fetchPageMeta(url: string): Promise<{
           description: "",
           h1: "",
           status: result.status,
+          canonical: "",
+          robots: "",
+          hasOg: false,
+          wordCount: 0,
+          h1Count: 0,
         },
       };
     }
@@ -191,13 +212,20 @@ export async function fetchPageMeta(url: string): Promise<{
   }
 }
 
+export type CrawlProgress = {
+  scanned: number;
+  queued: number;
+  lastPath?: string;
+};
+
 /**
  * Discover pages from sitemap + links, then deep-scan every discovered URL.
  * Uses BFS link expansion while under the page cap so nested pages are not missed.
  */
 export async function crawlSitePages(
   entryUrl: string,
-  entryHtml: string
+  entryHtml: string,
+  onProgress?: (p: CrawlProgress) => void
 ): Promise<{
   pages: CrawledPageMeta[];
   urlsToScan: string[];
@@ -231,6 +259,13 @@ export async function crawlSitePages(
       if (scanned.has(key)) continue;
       scanned.add(key);
       results.push(item.meta);
+
+      try {
+        const lastPath = new URL(item.meta.url).pathname || "/";
+        onProgress?.({ scanned: results.length, queued: queued.length, lastPath });
+      } catch {
+        onProgress?.({ scanned: results.length, queued: queued.length });
+      }
 
       // BFS: pull more internal links from scanned HTML while under cap
       if (item.html && seen.size < MAX_PAGES) {

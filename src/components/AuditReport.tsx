@@ -9,6 +9,7 @@ import { IssueCard } from "@/components/IssueCard";
 import { SerpPreview } from "@/components/SerpPreview";
 import { ScanComparisonPanel } from "@/components/ScanComparisonPanel";
 import { ExportButtons } from "@/components/ExportButtons";
+import { ShareReportButton } from "@/components/ShareReportButton";
 import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
 
@@ -97,36 +98,38 @@ export function AuditReportView({
         <ScanComparisonPanel previous={previousReport} current={report} />
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-ink/10 bg-white p-6 shadow-sm">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Audit Results</h2>
-            <p className="mt-1 break-all text-sm text-slate-500">{formatUrlDisplay(report.url)}</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">Report</p>
+            <h2 className="font-display mt-1 text-2xl font-semibold text-ink">Audit results</h2>
+            <p className="mt-1 break-all text-sm text-ink-muted">{formatUrlDisplay(report.url)}</p>
+            <p className="text-xs text-ink-muted/80">
               Scanned {new Date(report.scannedAt).toLocaleString()}
             </p>
           </div>
-          <div className="flex flex-col items-end gap-3">
+          <div className="flex flex-col items-stretch gap-3 sm:items-end">
             <div className="flex flex-wrap gap-2">
               {onRescan && (
                 <button
                   onClick={onRescan}
                   disabled={rescanLoading}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-60"
+                  className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink-soft disabled:opacity-60"
                 >
                   {rescanLoading ? "Re-scanning…" : "Re-scan"}
                 </button>
               )}
               <ExportButtons report={report} />
             </div>
-            <div className="flex gap-2 text-sm">
-              <span className="rounded-full bg-red-100 px-3 py-1 font-medium text-red-700">
+            <ShareReportButton report={report} />
+            <div className="flex flex-wrap gap-2 text-sm">
+              <span className="rounded-lg bg-rose-100 px-3 py-1 font-medium text-rose-700">
                 {report.summary.critical} critical
               </span>
-              <span className="rounded-full bg-yellow-100 px-3 py-1 font-medium text-yellow-700">
+              <span className="rounded-lg bg-amber-soft px-3 py-1 font-medium text-amber-900">
                 {report.summary.warning} warnings
               </span>
-              <span className="rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-700">
+              <span className="rounded-lg bg-teal-soft px-3 py-1 font-medium text-teal">
                 {report.summary.info} info
               </span>
             </div>
@@ -141,7 +144,7 @@ export function AuditReportView({
         </div>
 
         {report.performanceMetrics && (
-          <div className="mt-6 grid grid-cols-2 gap-3 rounded-lg bg-slate-50 p-4 sm:grid-cols-5">
+          <div className="mt-6 grid grid-cols-2 gap-3 rounded-xl bg-paper p-4 sm:grid-cols-5">
             {report.performanceMetrics.lcp && (
               <Metric label="LCP" value={report.performanceMetrics.lcp} />
             )}
@@ -159,7 +162,6 @@ export function AuditReportView({
             )}
           </div>
         )}
-
       </div>
 
       {report.serpPreview && (
@@ -176,8 +178,9 @@ export function AuditReportView({
 
       <div id="audit-issues">
         <div className="mb-2">
-          <h3 className="text-lg font-bold text-slate-900">All issues found</h3>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">Issues</p>
+          <h3 className="font-display mt-1 text-xl font-semibold text-ink">Everything we found</h3>
+          <p className="text-sm text-ink-muted">
             SEO, security, performance, accessibility, links, and domain — with fix recommendations.
           </p>
         </div>
@@ -187,10 +190,10 @@ export function AuditReportView({
               <button
                 key={cat.key}
                 onClick={() => setFilter(cat.key)}
-                className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                className={`rounded-xl px-4 py-1.5 text-sm font-medium transition ${
                   filter === cat.key
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                    ? "bg-ink text-white"
+                    : "bg-white text-ink-muted ring-1 ring-ink/10 hover:bg-paper"
                 }`}
               >
                 {cat.label}
@@ -203,12 +206,12 @@ export function AuditReportView({
             ))}
           </div>
           {resolvedCount > 0 && (
-            <label className="flex items-center gap-2 text-sm text-slate-600">
+            <label className="flex items-center gap-2 text-sm text-ink-muted">
               <input
                 type="checkbox"
                 checked={hideResolved}
                 onChange={(e) => setHideResolved(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300"
+                className="h-4 w-4 rounded border-ink/20"
               />
               Hide resolved ({resolvedCount}/{report.issues.length})
             </label>
@@ -216,15 +219,15 @@ export function AuditReportView({
         </div>
 
         {filteredIssues.length === 0 ? (
-          <div className="rounded-xl border border-green-200 bg-green-50 p-8 text-center">
-            <p className="text-lg font-semibold text-green-800">
+          <div className="rounded-2xl border border-teal/20 bg-teal-soft/40 p-8 text-center">
+            <p className="font-display text-lg font-semibold text-teal">
               {hideResolved && resolvedCount > 0
-                ? "All visible issues resolved!"
-                : "No issues found!"}
+                ? "All visible issues resolved"
+                : "No issues in this filter"}
             </p>
-            <p className="mt-1 text-sm text-green-600">
+            <p className="mt-1 text-sm text-ink-muted">
               {hideResolved
-                ? "Uncheck 'Hide resolved' to see completed items."
+                ? "Uncheck “Hide resolved” to see completed items."
                 : "This category looks good for the scanned page."}
             </p>
           </div>
@@ -248,8 +251,8 @@ export function AuditReportView({
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-center">
-      <div className="text-xs font-medium uppercase text-slate-500">{label}</div>
-      <div className="text-sm font-semibold text-slate-800">{value}</div>
+      <div className="text-xs font-medium uppercase tracking-wide text-ink-muted">{label}</div>
+      <div className="text-sm font-semibold text-ink">{value}</div>
     </div>
   );
 }

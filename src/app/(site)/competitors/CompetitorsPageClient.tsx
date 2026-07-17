@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CompetitorUrlInput } from "@/components/CompetitorUrlInput";
 import { CompetitorComparisonPanel } from "@/components/CompetitorComparisonPanel";
+import { PageHero } from "@/components/ui/PageHero";
 import type { CompetitorAuditResult } from "@/lib/competitor-scores";
 import type { AuditReport } from "@/lib/types";
 import { formatUrlDisplay } from "@/lib/url-display";
@@ -32,7 +33,7 @@ export default function CompetitorsPageClient() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             // Homepage-focused for speed when comparing many sites
-            body: JSON.stringify({ url, siteCrawl: false }),
+            body: JSON.stringify({ url, siteCrawl: false, share: false }),
           });
 
           const data = await response.json();
@@ -65,25 +66,16 @@ export default function CompetitorsPageClient() {
 
   return (
     <main className="min-h-screen pb-12">
-      <section className="hero-mesh px-4 pb-12 pt-28 text-white sm:px-6 sm:pt-32">
-        <div className="mx-auto max-w-6xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
-            SEOScan
-          </p>
-          <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-            Compare competitors
-          </h1>
-          <p className="mt-4 max-w-2xl text-white/75">
-            Audit up to 10 public websites side by side. Each site gets the same 50+ homepage
-            checks so you can rank gaps quickly.
-          </p>
-        </div>
-      </section>
-
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="relative z-10 -mt-6 rounded-2xl border border-ink/10 bg-white p-5 shadow-glow sm:p-8">
+      <PageHero
+        title="Compare competitors"
+        description="Audit up to 10 public websites side by side. Each site gets the same 50+ homepage checks so you can rank gaps quickly."
+      >
+        <div className="max-w-3xl rounded-2xl border border-white/20 bg-white p-5 text-ink shadow-glow sm:p-6">
           <CompetitorUrlInput onSubmit={auditCompetitors} loading={loading} progress={progress} />
         </div>
+      </PageHero>
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 
         {loading && !progress && (
           <div className="mt-8 rounded-2xl border border-ink/10 bg-white p-10 text-center shadow-sm">

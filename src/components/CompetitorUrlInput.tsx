@@ -43,7 +43,7 @@ export function CompetitorUrlInput({ onSubmit, loading, progress }: CompetitorUr
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-ink-muted">
         Enter up to {MAX_COMPETITORS} competitor websites to compare side by side. Each site is
         audited independently — your site is not included unless you add it.
       </p>
@@ -61,14 +61,14 @@ export function CompetitorUrlInput({ onSubmit, loading, progress }: CompetitorUr
               onChange={(e) => updateRow(index, e.target.value)}
               placeholder={`competitor${index + 1}.com`}
               disabled={loading}
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 shadow-inner placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/25 disabled:opacity-60"
+              className="flex-1 rounded-xl border border-ink/10 bg-paper px-4 py-3 text-ink placeholder:text-ink-muted/50 focus:border-teal focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal/20 disabled:opacity-60"
             />
             {rows > 1 && (
               <button
                 type="button"
                 onClick={() => removeRow(index)}
                 disabled={loading}
-                className="rounded-xl border border-slate-200 px-3 text-slate-400 transition hover:border-red-200 hover:text-red-600 disabled:opacity-40"
+                className="rounded-xl border border-ink/10 px-3 text-ink-muted transition hover:border-rose-200 hover:text-rose-600 disabled:opacity-40"
                 aria-label={`Remove competitor ${index + 1}`}
               >
                 ×
@@ -83,23 +83,23 @@ export function CompetitorUrlInput({ onSubmit, loading, progress }: CompetitorUr
           type="button"
           onClick={addRow}
           disabled={loading}
-          className="text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-40"
+          className="text-sm font-medium text-teal hover:text-teal-bright disabled:opacity-40"
         >
           + Add another site
         </button>
       )}
 
       {progress && (
-        <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+        <div className="rounded-xl border border-teal/20 bg-teal-soft/50 px-4 py-3 text-sm text-teal">
           Auditing {progress.current} of {progress.total}:{" "}
-          <span className="font-medium">{progress.url}</span>
+          <span className="font-medium text-ink">{progress.url}</span>
         </div>
       )}
 
       <button
         type="submit"
         disabled={loading || values.every((v) => !v.trim())}
-        className="w-full rounded-xl bg-blue-600 px-8 py-3.5 font-semibold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
+        className="w-full rounded-xl bg-ink px-8 py-3.5 font-semibold text-white transition hover:bg-ink-soft disabled:opacity-60 sm:w-auto"
       >
         {loading ? "Auditing competitors…" : "Audit competitors"}
       </button>

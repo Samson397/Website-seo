@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageHero } from "@/components/ui/PageHero";
 import { routes } from "@/lib/routes";
 
 const TOOLS = [
@@ -18,35 +19,47 @@ const TOOLS = [
     description: "Check HSTS, CSP, X-Frame-Options, Referrer-Policy, and related headers.",
   },
   {
+    href: routes.redirects,
+    title: "Redirect chain",
+    description: "Follow every hop to the final URL — catch loops and mixed HTTP.",
+  },
+  {
+    href: routes.schema,
+    title: "JSON-LD schema",
+    description: "Extract structured data types and validate JSON-LD blocks.",
+  },
+  {
+    href: routes.brokenLinks,
+    title: "Broken link checker",
+    description: "Probe outbound links on a page for 4xx/5xx failures.",
+  },
+  {
     href: routes.competitors,
     title: "Competitor compare",
     description: "Audit up to 10 sites side by side and rank them by overall score.",
+  },
+  {
+    href: routes.guides,
+    title: "Fix guides",
+    description: "Short how-tos for the most common SEOScan fails.",
   },
 ];
 
 export default function ToolsPage() {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh px-4 pb-14 pt-28 text-white sm:px-6 sm:pt-32">
-        <div className="mx-auto max-w-6xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
-            Free tools
-          </p>
-          <h1 className="font-display mt-3 max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl">
-            Extra utilities. Same engine.
-          </h1>
-          <p className="mt-4 max-w-xl text-white/75">
-            Lightweight SEO helpers — no account, no paywall.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Free tools"
+        title="Extra utilities. Same engine."
+        description="Lightweight SEO helpers — no account, no paywall."
+      />
 
-      <div className="mx-auto mt-10 grid max-w-6xl gap-6 px-4 sm:grid-cols-2 sm:px-6">
+      <div className="mx-auto mt-10 grid max-w-6xl gap-8 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-3">
         {TOOLS.map((tool) => (
           <Link
             key={tool.href}
             href={tool.href}
-            className="group border-t-2 border-teal/30 pt-5 transition hover:border-teal"
+            className="group border-t border-ink/10 pt-5 transition hover:border-teal"
           >
             <h2 className="font-display text-xl font-semibold text-ink group-hover:text-teal">
               {tool.title}

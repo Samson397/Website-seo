@@ -7,6 +7,10 @@ export const routes = {
   metaPreview: "/tools/meta-preview",
   robotsInspector: "/tools/robots",
   headers: "/tools/headers",
+  redirects: "/tools/redirects",
+  schema: "/tools/schema",
+  brokenLinks: "/tools/broken-links",
+  guides: "/guides",
   about: "/about",
   privacy: "/privacy",
   terms: "/terms",
@@ -33,7 +37,7 @@ export const mainNav = [
   {
     href: routes.tools,
     label: "Tools",
-    description: "Meta preview, robots/sitemap inspector, security headers",
+    description: "Meta preview, redirects, schema, broken links, and more",
   },
 ] as const;
 

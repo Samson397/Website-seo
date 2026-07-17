@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { PageHero, PrimaryCta } from "@/components/ui/PageHero";
 import {
   clearScanHistory,
   clearWatchlist,
@@ -32,24 +33,16 @@ export default function HistoryPage() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh px-4 pb-12 pt-28 text-white sm:px-6 sm:pt-32">
-        <div className="mx-auto max-w-6xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
-            On this device
-          </p>
-          <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
-            History
-          </h1>
-          <p className="mt-4 max-w-xl text-white/75">
-            Recent scans and your watchlist stay in this browser — no account. Re-scan anytime to
-            check weekly.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="On this device"
+        title="History"
+        description="Recent scans and your watchlist stay in this browser — no account. Re-scan anytime to check weekly."
+        actions={<PrimaryCta href={routes.home}>New scan</PrimaryCta>}
+      />
 
       <div className="mx-auto mt-10 max-w-6xl space-y-12 px-4 sm:px-6">
         {empty && (
-          <div className="rounded-2xl border border-ink/10 bg-white px-6 py-12 text-center">
+          <div className="border-t border-ink/10 px-2 py-12 text-center">
             <h2 className="font-display text-xl font-semibold text-ink">No scans yet</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-ink-muted">
               Run a full site scan, then use Watch to pin sites you want to check every week.
@@ -129,12 +122,8 @@ export default function HistoryPage() {
           <section>
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">
-                  Recent
-                </p>
-                <h2 className="font-display mt-1 text-2xl font-semibold text-ink">
-                  Scan history
-                </h2>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">Recent</p>
+                <h2 className="font-display mt-1 text-2xl font-semibold text-ink">Scan history</h2>
               </div>
               <button
                 type="button"

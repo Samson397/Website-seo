@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PageHero } from "@/components/ui/PageHero";
 
 export default function MetaPreviewPage() {
   const [title, setTitle] = useState("Acme Co — Modern tools for growing teams");
@@ -20,17 +21,11 @@ export default function MetaPreviewPage() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="border-b border-ink/10 bg-white px-4 py-12 sm:px-6">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal">Free tool</p>
-          <h1 className="font-display mt-2 text-3xl font-semibold text-ink sm:text-4xl">
-            Meta &amp; SERP preview
-          </h1>
-          <p className="mt-3 text-ink-muted">
-            Tune your title and description before you ship. Nothing is stored.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Free tool"
+        title="Meta & SERP preview"
+        description="Tune your title and description before you ship. Nothing is stored."
+      />
 
       <div className="mx-auto mt-8 grid max-w-5xl gap-8 px-4 sm:px-6 lg:grid-cols-2">
         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>

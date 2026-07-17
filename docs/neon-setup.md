@@ -41,6 +41,19 @@ CREATE TABLE IF NOT EXISTS scan_events (
 
 CREATE INDEX IF NOT EXISTS scan_events_scanned_at_idx ON scan_events (scanned_at DESC);
 CREATE INDEX IF NOT EXISTS scan_events_hostname_idx ON scan_events (hostname);
+
+-- Optional: shareable report snapshots (/r/[id])
+CREATE TABLE IF NOT EXISTS shared_reports (
+  id TEXT PRIMARY KEY,
+  url TEXT NOT NULL,
+  hostname TEXT NOT NULL,
+  overall SMALLINT,
+  report_json JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS shared_reports_created_at_idx
+ON shared_reports (created_at DESC);
 ```
 
 ## 3. Redeploy SEOScan

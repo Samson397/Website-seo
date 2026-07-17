@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PageHero } from "@/components/ui/PageHero";
 
 interface HeadersResult {
   url: string;
@@ -53,32 +54,27 @@ export default function HeadersToolPage() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="border-b border-ink/10 bg-white px-4 py-12 sm:px-6">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal">Free tool</p>
-          <h1 className="font-display mt-2 text-3xl font-semibold text-ink sm:text-4xl">
-            Security headers checker
-          </h1>
-          <p className="mt-3 text-ink-muted">
-            Quickly see which browser security headers your site returns.
-          </p>
-          <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <input
-              name="url"
-              required
-              placeholder="example.com"
-              className="flex-1 rounded-xl border border-ink/10 px-4 py-3 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-xl bg-teal px-6 py-3 font-semibold text-white hover:bg-teal-bright disabled:opacity-60"
-            >
-              {loading ? "Checking…" : "Check headers"}
-            </button>
-          </form>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Free tool"
+        title="Security headers checker"
+        description="Quickly see which browser security headers your site returns."
+      >
+        <form onSubmit={onSubmit} className="flex max-w-2xl flex-col gap-3 sm:flex-row">
+          <input
+            name="url"
+            required
+            placeholder="example.com"
+            className="flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder:text-white/45 outline-none focus:border-teal-bright focus:ring-2 focus:ring-teal-bright/30"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-xl bg-teal-bright px-6 py-3 font-semibold text-ink hover:bg-teal disabled:opacity-60"
+          >
+            {loading ? "Checking…" : "Check headers"}
+          </button>
+        </form>
+      </PageHero>
 
       <div className="mx-auto mt-8 max-w-3xl space-y-4 px-4 sm:px-6">
         {error && (

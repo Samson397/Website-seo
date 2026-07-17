@@ -3,7 +3,7 @@ import { mainNav } from "@/lib/routes";
 
 export function RouteCards() {
   return (
-    <section className="mt-12 grid gap-4 sm:grid-cols-3">
+    <section className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {mainNav.map((item) => (
         <Link
           key={item.href}

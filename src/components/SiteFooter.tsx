@@ -13,6 +13,9 @@ export function SiteFooter() {
           <Link href={routes.tools} className="hover:text-teal-bright">
             Tools
           </Link>
+          <Link href={routes.guides} className="hover:text-teal-bright">
+            Guides
+          </Link>
           <Link href={routes.about} className="hover:text-teal-bright">
             About
           </Link>

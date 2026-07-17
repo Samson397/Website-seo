@@ -16,7 +16,7 @@ import { AdSlot } from "@/components/AdSlot";
 import { ScanLoadingPanel } from "@/components/ScanLoadingPanel";
 import { saveScanToHistory } from "@/lib/local-history";
 import { routes } from "@/lib/routes";
-import type { AuditReport, AuditCategory } from "@/lib/types";
+import type { AuditReport, AuditCategory, ScanProgressEvent } from "@/lib/types";
 
 export default function Home() {
   return (
@@ -56,6 +56,7 @@ function HomeScanApp() {
   const [error, setError] = useState<string | null>(null);
   const [historyTick, setHistoryTick] = useState(0);
   const [scanningUrl, setScanningUrl] = useState("");
+  const [progressEvents, setProgressEvents] = useState<ScanProgressEvent[]>([]);
   const lastUrl = useRef<string>("");
   const autoStarted = useRef<string | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -65,6 +66,7 @@ function HomeScanApp() {
     setLoading(true);
     setScanningUrl(url);
     setError(null);
+    setProgressEvents([{ type: "stage", stage: "fetch", message: "Connecting…" }]);
 
     if (!isRescan) {
       setPreviousReport(null);
@@ -74,16 +76,25 @@ function HomeScanApp() {
     }
 
     try {
-      const response = await fetch("/api/audit", {
+      const response = await fetch("/api/audit/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        const msg = data.error || "Audit failed";
-        if (msg.includes("timeout") || msg.includes("TIMEOUT") || response.status === 504) {
+      if (!response.ok || !response.body) {
+        let msg = "Audit failed";
+        try {
+          const text = await response.text();
+          const first = text.split("\n").find(Boolean);
+          if (first) {
+            const parsed = JSON.parse(first) as { error?: string };
+            if (parsed.error) msg = parsed.error;
+          }
+        } catch {
+          /* keep default */
+        }
+        if (msg.includes("timeout") || response.status === 504) {
           throw new Error(
             "The scan took too long on this host. Try again in a moment — large sites can take up to a minute."
           );
@@ -91,8 +102,39 @@ function HomeScanApp() {
         throw new Error(msg);
       }
 
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let audit: AuditReport | null = null;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          let event: ScanProgressEvent;
+          try {
+            event = JSON.parse(line) as ScanProgressEvent;
+          } catch {
+            continue;
+          }
+          if (event.type === "error") {
+            throw new Error(event.error);
+          }
+          if (event.type === "done") {
+            audit = event.report;
+          } else {
+            setProgressEvents((prev) => [...prev.slice(-40), event]);
+          }
+        }
+      }
+
+      if (!audit) throw new Error("Scan finished without a report. Try again.");
+
       lastUrl.current = url;
-      const audit = data as AuditReport;
       setReport(audit);
       saveScanToHistory(audit);
       setHistoryTick((n) => n + 1);
@@ -107,10 +149,10 @@ function HomeScanApp() {
       }
     } finally {
       setLoading(false);
+      setProgressEvents([]);
     }
   }
 
-  // History / watchlist "Scan now" links land here as /?url=...
   useEffect(() => {
     const url = searchParams.get("url")?.trim();
     if (!url || autoStarted.current === url) return;
@@ -144,7 +186,8 @@ function HomeScanApp() {
             <span className="block text-teal-bright">you run every week.</span>
           </h1>
           <p className="animate-rise-delay-2 mt-5 max-w-xl text-base text-white/75 sm:text-lg">
-            Full-site crawl, 50+ checks, and a watchlist on this device — free, no account.
+            Full-site crawl, 50+ checks, shareable reports, and a watchlist on this device — free,
+            no account.
           </p>
 
           <div className="animate-rise-delay-2 glass-panel mt-8 max-w-2xl rounded-2xl border border-white/15 p-4 shadow-glow sm:p-5">
@@ -156,7 +199,9 @@ function HomeScanApp() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {!report && !loading && <ScanHistoryPanel refreshToken={historyTick} />}
 
-        {loading && <ScanLoadingPanel url={scanningUrl || lastUrl.current} />}
+        {loading && (
+          <ScanLoadingPanel url={scanningUrl || lastUrl.current} events={progressEvents} />
+        )}
 
         {error && (
           <div className="mt-8 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
@@ -171,9 +216,7 @@ function HomeScanApp() {
               <Link href={routes.history} className="text-sm font-medium text-teal hover:underline">
                 View History
               </Link>
-              <p className="text-sm text-ink-muted">
-                Saved on this browser — re-check anytime.
-              </p>
+              <p className="text-sm text-ink-muted">Saved on this browser — re-check anytime.</p>
             </div>
 
             <BenchmarkCompare report={report} />
@@ -210,7 +253,7 @@ function HomeScanApp() {
               <AdSlot />
             </div>
             <HomeFeatures />
-            <section className="mt-12 rounded-2xl border border-ink/10 bg-white px-6 py-10 text-center shadow-sm sm:px-10">
+            <section className="mt-12 border-t border-ink/10 px-2 py-10 text-center sm:px-0">
               <h2 className="font-display text-2xl font-semibold text-ink">More free tools</h2>
               <p className="mx-auto mt-2 max-w-lg text-sm text-ink-muted">
                 Quick utilities that reuse the same audit engine — no login required.
@@ -218,8 +261,10 @@ function HomeScanApp() {
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <ToolLink href={routes.history} label="History & watchlist" />
                 <ToolLink href={routes.metaPreview} label="Meta & SERP preview" />
-                <ToolLink href={routes.robotsInspector} label="robots.txt & sitemap" />
-                <ToolLink href={routes.headers} label="Security headers" />
+                <ToolLink href={routes.redirects} label="Redirect chain" />
+                <ToolLink href={routes.schema} label="JSON-LD schema" />
+                <ToolLink href={routes.brokenLinks} label="Broken links" />
+                <ToolLink href={routes.guides} label="Fix guides" />
                 <ToolLink href={routes.competitors} label="Competitor compare" />
               </div>
             </section>
@@ -234,7 +279,7 @@ function ToolLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="rounded-xl border border-ink/10 bg-paper px-4 py-2.5 text-sm font-medium text-ink transition hover:border-teal/40 hover:bg-teal-soft"
+      className="rounded-xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-medium text-ink transition hover:border-teal/40 hover:bg-teal-soft"
     >
       {label}
     </Link>
