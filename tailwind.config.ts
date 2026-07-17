@@ -10,33 +10,34 @@ const config: Config = {
     extend: {
       colors: {
         ink: {
-          DEFAULT: "#0b1220",
+          DEFAULT: "#0c1222",
           soft: "#162033",
-          muted: "#5a6a84",
+          muted: "#5c6b82",
         },
-        mist: "#e8eef8",
-        paper: "#f5f7fc",
+        mist: "#e4e9f0",
+        paper: "#f2f4f8",
         brand: {
-          DEFAULT: "#2563EB",
-          bright: "#3B82F6",
-          soft: "#DBEAFE",
+          DEFAULT: "#0e8f86",
+          bright: "#14b8a6",
+          soft: "#d5f5f2",
         },
         teal: {
-          DEFAULT: "#2563EB",
-          bright: "#3B82F6",
-          soft: "#DBEAFE",
+          DEFAULT: "#0e8f86",
+          bright: "#14b8a6",
+          soft: "#d5f5f2",
         },
         amber: {
-          DEFAULT: "#f59e0b",
+          DEFAULT: "#d97706",
           soft: "#fef3c7",
         },
       },
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
+        display: ["var(--font-display)", "Avenir Next", "sans-serif"],
         body: ["var(--font-body)", "Segoe UI", "sans-serif"],
       },
       boxShadow: {
-        glow: "0 20px 50px -20px rgba(37, 99, 235, 0.35)",
+        glow: "0 24px 48px -28px rgba(14, 143, 134, 0.45)",
+        lift: "0 18px 40px -24px rgba(12, 18, 34, 0.35)",
       },
     },
   },

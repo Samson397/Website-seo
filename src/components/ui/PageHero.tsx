@@ -8,7 +8,7 @@ interface PageHeroProps {
   actions?: React.ReactNode;
 }
 
-/** Shared premium dark hero used across marketing and tool pages. */
+/** Shared dark hero used across marketing and tool pages. */
 export function PageHero({
   eyebrow = "SEOHub",
   title,
@@ -17,28 +17,30 @@ export function PageHero({
   actions,
 }: PageHeroProps) {
   return (
-    <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-28 text-white sm:px-6 sm:pb-16 sm:pt-32">
+    <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-20 sm:pt-32">
       <div
-        className="pointer-events-none absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0 opacity-[0.35]"
         aria-hidden
         style={{
           backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+            "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.06) 1px, transparent 0)",
+          backgroundSize: "28px 28px",
+          maskImage: "linear-gradient(180deg, black, transparent 85%)",
         }}
       />
       <div className="relative mx-auto max-w-6xl">
-        <p className="animate-rise text-xs font-semibold uppercase tracking-[0.22em] text-brand-bright">
+        <p className="animate-rise font-display text-sm font-semibold tracking-tight text-brand-bright">
           {eyebrow}
         </p>
         <h1 className="font-display animate-rise-delay-1 mt-3 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
           {title}
         </h1>
         {description && (
-          <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-white/75 sm:text-lg">
+          <p className="animate-rise-delay-2 mt-4 max-w-xl text-base leading-relaxed text-white/65 sm:text-lg">
             {description}
           </p>
         )}
-        {actions && <div className="animate-rise-delay-2 mt-6 flex flex-wrap gap-3">{actions}</div>}
+        {actions && <div className="animate-rise-delay-2 mt-7 flex flex-wrap gap-3">{actions}</div>}
         {children && <div className="animate-rise-delay-2 mt-8">{children}</div>}
       </div>
     </section>
@@ -49,7 +51,7 @@ export function PrimaryCta({ href, children }: { href: string; children: React.R
   return (
     <Link
       href={href}
-      className="inline-flex rounded-xl bg-brand-bright px-5 py-2.5 text-sm font-semibold text-ink shadow-glow transition hover:bg-white"
+      className="inline-flex rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:bg-brand-soft"
     >
       {children}
     </Link>
@@ -60,7 +62,7 @@ export function SecondaryCta({ href, children }: { href: string; children: React
   return (
     <Link
       href={href}
-      className="inline-flex rounded-xl border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10"
+      className="inline-flex rounded-lg border border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/5"
     >
       {children}
     </Link>
