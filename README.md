@@ -22,9 +22,11 @@ No login. No email signup. No private user profiles.
 | Channel | How |
 |--------|-----|
 | Ads | Set `NEXT_PUBLIC_ADSENSE_CLIENT` (+ slot) |
-| Insights data | Anonymized `scan_events` (public hostnames + scores) for benchmarks / B2B reports |
+| Insights data | Anonymized scan events in **Firebase Firestore** (`scan_events`) |
 
 We only keep facts about **public websites that were scanned** — not emails or private identity data.
+
+**Store scan data in Firebase:** follow [docs/firebase-setup.md](docs/firebase-setup.md) (create project → Firestore → paste service account JSON into Vercel).
 
 ---
 
@@ -40,8 +42,8 @@ We only keep facts about **public websites that were scanned** — not emails or
 | `PAGESPEED_API_KEY` | Google Lighthouse Core Web Vitals |
 | `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlink data |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEOScan’s own SEO |
-| `DATABASE_URL` | Store anonymized public-site scan events |
-| `DATA_WEBHOOK_URL` | Forward scan events to Zapier/Make/n8n |
+| `FIREBASE_SERVICE_ACCOUNT` | Firestore storage for scan events (see `docs/firebase-setup.md`) |
+| `DATA_WEBHOOK_URL` | Optional forward of scan events to Zapier/Make/n8n |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` / `NEXT_PUBLIC_ADSENSE_SLOT` | Small ads |
 
 ---

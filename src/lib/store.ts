@@ -1,58 +1,9 @@
-import postgres from "postgres";
+import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase";
 
-let sql: ReturnType<typeof postgres> | null = null;
-let ready: Promise<void> | null = null;
-
-function getSql() {
-  const url = process.env.DATABASE_URL;
-  if (!url) return null;
-  if (!sql) {
-    sql = postgres(url, { max: 1, idle_timeout: 20, connect_timeout: 10 });
-  }
-  return sql;
-}
+export const SCAN_EVENTS_COLLECTION = "scan_events";
 
 export function isStoreConfigured(): boolean {
-  return Boolean(process.env.DATABASE_URL);
-}
-
-async function ensureSchema() {
-  const db = getSql();
-  if (!db) return;
-  if (!ready) {
-    ready = (async () => {
-      await db`
-        CREATE TABLE IF NOT EXISTS scan_events (
-          id BIGSERIAL PRIMARY KEY,
-          hostname TEXT NOT NULL,
-          tld TEXT,
-          overall SMALLINT,
-          seo SMALLINT,
-          performance SMALLINT,
-          accessibility SMALLINT,
-          security SMALLINT,
-          pass_count SMALLINT,
-          fail_count SMALLINT,
-          attention_count SMALLINT,
-          pages_scanned INTEGER,
-          critical_issues SMALLINT,
-          warning_issues SMALLINT,
-          scanned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )
-      `;
-      await db`
-        CREATE INDEX IF NOT EXISTS scan_events_scanned_at_idx ON scan_events (scanned_at DESC)
-      `;
-      await db`
-        CREATE INDEX IF NOT EXISTS scan_events_hostname_idx ON scan_events (hostname)
-      `;
-    })().catch((err) => {
-      ready = null;
-      throw err;
-    });
-  }
-  await ready;
+  return isFirebaseConfigured();
 }
 
 export interface ScanEventInput {
@@ -73,21 +24,27 @@ export interface ScanEventInput {
 }
 
 export async function insertScanEvent(event: ScanEventInput): Promise<boolean> {
-  const db = getSql();
+  const db = getFirebaseDb();
   if (!db) return false;
-  await ensureSchema();
-  await db`
-    INSERT INTO scan_events (
-      hostname, tld, overall, seo, performance, accessibility, security,
-      pass_count, fail_count, attention_count, pages_scanned,
-      critical_issues, warning_issues, scanned_at
-    ) VALUES (
-      ${event.hostname}, ${event.tld}, ${event.overall},
-      ${event.seo}, ${event.performance}, ${event.accessibility}, ${event.security},
-      ${event.passCount}, ${event.failCount}, ${event.attentionCount}, ${event.pagesScanned},
-      ${event.criticalIssues}, ${event.warningIssues}, ${event.scannedAt}
-    )
-  `;
+
+  await db.collection(SCAN_EVENTS_COLLECTION).add({
+    hostname: event.hostname,
+    tld: event.tld,
+    overall: event.overall,
+    seo: event.seo,
+    performance: event.performance,
+    accessibility: event.accessibility,
+    security: event.security,
+    passCount: event.passCount,
+    failCount: event.failCount,
+    attentionCount: event.attentionCount,
+    pagesScanned: event.pagesScanned,
+    criticalIssues: event.criticalIssues,
+    warningIssues: event.warningIssues,
+    scannedAt: event.scannedAt,
+    createdAt: new Date().toISOString(),
+  });
+
   return true;
 }
 
@@ -119,72 +76,87 @@ const FALLBACK_BENCHMARKS: BenchmarkStats = {
   recentHosts: [],
 };
 
+function avg(nums: number[]): number {
+  if (nums.length === 0) return 0;
+  return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length);
+}
+
 export async function getBenchmarkStats(): Promise<BenchmarkStats & { source: "live" | "seed" }> {
-  const db = getSql();
+  const db = getFirebaseDb();
   if (!db) return { ...FALLBACK_BENCHMARKS, source: "seed" };
 
   try {
-    await ensureSchema();
-    const [avg] = await db`
-      SELECT
-        COUNT(*)::int AS sample_size,
-        COALESCE(ROUND(AVG(overall)), 0)::int AS avg_overall,
-        COALESCE(ROUND(AVG(seo)), 0)::int AS avg_seo,
-        COALESCE(ROUND(AVG(performance)), 0)::int AS avg_performance,
-        COALESCE(ROUND(AVG(accessibility)), 0)::int AS avg_accessibility,
-        COALESCE(ROUND(AVG(security)), 0)::int AS avg_security,
-        COALESCE(ROUND(AVG(fail_count)), 0)::int AS avg_fail_count
-      FROM scan_events
-      WHERE scanned_at > NOW() - INTERVAL '90 days'
-    `;
+    const since = new Date();
+    since.setDate(since.getDate() - 90);
 
-    const sampleSize = Number(avg?.sample_size ?? 0);
+    // Fetch recent events (cap keeps reads cheap on free Spark plan)
+    const snap = await db
+      .collection(SCAN_EVENTS_COLLECTION)
+      .orderBy("scannedAt", "desc")
+      .limit(500)
+      .get();
+
+    const events = snap.docs
+      .map((doc) => doc.data() as ScanEventInput)
+      .filter((e) => {
+        const t = Date.parse(e.scannedAt);
+        return Number.isFinite(t) && t >= since.getTime();
+      });
+
+    const sampleSize = events.length;
     if (sampleSize < 5) {
-      return { ...FALLBACK_BENCHMARKS, sampleSize, source: sampleSize > 0 ? "live" : "seed" };
+      return {
+        ...FALLBACK_BENCHMARKS,
+        sampleSize,
+        source: sampleSize > 0 ? "live" : "seed",
+      };
     }
 
-    const tlds = await db`
-      SELECT tld, COUNT(*)::int AS count
-      FROM scan_events
-      WHERE scanned_at > NOW() - INTERVAL '90 days' AND tld IS NOT NULL
-      GROUP BY tld
-      ORDER BY count DESC
-      LIMIT 8
-    `;
+    const tldCounts = new Map<string, number>();
+    for (const e of events) {
+      if (!e.tld) continue;
+      tldCounts.set(e.tld, (tldCounts.get(e.tld) || 0) + 1);
+    }
 
-    const recent = await db`
-      SELECT DISTINCT ON (hostname) hostname, overall, scanned_at
-      FROM scan_events
-      WHERE scanned_at > NOW() - INTERVAL '14 days'
-      ORDER BY hostname, scanned_at DESC
-      LIMIT 20
-    `;
+    const topTlds = Array.from(tldCounts.entries())
+      .map(([tld, count]) => ({ tld, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    const latestByHost = new Map<string, { hostname: string; overall: number; scannedAt: string }>();
+    for (const e of events) {
+      if (!latestByHost.has(e.hostname)) {
+        latestByHost.set(e.hostname, {
+          hostname: e.hostname,
+          overall: e.overall,
+          scannedAt: e.scannedAt,
+        });
+      }
+    }
+
+    const recentHosts = Array.from(latestByHost.values())
+      .sort((a, b) => b.overall - a.overall)
+      .slice(0, 12);
 
     return {
       sampleSize,
-      avgOverall: Number(avg.avg_overall),
-      avgSeo: Number(avg.avg_seo),
-      avgPerformance: Number(avg.avg_performance),
-      avgAccessibility: Number(avg.avg_accessibility),
-      avgSecurity: Number(avg.avg_security),
-      avgFailCount: Number(avg.avg_fail_count),
-      topTlds: tlds.map((r) => ({ tld: String(r.tld), count: Number(r.count) })),
-      recentHosts: recent
-        .map((r) => ({
-          hostname: String(r.hostname),
-          overall: Number(r.overall),
-          scannedAt: new Date(r.scanned_at as string).toISOString(),
-        }))
-        .sort((a, b) => b.overall - a.overall)
-        .slice(0, 12),
+      avgOverall: avg(events.map((e) => e.overall)),
+      avgSeo: avg(events.map((e) => e.seo)),
+      avgPerformance: avg(events.map((e) => e.performance)),
+      avgAccessibility: avg(events.map((e) => e.accessibility)),
+      avgSecurity: avg(events.map((e) => e.security)),
+      avgFailCount: avg(events.map((e) => e.failCount)),
+      topTlds,
+      recentHosts,
       source: "live",
     };
-  } catch {
+  } catch (err) {
+    console.error("[firebase] benchmarks failed", err instanceof Error ? err.message : err);
     return { ...FALLBACK_BENCHMARKS, source: "seed" };
   }
 }
 
-/** Forward lead/event payloads to an optional webhook (Zapier / Make / n8n). */
+/** Optional extra forward to Zapier / Make / n8n. */
 export async function forwardWebhook(payload: Record<string, unknown>): Promise<void> {
   const url = process.env.DATA_WEBHOOK_URL;
   if (!url) return;
