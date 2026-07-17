@@ -27,9 +27,9 @@ export default function PrivacyPage() {
         </h2>
         <p className="mt-2 leading-relaxed">
           We may store aggregated facts about public websites that are scanned — for example
-          hostname, TLD, category scores, and issue counts — in Firebase Firestore. We use this to
-          power live benchmarks on SEOScan and may license or sell{" "}
-          <em>aggregated market insights</em> derived from public-website scans. This is not
+          hostname, TLD, category scores, and issue counts — in Vercel KV (Redis) or optionally
+          Firebase Firestore. We use this to power live benchmarks on SEOScan and may license or
+          sell <em>aggregated market insights</em> derived from public-website scans. This is not
           personal profile data.
         </p>
 

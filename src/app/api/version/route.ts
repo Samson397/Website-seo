@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isStoreConfigured } from "@/lib/store";
+import { getStoreBackend, isStoreConfigured } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,8 @@ export async function GET() {
       benchmarks: true,
       localWatchlist: true,
       ads: Boolean(process.env.NEXT_PUBLIC_ADSENSE_CLIENT),
-      firebase: isStoreConfigured(),
+      store: isStoreConfigured(),
+      storeBackend: getStoreBackend(),
       webhook: Boolean(process.env.DATA_WEBHOOK_URL),
       tools: ["meta-preview", "robots", "headers"],
       pageSpeed: Boolean(process.env.PAGESPEED_API_KEY),

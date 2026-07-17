@@ -1,9 +1,28 @@
+import { kv } from "@vercel/kv";
 import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase";
 
+/** Redis list key for Vercel KV / Upstash */
+export const SCAN_EVENTS_KV_KEY = "seoscan:scan_events";
 export const SCAN_EVENTS_COLLECTION = "scan_events";
+const MAX_EVENTS = 5000;
+
+export type StoreBackend = "vercel-kv" | "firebase" | "none";
+
+export function getStoreBackend(): StoreBackend {
+  if (isVercelKvConfigured()) return "vercel-kv";
+  if (isFirebaseConfigured()) return "firebase";
+  return "none";
+}
 
 export function isStoreConfigured(): boolean {
-  return isFirebaseConfigured();
+  return getStoreBackend() !== "none";
+}
+
+function isVercelKvConfigured(): boolean {
+  return Boolean(
+    process.env.KV_REST_API_URL &&
+      process.env.KV_REST_API_TOKEN
+  );
 }
 
 export interface ScanEventInput {
@@ -24,27 +43,24 @@ export interface ScanEventInput {
 }
 
 export async function insertScanEvent(event: ScanEventInput): Promise<boolean> {
+  const backend = getStoreBackend();
+  if (backend === "none") return false;
+
+  const row = {
+    ...event,
+    createdAt: new Date().toISOString(),
+  };
+
+  if (backend === "vercel-kv") {
+    // Newest first in a capped list — view via Vercel KV / Upstash console
+    await kv.lpush(SCAN_EVENTS_KV_KEY, JSON.stringify(row));
+    await kv.ltrim(SCAN_EVENTS_KV_KEY, 0, MAX_EVENTS - 1);
+    return true;
+  }
+
   const db = getFirebaseDb();
   if (!db) return false;
-
-  await db.collection(SCAN_EVENTS_COLLECTION).add({
-    hostname: event.hostname,
-    tld: event.tld,
-    overall: event.overall,
-    seo: event.seo,
-    performance: event.performance,
-    accessibility: event.accessibility,
-    security: event.security,
-    passCount: event.passCount,
-    failCount: event.failCount,
-    attentionCount: event.attentionCount,
-    pagesScanned: event.pagesScanned,
-    criticalIssues: event.criticalIssues,
-    warningIssues: event.warningIssues,
-    scannedAt: event.scannedAt,
-    createdAt: new Date().toISOString(),
-  });
-
+  await db.collection(SCAN_EVENTS_COLLECTION).add(row);
   return true;
 }
 
@@ -81,78 +97,101 @@ function avg(nums: number[]): number {
   return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length);
 }
 
-export async function getBenchmarkStats(): Promise<BenchmarkStats & { source: "live" | "seed" }> {
+function computeBenchmarks(
+  events: ScanEventInput[]
+): BenchmarkStats & { source: "live" | "seed" } {
+  const since = Date.now() - 90 * 24 * 60 * 60 * 1000;
+  const recent = events.filter((e) => {
+    const t = Date.parse(e.scannedAt);
+    return Number.isFinite(t) && t >= since;
+  });
+
+  const sampleSize = recent.length;
+  if (sampleSize < 5) {
+    return {
+      ...FALLBACK_BENCHMARKS,
+      sampleSize,
+      source: sampleSize > 0 ? "live" : "seed",
+    };
+  }
+
+  const tldCounts = new Map<string, number>();
+  for (const e of recent) {
+    if (!e.tld) continue;
+    tldCounts.set(e.tld, (tldCounts.get(e.tld) || 0) + 1);
+  }
+
+  const topTlds = Array.from(tldCounts.entries())
+    .map(([tld, count]) => ({ tld, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  const latestByHost = new Map<string, { hostname: string; overall: number; scannedAt: string }>();
+  for (const e of recent) {
+    if (!latestByHost.has(e.hostname)) {
+      latestByHost.set(e.hostname, {
+        hostname: e.hostname,
+        overall: e.overall,
+        scannedAt: e.scannedAt,
+      });
+    }
+  }
+
+  return {
+    sampleSize,
+    avgOverall: avg(recent.map((e) => e.overall)),
+    avgSeo: avg(recent.map((e) => e.seo)),
+    avgPerformance: avg(recent.map((e) => e.performance)),
+    avgAccessibility: avg(recent.map((e) => e.accessibility)),
+    avgSecurity: avg(recent.map((e) => e.security)),
+    avgFailCount: avg(recent.map((e) => e.failCount)),
+    topTlds,
+    recentHosts: Array.from(latestByHost.values())
+      .sort((a, b) => b.overall - a.overall)
+      .slice(0, 12),
+    source: "live",
+  };
+}
+
+async function loadEventsFromKv(): Promise<ScanEventInput[]> {
+  const raw = await kv.lrange<string>(SCAN_EVENTS_KV_KEY, 0, 499);
+  return raw
+    .map((item) => {
+      try {
+        return (typeof item === "string" ? JSON.parse(item) : item) as ScanEventInput;
+      } catch {
+        return null;
+      }
+    })
+    .filter((e): e is ScanEventInput => Boolean(e?.hostname && e?.scannedAt));
+}
+
+async function loadEventsFromFirebase(): Promise<ScanEventInput[]> {
   const db = getFirebaseDb();
-  if (!db) return { ...FALLBACK_BENCHMARKS, source: "seed" };
+  if (!db) return [];
+  const snap = await db
+    .collection(SCAN_EVENTS_COLLECTION)
+    .orderBy("scannedAt", "desc")
+    .limit(500)
+    .get();
+  return snap.docs.map((doc) => doc.data() as ScanEventInput);
+}
+
+export async function getBenchmarkStats(): Promise<
+  BenchmarkStats & { source: "live" | "seed"; backend: StoreBackend }
+> {
+  const backend = getStoreBackend();
+  if (backend === "none") {
+    return { ...FALLBACK_BENCHMARKS, source: "seed", backend };
+  }
 
   try {
-    const since = new Date();
-    since.setDate(since.getDate() - 90);
-
-    // Fetch recent events (cap keeps reads cheap on free Spark plan)
-    const snap = await db
-      .collection(SCAN_EVENTS_COLLECTION)
-      .orderBy("scannedAt", "desc")
-      .limit(500)
-      .get();
-
-    const events = snap.docs
-      .map((doc) => doc.data() as ScanEventInput)
-      .filter((e) => {
-        const t = Date.parse(e.scannedAt);
-        return Number.isFinite(t) && t >= since.getTime();
-      });
-
-    const sampleSize = events.length;
-    if (sampleSize < 5) {
-      return {
-        ...FALLBACK_BENCHMARKS,
-        sampleSize,
-        source: sampleSize > 0 ? "live" : "seed",
-      };
-    }
-
-    const tldCounts = new Map<string, number>();
-    for (const e of events) {
-      if (!e.tld) continue;
-      tldCounts.set(e.tld, (tldCounts.get(e.tld) || 0) + 1);
-    }
-
-    const topTlds = Array.from(tldCounts.entries())
-      .map(([tld, count]) => ({ tld, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-
-    const latestByHost = new Map<string, { hostname: string; overall: number; scannedAt: string }>();
-    for (const e of events) {
-      if (!latestByHost.has(e.hostname)) {
-        latestByHost.set(e.hostname, {
-          hostname: e.hostname,
-          overall: e.overall,
-          scannedAt: e.scannedAt,
-        });
-      }
-    }
-
-    const recentHosts = Array.from(latestByHost.values())
-      .sort((a, b) => b.overall - a.overall)
-      .slice(0, 12);
-
-    return {
-      sampleSize,
-      avgOverall: avg(events.map((e) => e.overall)),
-      avgSeo: avg(events.map((e) => e.seo)),
-      avgPerformance: avg(events.map((e) => e.performance)),
-      avgAccessibility: avg(events.map((e) => e.accessibility)),
-      avgSecurity: avg(events.map((e) => e.security)),
-      avgFailCount: avg(events.map((e) => e.failCount)),
-      topTlds,
-      recentHosts,
-      source: "live",
-    };
+    const events =
+      backend === "vercel-kv" ? await loadEventsFromKv() : await loadEventsFromFirebase();
+    return { ...computeBenchmarks(events), backend };
   } catch (err) {
-    console.error("[firebase] benchmarks failed", err instanceof Error ? err.message : err);
-    return { ...FALLBACK_BENCHMARKS, source: "seed" };
+    console.error("[store] benchmarks failed", err instanceof Error ? err.message : err);
+    return { ...FALLBACK_BENCHMARKS, source: "seed", backend };
   }
 }
 

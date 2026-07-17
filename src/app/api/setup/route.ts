@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server";
-import { isStoreConfigured } from "@/lib/store";
+import { getStoreBackend, isStoreConfigured } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
 type Check = { key: string; label: string; ok: boolean; required: boolean };
 
 function checks(): Check[] {
+  const backend = getStoreBackend();
   return [
     {
+      key: "VERCEL_KV",
+      label: "Vercel KV (recommended scan storage)",
+      ok: backend === "vercel-kv",
+      required: false,
+    },
+    {
       key: "FIREBASE",
-      label: "Firebase Firestore (scan data)",
-      ok: isStoreConfigured(),
+      label: "Firebase Firestore (optional alternative)",
+      ok: backend === "firebase",
       required: false,
     },
     {
@@ -41,15 +48,19 @@ export async function GET() {
   return NextResponse.json({
     app: "seoscan",
     scannerReady: true,
-    firebaseReady: isStoreConfigured(),
+    storeReady: isStoreConfigured(),
+    storeBackend: getStoreBackend(),
     checks: items,
     optionalConfigured: optionalOk,
+    setupDocs: {
+      vercelKv: "docs/vercel-kv-setup.md",
+      firebase: "docs/firebase-setup.md",
+    },
     urls: {
       home: "/",
       competitors: "/competitors",
       tools: "/tools",
       benchmarks: "/benchmarks",
-      firebaseSetup: "/docs not served — see repo docs/firebase-setup.md",
       version: "/api/version",
     },
   });
