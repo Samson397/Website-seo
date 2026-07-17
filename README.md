@@ -2,7 +2,7 @@
 
 Free **full SEO toolkit**: site audit, keyword research, rank checks, content optimizer, and 15+ tools. No account.
 
-Live: [seohub.vercel.app](https://seohub.vercel.app)
+Live: your Vercel **Production** URL for the `seoscan` project (see [AdSense verification](docs/adsense-verification.md))
 
 ## What it does
 

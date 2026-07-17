@@ -44,6 +44,10 @@ export const metadata: Metadata = {
     description,
   },
   robots: { index: true, follow: true },
+  // AdSense site verification (must appear in production HTML <head>)
+  other: {
+    "google-adsense-account": ADSENSE_CLIENT,
+  },
 };
 
 export default function RootLayout({
@@ -68,8 +72,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Raw head script so AdSense crawlers see it in initial HTML */}
         <script async src={ADSENSE_SCRIPT_SRC} crossOrigin="anonymous" />
-        <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
       </head>
       <body className="font-body antialiased">
         {children}
