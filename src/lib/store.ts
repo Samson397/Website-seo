@@ -47,20 +47,6 @@ async function ensureSchema() {
       await db`
         CREATE INDEX IF NOT EXISTS scan_events_hostname_idx ON scan_events (hostname)
       `;
-      await db`
-        CREATE TABLE IF NOT EXISTS leads (
-          id BIGSERIAL PRIMARY KEY,
-          email TEXT NOT NULL,
-          source TEXT NOT NULL DEFAULT 'report',
-          hostname TEXT,
-          consent BOOLEAN NOT NULL DEFAULT FALSE,
-          marketing_opt_in BOOLEAN NOT NULL DEFAULT FALSE,
-          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-        )
-      `;
-      await db`
-        CREATE UNIQUE INDEX IF NOT EXISTS leads_email_idx ON leads (lower(email))
-      `;
     })().catch((err) => {
       ready = null;
       throw err;
@@ -103,33 +89,6 @@ export async function insertScanEvent(event: ScanEventInput): Promise<boolean> {
     )
   `;
   return true;
-}
-
-export async function insertLead(input: {
-  email: string;
-  source: string;
-  hostname?: string;
-  consent: boolean;
-  marketingOptIn: boolean;
-}): Promise<"created" | "updated" | "skipped"> {
-  const db = getSql();
-  if (!db) return "skipped";
-  await ensureSchema();
-  const email = input.email.trim().toLowerCase();
-  const result = await db`
-    INSERT INTO leads (email, source, hostname, consent, marketing_opt_in)
-    VALUES (
-      ${email}, ${input.source}, ${input.hostname ?? null},
-      ${input.consent}, ${input.marketingOptIn}
-    )
-    ON CONFLICT ((lower(email))) DO UPDATE SET
-      source = EXCLUDED.source,
-      hostname = COALESCE(EXCLUDED.hostname, leads.hostname),
-      consent = leads.consent OR EXCLUDED.consent,
-      marketing_opt_in = leads.marketing_opt_in OR EXCLUDED.marketing_opt_in
-    RETURNING (xmax = 0) AS inserted
-  `;
-  return result[0]?.inserted ? "created" : "updated";
 }
 
 export interface BenchmarkStats {

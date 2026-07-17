@@ -12,7 +12,6 @@ export async function GET() {
       competitorCompare: true,
       benchmarks: true,
       localWatchlist: true,
-      leadCapture: true,
       ads: Boolean(process.env.NEXT_PUBLIC_ADSENSE_CLIENT),
       dataStore: isStoreConfigured(),
       webhook: Boolean(process.env.DATA_WEBHOOK_URL),

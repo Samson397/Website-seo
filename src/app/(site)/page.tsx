@@ -10,7 +10,6 @@ import { HomeFeatures } from "@/components/HomeFeatures";
 import { RouteCards } from "@/components/RouteCards";
 import { ScanHistoryPanel } from "@/components/ScanHistoryPanel";
 import { BenchmarkCompare } from "@/components/BenchmarkCompare";
-import { EmailCapture } from "@/components/EmailCapture";
 import { WatchToggle } from "@/components/WatchToggle";
 import { AdSlot } from "@/components/AdSlot";
 import { saveScanToHistory } from "@/lib/local-history";
@@ -77,13 +76,6 @@ export default function Home() {
 
   function handleRescan() {
     if (lastUrl.current) runAudit(lastUrl.current, true);
-  }
-
-  let hostname: string | undefined;
-  try {
-    if (report) hostname = new URL(report.url).hostname;
-  } catch {
-    hostname = undefined;
   }
 
   return (
@@ -163,8 +155,6 @@ export default function Home() {
               }}
             />
             {report.checklist && <ChecksPanel checklist={report.checklist} />}
-
-            <EmailCapture source="report" hostname={hostname} />
             <AdSlot format="horizontal" />
 
             <AuditReportView
@@ -199,13 +189,6 @@ export default function Home() {
                 <ToolLink href={routes.competitors} label="Competitor compare" />
               </div>
             </section>
-            <div className="mx-auto mt-10 max-w-xl">
-              <EmailCapture
-                source="footer"
-                headline="Weekly SEO tips"
-                subcopy="Join the list for practical fix checklists. Unsubscribe anytime. Consent required."
-              />
-            </div>
           </>
         )}
       </div>

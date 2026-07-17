@@ -12,20 +12,19 @@ Live: [seoscan-five.vercel.app](https://seoscan-five.vercel.app)
 - **Watchlist + recent scans** saved in the browser (come back weekly without an account)
 - **Live benchmarks** from anonymized public-site scan stats
 - Competitor compare + free tools (meta preview, robots/sitemap, security headers)
-- Optional **email capture** (explicit consent) and **AdSense** slots
+- Optional **AdSense** slots
 - Export CSV / print PDF
 
-No login required.
+No login. No email signup. No private user profiles.
 
-### Monetization (ethical)
+### Monetization
 
 | Channel | How |
 |--------|-----|
 | Ads | Set `NEXT_PUBLIC_ADSENSE_CLIENT` (+ slot) |
-| Email list | Consented leads via `/api/leads` → Postgres and/or `DATA_WEBHOOK_URL` |
 | Insights data | Anonymized `scan_events` (public hostnames + scores) for benchmarks / B2B reports |
 
-We do **not** sell personal emails or private identity data. See Privacy Policy.
+We only keep facts about **public websites that were scanned** — not emails or private identity data.
 
 ---
 
@@ -41,8 +40,8 @@ We do **not** sell personal emails or private identity data. See Privacy Policy.
 | `PAGESPEED_API_KEY` | Google Lighthouse Core Web Vitals |
 | `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlink data |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEOScan’s own SEO |
-| `DATABASE_URL` | Store anonymized scan events + consented leads |
-| `DATA_WEBHOOK_URL` | Forward leads/events to Zapier/Make/n8n |
+| `DATABASE_URL` | Store anonymized public-site scan events |
+| `DATA_WEBHOOK_URL` | Forward scan events to Zapier/Make/n8n |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` / `NEXT_PUBLIC_ADSENSE_SLOT` | Small ads |
 
 ---

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { EmailCapture } from "@/components/EmailCapture";
 import { AdSlot } from "@/components/AdSlot";
 import { routes } from "@/lib/routes";
 
@@ -119,11 +118,6 @@ export default function BenchmarksPage() {
           </>
         )}
 
-        <EmailCapture
-          source="benchmarks"
-          headline="Get benchmark digests"
-          subcopy="Occasional email when network averages move. Consent required — we don’t sell your email."
-        />
       </div>
     </main>
   );
