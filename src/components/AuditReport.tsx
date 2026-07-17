@@ -9,6 +9,7 @@ import { IssueCard } from "@/components/IssueCard";
 import { SerpPreview } from "@/components/SerpPreview";
 import { ScanComparisonPanel } from "@/components/ScanComparisonPanel";
 import { ExportButtons } from "@/components/ExportButtons";
+import { EmailReportButton } from "@/components/EmailReportButton";
 import { ShareReportButton } from "@/components/ShareReportButton";
 import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
@@ -120,6 +121,7 @@ export function AuditReportView({
                 </button>
               )}
               <ExportButtons report={report} />
+              <EmailReportButton report={report} />
             </div>
             <ShareReportButton report={report} />
             <div className="flex flex-wrap gap-2 text-sm">

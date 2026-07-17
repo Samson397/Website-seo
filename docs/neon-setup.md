@@ -54,6 +54,21 @@ CREATE TABLE IF NOT EXISTS shared_reports (
 
 CREATE INDEX IF NOT EXISTS shared_reports_created_at_idx
 ON shared_reports (created_at DESC);
+
+-- Optional: weekly email digests (Resend)
+CREATE TABLE IF NOT EXISTS digest_subscriptions (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  sites JSONB NOT NULL DEFAULT '[]'::jsonb,
+  unsub_token TEXT NOT NULL UNIQUE,
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_sent_at TIMESTAMPTZ
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS digest_subscriptions_email_idx
+ON digest_subscriptions (email);
 ```
 
 ## 3. Redeploy SEOHub

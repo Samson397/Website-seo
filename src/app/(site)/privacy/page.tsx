@@ -81,6 +81,15 @@ export default function PrivacyPage() {
         </section>
 
         <section>
+          <h2 className="font-display text-xl font-semibold text-ink">Email (optional)</h2>
+          <p className="mt-2 leading-relaxed">
+            If you use “Email report” or weekly watchlist digests, we send mail via Resend to the
+            address you provide. Digest subscribers are stored so we can send reminders; every digest
+            includes an unsubscribe link. We do not require email to use the free scanner or tools.
+          </p>
+        </section>
+
+        <section>
           <h2 className="font-display text-xl font-semibold text-ink">Payments</h2>
           <p className="mt-2 leading-relaxed">
             Optional paid unlocks (for example a full-site SEO scan) are processed by Stripe. We do

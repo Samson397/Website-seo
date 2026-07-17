@@ -67,6 +67,10 @@ Alternatives: [KV](docs/vercel-kv-setup.md) · [Firebase](docs/firebase-setup.md
 | `NEXT_PUBLIC_ADSENSE_CLIENT` / `NEXT_PUBLIC_ADSENSE_SLOT` | Small ads |
 | `STRIPE_SECRET_KEY` + `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` + `STRIPE_PRICE_ID` | $1.99 full SEO unlock |
 | `NEXT_PUBLIC_STRIPE_PRICE_DISPLAY` | Price label (default `$1.99`) |
+| `RESEND_API_KEY` + `RESEND_FROM_EMAIL` | Email reports + weekly digests |
+| `CRON_SECRET` | Auth for Monday weekly-digest cron |
+
+Email setup: [docs/resend-setup.md](docs/resend-setup.md)
 
 ---
 

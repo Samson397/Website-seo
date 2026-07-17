@@ -56,6 +56,18 @@ function checks(): Check[] {
       ok: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),
       required: false,
     },
+    {
+      key: "RESEND",
+      label: "Resend (email reports + digests)",
+      ok: Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL),
+      required: false,
+    },
+    {
+      key: "CRON_SECRET",
+      label: "Cron secret (weekly digest)",
+      ok: Boolean(process.env.CRON_SECRET),
+      required: false,
+    },
   ];
 }
 

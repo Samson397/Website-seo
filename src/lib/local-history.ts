@@ -14,6 +14,10 @@ export interface HistoryEntry {
   hostname: string;
   scannedAt: string;
   overall: number;
+  /** Previous overall score for this hostname, if any */
+  previousOverall?: number;
+  /** overall - previousOverall */
+  scoreDelta?: number;
   scores: AuditReport["scores"];
   pagesScanned?: number;
   failCount?: number;
@@ -72,11 +76,20 @@ export function getScanHistory(): HistoryEntry[] {
 }
 
 export function saveScanToHistory(report: AuditReport): HistoryEntry[] {
+  const hostname = hostnameFromUrl(report.url);
+  const overall = overallFromScores(report.scores);
+  const existing = getScanHistory().find((h) => h.hostname === hostname);
+  const previousOverall = existing?.overall;
+  const scoreDelta =
+    previousOverall != null ? overall - previousOverall : undefined;
+
   const entry: HistoryEntry = {
     url: report.url,
-    hostname: hostnameFromUrl(report.url),
+    hostname,
     scannedAt: report.scannedAt,
-    overall: overallFromScores(report.scores),
+    overall,
+    previousOverall,
+    scoreDelta,
     scores: report.scores,
     pagesScanned: report.crawl?.pagesScanned,
     failCount: report.checklist?.failCount ?? report.checklist?.missingCount,

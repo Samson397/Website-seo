@@ -14,6 +14,7 @@ import {
   type HistoryEntry,
   type WatchItem,
 } from "@/lib/local-history";
+import { DigestSignup } from "@/components/DigestSignup";
 import { routes, scanUrlFor } from "@/lib/routes";
 
 export default function HistoryPage() {
@@ -82,6 +83,8 @@ export default function HistoryPage() {
             </Link>
           </div>
         )}
+
+        {watchlist.length > 0 && <DigestSignup watchlist={watchlist} />}
 
         {watchlist.length > 0 && (
           <section>
@@ -173,6 +176,17 @@ export default function HistoryPage() {
                     <p className="truncate font-medium text-ink">{item.hostname}</p>
                     <p className="text-xs text-ink-muted">
                       Score {item.overall}
+                      {item.scoreDelta != null && item.scoreDelta !== 0 ? (
+                        <span
+                          className={
+                            item.scoreDelta > 0 ? "text-teal" : "text-rose-600"
+                          }
+                        >
+                          {" "}
+                          ({item.scoreDelta > 0 ? "↑" : "↓"}
+                          {Math.abs(item.scoreDelta)} since last scan)
+                        </span>
+                      ) : null}
                       {item.pagesScanned != null ? ` · ${item.pagesScanned} pages` : ""}
                       {item.failCount != null ? ` · ${item.failCount} failed checks` : ""}
                       {" · "}
