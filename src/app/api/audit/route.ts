@@ -4,6 +4,8 @@ import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, saveSharedReport } from "@/lib/reports";
+import { isStripeConfigured } from "@/lib/stripe";
+import { verifyPaidSession } from "@/lib/stripe-unlock-server";
 
 /** Allow longer full-site crawls on platforms that support it (e.g. Vercel Pro). */
 export const maxDuration = 300;
@@ -26,11 +28,22 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const urlInput = body?.url;
-    const siteCrawl = body?.siteCrawl !== false;
+    const unlockSessionId =
+      typeof body?.unlockSessionId === "string" ? body.unlockSessionId : undefined;
+    const wantFull = body?.siteCrawl !== false;
     const share = body?.share !== false;
 
     if (!urlInput || typeof urlInput !== "string") {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
+    }
+
+    let siteCrawl = wantFull;
+    let tier: "free" | "full" = "full";
+
+    if (isStripeConfigured()) {
+      const paid = wantFull ? await verifyPaidSession(unlockSessionId) : false;
+      siteCrawl = paid;
+      tier = paid ? "full" : "free";
     }
 
     await validateUrlSafe(urlInput);
@@ -39,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     void recordScanTelemetry(report);
 
-    if (share && canPersistReports()) {
+    if (tier === "full" && share && canPersistReports()) {
       try {
         report.shareId = await saveSharedReport(report);
       } catch (err) {
@@ -47,9 +60,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(report, {
-      headers: { "X-RateLimit-Remaining": String(limited.remaining) },
-    });
+    return NextResponse.json(
+      { ...report, tier },
+      {
+        headers: {
+          "X-RateLimit-Remaining": String(limited.remaining),
+          "X-SEOHub-Tier": tier,
+        },
+      }
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Audit failed";
     const status = message.includes("not allowed") || message.includes("resolve") ? 400 : 500;

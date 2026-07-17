@@ -81,6 +81,16 @@ export default function PrivacyPage() {
         </section>
 
         <section>
+          <h2 className="font-display text-xl font-semibold text-ink">Payments</h2>
+          <p className="mt-2 leading-relaxed">
+            Optional paid unlocks (for example a full-site SEO scan) are processed by Stripe. We do
+            not store your card details. Stripe may process payment information under its own
+            privacy policy. An unlock token may be saved in your browser so you can re-run full
+            scans without paying again during the unlock window.
+          </p>
+        </section>
+
+        <section>
           <h2 className="font-display text-xl font-semibold text-ink">Accounts</h2>
           <p className="mt-2 leading-relaxed">
             SEOHub does not require an account. There is no login, email signup, or user profile

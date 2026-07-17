@@ -172,6 +172,8 @@ export interface AuditReport {
   checklist?: SiteChecklist;
   /** Present when the report was saved for sharing */
   shareId?: string;
+  /** free = homepage preview; full = paid unlock (when Stripe is configured) */
+  tier?: "free" | "full";
 }
 
 export type ScanProgressEvent =

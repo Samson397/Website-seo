@@ -17,6 +17,15 @@ Live: [seohub.vercel.app](https://seohub.vercel.app)
 
 No login. No email signup. No private user profiles.
 
+### Freemium (optional Stripe)
+
+When Stripe env vars are set:
+
+- **Free** — homepage SEO preview + all toolkit pages
+- **$1.99** — unlock full-site crawl (up to 200 pages), shareable report, deeper site-wide checks
+
+Paid via Stripe Checkout (one-time). Unlock is stored in the browser (no account).
+
 ### Monetization
 
 | Channel | How |
@@ -56,6 +65,8 @@ Alternatives: [KV](docs/vercel-kv-setup.md) · [Firebase](docs/firebase-setup.md
 | `KV_REST_API_*` / `FIREBASE_SERVICE_ACCOUNT` | Optional alternatives |
 | `DATA_WEBHOOK_URL` | Optional forward of scan events to Zapier/Make/n8n |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` / `NEXT_PUBLIC_ADSENSE_SLOT` | Small ads |
+| `STRIPE_SECRET_KEY` + `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` + `STRIPE_PRICE_ID` | $1.99 full SEO unlock |
+| `NEXT_PUBLIC_STRIPE_PRICE_DISPLAY` | Price label (default `$1.99`) |
 
 ---
 

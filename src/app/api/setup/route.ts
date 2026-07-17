@@ -50,6 +50,12 @@ function checks(): Check[] {
       ok: Boolean(process.env.NEXT_PUBLIC_ADSENSE_CLIENT),
       required: false,
     },
+    {
+      key: "STRIPE",
+      label: "Stripe Checkout ($1.99 full SEO unlock)",
+      ok: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),
+      required: false,
+    },
   ];
 }
 

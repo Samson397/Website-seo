@@ -4,6 +4,8 @@ import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, saveSharedReport } from "@/lib/reports";
+import { isStripeConfigured } from "@/lib/stripe";
+import { verifyPaidSession } from "@/lib/stripe-unlock-server";
 import type { ScanProgressEvent } from "@/lib/types";
 
 export const maxDuration = 300;
@@ -32,11 +34,14 @@ export async function POST(request: NextRequest) {
   }
 
   let urlInput: string | undefined;
-  let siteCrawl = true;
+  let wantFull = true;
+  let unlockSessionId: string | undefined;
   try {
     const body = await request.json();
     urlInput = body?.url;
-    siteCrawl = body?.siteCrawl !== false;
+    wantFull = body?.siteCrawl !== false;
+    unlockSessionId =
+      typeof body?.unlockSessionId === "string" ? body.unlockSessionId : undefined;
   } catch {
     return new Response(JSON.stringify({ type: "error", error: "Invalid JSON" }) + "\n", {
       status: 400,
@@ -51,6 +56,14 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  let siteCrawl = wantFull;
+  let tier: "free" | "full" = "full";
+  if (isStripeConfigured()) {
+    const paid = wantFull ? await verifyPaidSession(unlockSessionId) : false;
+    siteCrawl = paid;
+    tier = paid ? "full" : "free";
+  }
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -59,6 +72,15 @@ export async function POST(request: NextRequest) {
       };
 
       try {
+        send({
+          type: "stage",
+          stage: "fetch",
+          message:
+            tier === "free"
+              ? "Free preview — scanning homepage…"
+              : "Full SEO unlock — starting site crawl…",
+        });
+
         await validateUrlSafe(urlInput!);
         const normalized = normalizeUrl(urlInput!);
         const report = await runFullAudit(normalized, {
@@ -68,7 +90,7 @@ export async function POST(request: NextRequest) {
 
         void recordScanTelemetry(report);
 
-        if (canPersistReports()) {
+        if (tier === "full" && canPersistReports()) {
           try {
             report.shareId = await saveSharedReport(report);
           } catch (err) {
@@ -76,7 +98,7 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        send({ type: "done", report });
+        send({ type: "done", report: { ...report, tier } as typeof report & { tier: string } });
       } catch (err) {
         send({
           type: "error",
@@ -93,6 +115,7 @@ export async function POST(request: NextRequest) {
       "Content-Type": "application/x-ndjson; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
       "X-RateLimit-Remaining": String(limited.remaining),
+      "X-SEOHub-Tier": tier,
     },
   });
 }
