@@ -3,6 +3,7 @@ export const routes = {
   home: "/",
   competitors: "/competitors",
   tools: "/tools",
+  benchmarks: "/benchmarks",
   metaPreview: "/tools/meta-preview",
   robotsInspector: "/tools/robots",
   headers: "/tools/headers",
@@ -18,6 +19,11 @@ export const mainNav = [
     href: routes.home,
     label: "Full site scan",
     description: "Crawl every page and run 50+ SEO, security & speed checks",
+  },
+  {
+    href: routes.benchmarks,
+    label: "Benchmarks",
+    description: "Live network averages — see if your site is ahead",
   },
   {
     href: routes.competitors,

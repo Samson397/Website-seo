@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runFullAudit } from "@/lib/audit";
 import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
+import { recordScanTelemetry } from "@/lib/telemetry";
 
 /** Allow longer full-site crawls on platforms that support it (e.g. Vercel Pro). */
 export const maxDuration = 300;
@@ -19,6 +20,9 @@ export async function POST(request: NextRequest) {
     await validateUrlSafe(urlInput);
     const normalized = normalizeUrl(urlInput);
     const report = await runFullAudit(normalized, { siteCrawl });
+
+    // Anonymized public-site stats for benchmarks / insights product (non-blocking)
+    void recordScanTelemetry(report);
 
     return NextResponse.json(report);
   } catch (err) {

@@ -7,6 +7,9 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6">
         <p className="font-display text-sm font-semibold text-white">SEOScan</p>
         <nav className="flex flex-wrap justify-center gap-5 text-xs">
+          <Link href={routes.benchmarks} className="hover:text-teal-bright">
+            Benchmarks
+          </Link>
           <Link href={routes.tools} className="hover:text-teal-bright">
             Tools
           </Link>
@@ -20,7 +23,7 @@ export function SiteFooter() {
             Terms
           </Link>
         </nav>
-        <p className="text-xs text-white/40">Free website audit · No account</p>
+        <p className="text-xs text-white/40">Free weekly site check · No account</p>
       </div>
     </footer>
   );

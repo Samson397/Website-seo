@@ -20,9 +20,11 @@ const body = Source_Sans_3({
 
 const siteUrl = getSiteUrl();
 
-const title = "SEOScan — Free full-site SEO & security audit";
+const title = "SEOScan — Free full-site SEO audit you run every week";
 const description =
-  "Paste any URL. SEOScan crawls your pages and runs 50+ SEO, speed, security, and accessibility checks. Free, no login.";
+  "Crawl every page, run 50+ checks, track a watchlist on your device, and compare against live network benchmarks. Free, no login.";
+
+const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -67,6 +69,13 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {adsenseClient ? (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+            crossOrigin="anonymous"
+          />
+        ) : null}
       </head>
       <body className="font-body antialiased">
         {children}

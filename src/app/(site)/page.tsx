@@ -8,6 +8,12 @@ import { ProblemsSummary } from "@/components/ProblemsSummary";
 import { ChecksPanel } from "@/components/ChecksPanel";
 import { HomeFeatures } from "@/components/HomeFeatures";
 import { RouteCards } from "@/components/RouteCards";
+import { ScanHistoryPanel } from "@/components/ScanHistoryPanel";
+import { BenchmarkCompare } from "@/components/BenchmarkCompare";
+import { EmailCapture } from "@/components/EmailCapture";
+import { WatchToggle } from "@/components/WatchToggle";
+import { AdSlot } from "@/components/AdSlot";
+import { saveScanToHistory } from "@/lib/local-history";
 import { routes } from "@/lib/routes";
 import type { AuditReport, AuditCategory } from "@/lib/types";
 
@@ -16,6 +22,7 @@ export default function Home() {
   const [previousReport, setPreviousReport] = useState<AuditReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [historyTick, setHistoryTick] = useState(0);
   const lastUrl = useRef<string>("");
   const resultsRef = useRef<HTMLDivElement>(null);
   const [issueFilter, setIssueFilter] = useState<AuditCategory | "all">("all");
@@ -50,7 +57,10 @@ export default function Home() {
       }
 
       lastUrl.current = url;
-      setReport(data);
+      const audit = data as AuditReport;
+      setReport(audit);
+      saveScanToHistory(audit);
+      setHistoryTick((n) => n + 1);
       requestAnimationFrame(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
@@ -67,6 +77,13 @@ export default function Home() {
 
   function handleRescan() {
     if (lastUrl.current) runAudit(lastUrl.current, true);
+  }
+
+  let hostname: string | undefined;
+  try {
+    if (report) hostname = new URL(report.url).hostname;
+  } catch {
+    hostname = undefined;
   }
 
   return (
@@ -86,12 +103,12 @@ export default function Home() {
             SEOScan
           </p>
           <h1 className="font-display animate-rise-delay-1 mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
-            See every page.
-            <span className="block text-teal-bright">Fix what search sees.</span>
+            The site check
+            <span className="block text-teal-bright">you run every week.</span>
           </h1>
           <p className="animate-rise-delay-2 mt-5 max-w-xl text-base text-white/75 sm:text-lg">
-            Paste a URL. We crawl your full site and run 50+ SEO, security, speed, and
-            accessibility checks — free, no account.
+            Full-site crawl, 50+ checks, live benchmarks, and a watchlist on this device — free,
+            no account.
           </p>
 
           <div className="animate-rise-delay-2 glass-panel mt-8 max-w-2xl rounded-2xl border border-white/15 p-4 shadow-glow sm:p-5">
@@ -101,8 +118,12 @@ export default function Home() {
       </section>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        {!report && !loading && (
+          <ScanHistoryPanel onRescan={(url) => runAudit(url)} refreshToken={historyTick} />
+        )}
+
         {loading && (
-          <div className="relative -mt-8 rounded-2xl border border-ink/10 bg-white p-10 text-center shadow-sm">
+          <div className="relative mt-8 rounded-2xl border border-ink/10 bg-white p-10 text-center shadow-sm">
             <div className="scan-pulse relative mx-auto mb-5 h-12 w-12">
               <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal border-t-transparent" />
             </div>
@@ -122,6 +143,16 @@ export default function Home() {
 
         {report && !loading && (
           <div ref={resultsRef} className="mt-10 space-y-8 pb-12">
+            <div className="flex flex-wrap items-center gap-3">
+              <WatchToggle report={report} />
+              <p className="text-sm text-ink-muted">
+                Watchlist + history stay on this browser so you can re-check anytime.
+              </p>
+            </div>
+
+            <BenchmarkCompare report={report} />
+            <AdSlot className="max-w-3xl" />
+
             <ProblemsSummary
               report={report}
               onJumpToCategory={(category) => {
@@ -132,6 +163,10 @@ export default function Home() {
               }}
             />
             {report.checklist && <ChecksPanel checklist={report.checklist} />}
+
+            <EmailCapture source="report" hostname={hostname} />
+            <AdSlot format="horizontal" />
+
             <AuditReportView
               report={report}
               previousReport={previousReport}
@@ -147,6 +182,9 @@ export default function Home() {
         {!report && !loading && (
           <>
             <RouteCards />
+            <div className="mt-10">
+              <AdSlot />
+            </div>
             <HomeFeatures />
             <section className="mt-12 rounded-2xl border border-ink/10 bg-white px-6 py-10 text-center shadow-sm sm:px-10">
               <h2 className="font-display text-2xl font-semibold text-ink">More free tools</h2>
@@ -154,12 +192,20 @@ export default function Home() {
                 Quick utilities that reuse the same audit engine — no login required.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <ToolLink href={routes.benchmarks} label="Live benchmarks" />
                 <ToolLink href={routes.metaPreview} label="Meta & SERP preview" />
                 <ToolLink href={routes.robotsInspector} label="robots.txt & sitemap" />
                 <ToolLink href={routes.headers} label="Security headers" />
                 <ToolLink href={routes.competitors} label="Competitor compare" />
               </div>
             </section>
+            <div className="mx-auto mt-10 max-w-xl">
+              <EmailCapture
+                source="footer"
+                headline="Weekly SEO tips"
+                subcopy="Join the list for practical fix checklists. Unsubscribe anytime. Consent required."
+              />
+            </div>
           </>
         )}
       </div>
