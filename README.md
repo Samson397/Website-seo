@@ -10,8 +10,8 @@ Live: [seoscan-five.vercel.app](https://seoscan-five.vercel.app)
 - Runs **50+ checks** grouped by SEO, content, technical, social, security, accessibility, trust, and performance
 - Shows pass / fail / review results
 - **Watchlist + recent scans** saved in the browser (come back weekly without an account)
-- **Live benchmarks** from anonymized public-site scan stats
 - Competitor compare + free tools (meta preview, robots/sitemap, security headers)
+- Private scan-insight storage (Vercel KV) — **not** a public leaderboard
 - Optional **AdSense** slots
 - Export CSV / print PDF
 
@@ -29,7 +29,10 @@ We only keep facts about **public websites that were scanned** — not emails or
 **Store scan data (easiest → Vercel):**  
 1. Vercel project → **Storage** → create **KV**  
 2. Redeploy  
-3. View key `seoscan:scan_events` in the KV browser  
+3. View key `seoscan:scan_events` in the KV browser (private)  
+4. Optional: set `INSIGHTS_SECRET` and call `/api/insights` with that bearer token  
+
+There is **no public `/benchmarks` page** — collected data is for you only.
 
 Guide: [docs/vercel-kv-setup.md](docs/vercel-kv-setup.md)  
 Optional Firebase instead: [docs/firebase-setup.md](docs/firebase-setup.md)
@@ -49,6 +52,7 @@ Optional Firebase instead: [docs/firebase-setup.md](docs/firebase-setup.md)
 | `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlink data |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEOScan’s own SEO |
 | `KV_REST_API_URL` + `KV_REST_API_TOKEN` | Vercel KV (auto when you create Storage → KV) |
+| `INSIGHTS_SECRET` | Unlocks private `GET /api/insights` for you only |
 | `FIREBASE_SERVICE_ACCOUNT` | Optional Firebase alternative |
 | `DATA_WEBHOOK_URL` | Optional forward of scan events to Zapier/Make/n8n |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` / `NEXT_PUBLIC_ADSENSE_SLOT` | Small ads |

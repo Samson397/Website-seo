@@ -45,13 +45,14 @@ Important: if Vercel/UI messes up newlines in `private_key`, paste the whole JSO
 3. Open collection **`scan_events`**
 4. Each scan adds a document with hostname, scores, pages scanned, etc.
 
-## 6. Public benchmarks
+## 6. Access your data (private)
 
-After a few scans, open:
+There is **no public benchmarks page**. View documents in Firebase → Firestore → `scan_events`, or call the private API:
 
-`https://your-site.vercel.app/benchmarks`
-
-Averages update from Firestore automatically.
+```bash
+# Set INSIGHTS_SECRET in Vercel first
+curl -H "Authorization: Bearer YOUR_SECRET" https://YOUR-PRODUCTION-DOMAIN/api/insights
+```
 
 ## Optional: separate fields instead of JSON
 

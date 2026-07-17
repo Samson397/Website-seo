@@ -102,8 +102,7 @@ export default function Home() {
             <span className="block text-teal-bright">you run every week.</span>
           </h1>
           <p className="animate-rise-delay-2 mt-5 max-w-xl text-base text-white/75 sm:text-lg">
-            Full-site crawl, 50+ checks, live benchmarks, and a watchlist on this device — free,
-            no account.
+            Full-site crawl, 50+ checks, and a watchlist on this device — free, no account.
           </p>
 
           <div className="animate-rise-delay-2 glass-panel mt-8 max-w-2xl rounded-2xl border border-white/15 p-4 shadow-glow sm:p-5">
@@ -174,7 +173,6 @@ export default function Home() {
                 Quick utilities that reuse the same audit engine — no login required.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <ToolLink href={routes.benchmarks} label="Live benchmarks" />
                 <ToolLink href={routes.metaPreview} label="Meta & SERP preview" />
                 <ToolLink href={routes.robotsInspector} label="robots.txt & sitemap" />
                 <ToolLink href={routes.headers} label="Security headers" />

@@ -10,8 +10,8 @@ export async function GET() {
     features: {
       fullSiteCrawl: true,
       competitorCompare: true,
-      benchmarks: true,
       localWatchlist: true,
+      privateInsights: Boolean(process.env.INSIGHTS_SECRET),
       ads: Boolean(process.env.NEXT_PUBLIC_ADSENSE_CLIENT),
       store: isStoreConfigured(),
       storeBackend: getStoreBackend(),

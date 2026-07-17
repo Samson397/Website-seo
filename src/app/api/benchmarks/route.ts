@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
-import { getBenchmarkStats } from "@/lib/store";
 
-export const dynamic = "force-dynamic";
-
+/**
+ * Public benchmarks endpoint removed — scan insights are private.
+ * Owners should use GET /api/insights with INSIGHTS_SECRET, or the Vercel KV console.
+ */
 export async function GET() {
-  const stats = await getBenchmarkStats();
-  return NextResponse.json(stats, {
-    headers: {
-      "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+  return NextResponse.json(
+    {
+      error: "Gone",
+      message:
+        "Public benchmarks are disabled. Use /api/insights with your INSIGHTS_SECRET, or view seoscan:scan_events in Vercel KV.",
     },
-  });
+    { status: 410 }
+  );
 }

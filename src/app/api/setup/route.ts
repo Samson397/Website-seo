@@ -21,6 +21,12 @@ function checks(): Check[] {
       required: false,
     },
     {
+      key: "INSIGHTS_SECRET",
+      label: "Private insights API secret",
+      ok: Boolean(process.env.INSIGHTS_SECRET),
+      required: false,
+    },
+    {
       key: "PAGESPEED_API_KEY",
       label: "Google PageSpeed scores",
       ok: Boolean(process.env.PAGESPEED_API_KEY),
@@ -50,6 +56,7 @@ export async function GET() {
     scannerReady: true,
     storeReady: isStoreConfigured(),
     storeBackend: getStoreBackend(),
+    publicBenchmarks: false,
     checks: items,
     optionalConfigured: optionalOk,
     setupDocs: {
@@ -60,7 +67,7 @@ export async function GET() {
       home: "/",
       competitors: "/competitors",
       tools: "/tools",
-      benchmarks: "/benchmarks",
+      privateInsights: "/api/insights",
       version: "/api/version",
     },
   });

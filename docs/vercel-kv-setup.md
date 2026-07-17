@@ -38,13 +38,23 @@ Vercel automatically adds env vars to your project:
 
 Each scan pushes one JSON entry (hostname, scores, pages scanned, etc.).
 
-## 5. Public benchmarks
+## 5. Access your data (private)
 
-Open:
+Scan data is **not** shown on a public page.
 
-`https://your-site.vercel.app/benchmarks`
+**Option A — Vercel Storage UI**  
+Open Storage → your KV → browse key `seoscan:scan_events`.
 
-Averages are calculated from the KV list.
+**Option B — Private API**  
+1. Add env var `INSIGHTS_SECRET` = any long random string  
+2. Redeploy  
+3. Call:
+
+```bash
+curl -H "Authorization: Bearer YOUR_SECRET" https://YOUR-PRODUCTION-DOMAIN/api/insights
+```
+
+Do not share that secret. Preview URLs like `*.vercel.app` are fine for testing the scanner, but insights stay locked without the secret.
 
 ## Notes
 

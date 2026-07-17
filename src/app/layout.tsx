@@ -22,7 +22,7 @@ const siteUrl = getSiteUrl();
 
 const title = "SEOScan — Free full-site SEO audit you run every week";
 const description =
-  "Crawl every page, run 50+ checks, track a watchlist on your device, and compare against live network benchmarks. Free, no login.";
+  "Crawl every page, run 50+ checks, and track a watchlist on your device. Free, no login.";
 
 const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
