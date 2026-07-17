@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { ADSENSE_CLIENT, ADSENSE_SLOT } from "@/lib/adsense";
 
 declare global {
   interface Window {
@@ -16,8 +17,9 @@ interface AdSlotProps {
 }
 
 /**
- * Small ad unit. Renders Google AdSense when NEXT_PUBLIC_ADSENSE_CLIENT is set;
- * otherwise a compact sponsor placeholder so layout stays ready for monetization.
+ * Small ad unit. Renders a Google AdSense display unit when
+ * NEXT_PUBLIC_ADSENSE_SLOT (or slot prop) is set; otherwise a compact
+ * placeholder. Site-wide Auto ads still load from the root layout script.
  */
 export function AdSlot({
   slot,
@@ -25,21 +27,21 @@ export function AdSlot({
   className = "",
   label = "Sponsored",
 }: AdSlotProps) {
-  const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
-  const resolvedSlot = slot || process.env.NEXT_PUBLIC_ADSENSE_SLOT;
+  const client = ADSENSE_CLIENT;
+  const resolvedSlot = slot || ADSENSE_SLOT;
   const pushed = useRef(false);
 
   useEffect(() => {
-    if (!client || !resolvedSlot || pushed.current) return;
+    if (!resolvedSlot || pushed.current) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;
     } catch {
       // Ad blockers / missing script
     }
-  }, [client, resolvedSlot]);
+  }, [resolvedSlot]);
 
-  if (client && resolvedSlot) {
+  if (resolvedSlot) {
     return (
       <aside
         className={`overflow-hidden rounded-xl border border-ink/10 bg-white px-3 py-2 ${className}`}
@@ -67,7 +69,8 @@ export function AdSlot({
     >
       <p className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted">{label}</p>
       <p className="mt-1 text-xs text-ink-muted">
-        Ad space — set <code className="text-[11px]">NEXT_PUBLIC_ADSENSE_CLIENT</code> to go live.
+        Ad space — set <code className="text-[11px]">NEXT_PUBLIC_ADSENSE_SLOT</code> for a fixed
+        unit (Auto ads use the site script).
       </p>
     </aside>
   );

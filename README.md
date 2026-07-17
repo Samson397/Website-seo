@@ -30,7 +30,7 @@ Paid via Stripe Checkout (one-time). Unlock is stored in the browser (no account
 
 | Channel | How |
 |--------|-----|
-| Ads | Set `NEXT_PUBLIC_ADSENSE_CLIENT` (+ slot) |
+| Ads | Google AdSense (`ca-pub-4587075434685102`); optional `NEXT_PUBLIC_ADSENSE_SLOT` for fixed units |
 | Insights data | Anonymized scan events (public hostnames + scores) |
 
 We only keep facts about **public websites that were scanned** — not emails or private identity data.
@@ -64,7 +64,7 @@ Alternatives: [KV](docs/vercel-kv-setup.md) · [Firebase](docs/firebase-setup.md
 | `INSIGHTS_SECRET` | Unlocks private `GET /api/insights` for you only |
 | `KV_REST_API_*` / `FIREBASE_SERVICE_ACCOUNT` | Optional alternatives |
 | `DATA_WEBHOOK_URL` | Optional forward of scan events to Zapier/Make/n8n |
-| `NEXT_PUBLIC_ADSENSE_CLIENT` / `NEXT_PUBLIC_ADSENSE_SLOT` | Small ads |
+| `NEXT_PUBLIC_ADSENSE_CLIENT` / `NEXT_PUBLIC_ADSENSE_SLOT` | AdSense override + optional display slot (client defaults in code) |
 | `STRIPE_SECRET_KEY` + `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` + `STRIPE_PRICE_ID` | $1.99 full SEO unlock |
 | `NEXT_PUBLIC_STRIPE_PRICE_DISPLAY` | Price label (default `$1.99`) |
 | `RESEND_API_KEY` + `RESEND_FROM_EMAIL` | Email reports + weekly digests |
