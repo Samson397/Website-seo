@@ -1,0 +1,121 @@
+import Link from "next/link";
+import { PageHero, PrimaryCta, SecondaryCta } from "@/components/ui/PageHero";
+import { routes } from "@/lib/routes";
+import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
+
+export const metadata = {
+  title: "Pricing — SEOHub",
+  description: `Free homepage SEO preview. Unlock full-site crawl for ${FULL_SCAN_PRICE_LABEL}.`,
+};
+
+const FREE = [
+  "Homepage SEO audit (50+ checks)",
+  "Pass / Fail / Review checklist",
+  "Keyword research & content tools",
+  "Redirect, schema, broken-link checkers",
+  "Sitemap & robots generators",
+  "On-device history & watchlist",
+];
+
+const PAID = [
+  "Full-site crawl up to 200 pages",
+  "Site-wide duplicate / thin / canonical issues",
+  "Shareable report link",
+  "CSV / JSON / PDF export",
+  "Email report when Resend is configured",
+  "30-day unlock on this browser",
+];
+
+export default function PricingPage() {
+  return (
+    <main className="min-h-screen pb-20">
+      <PageHero
+        eyebrow="SEOHub pricing"
+        title={<>Free to try. {FULL_SCAN_PRICE_LABEL} for the full site.</>}
+        description="No account. No subscription. Pay once when you need the deep crawl."
+        actions={
+          <>
+            <PrimaryCta href={routes.home}>Start free scan</PrimaryCta>
+            <SecondaryCta href={routes.tools}>Browse free tools</SecondaryCta>
+          </>
+        }
+      />
+
+      <div className="mx-auto mt-12 grid max-w-5xl gap-12 px-4 sm:grid-cols-2 sm:px-6">
+        <Plan
+          label="Free"
+          price="$0"
+          note="Always available"
+          items={FREE}
+          cta={{ href: routes.home, label: "Run free preview" }}
+        />
+        <Plan
+          label="Full SEO"
+          price={FULL_SCAN_PRICE_LABEL}
+          note="One-time unlock · Stripe Checkout"
+          items={PAID}
+          featured
+          cta={{ href: routes.home, label: "Scan, then unlock" }}
+        />
+      </div>
+
+      <section className="mx-auto mt-16 max-w-3xl px-4 sm:px-6">
+        <h2 className="font-display text-2xl font-semibold text-ink">What you get after unlock</h2>
+        <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+          Unlock is stored on this browser for 30 days. Use it on as many URLs as you need during
+          that window — crawl depth, exports, and shareable reports stay available without creating
+          an account.
+        </p>
+        <p className="mt-4 text-sm text-ink-muted">
+          Prefer the toolkit only?{" "}
+          <Link href={routes.tools} className="font-medium text-brand hover:underline">
+            Free tools stay free
+          </Link>
+          .
+        </p>
+      </section>
+    </main>
+  );
+}
+
+function Plan({
+  label,
+  price,
+  note,
+  items,
+  cta,
+  featured,
+}: {
+  label: string;
+  price: string;
+  note: string;
+  items: string[];
+  cta: { href: string; label: string };
+  featured?: boolean;
+}) {
+  return (
+    <section className={`border-t-2 pt-6 ${featured ? "border-brand" : "border-ink/10"}`}>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">{label}</p>
+      <p className="font-display mt-2 text-4xl font-semibold text-ink">{price}</p>
+      <p className="mt-1 text-sm text-ink-muted">{note}</p>
+      <ul className="mt-6 space-y-2.5 text-sm text-ink-muted">
+        {items.map((item) => (
+          <li key={item} className="flex gap-2">
+            <span className="text-brand">✓</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+      <Link
+        href={cta.href}
+        className={`mt-8 inline-flex rounded-xl px-5 py-2.5 text-sm font-semibold ${
+          featured
+            ? "bg-brand text-white hover:bg-brand-bright"
+            : "border border-ink/10 bg-white text-ink hover:border-brand/40"
+        }`}
+      >
+        {cta.label}
+      </Link>
+    </section>
+  );
+}

@@ -9,7 +9,13 @@ interface PageHeroProps {
 }
 
 /** Shared premium dark hero used across marketing and tool pages. */
-export function PageHero({ eyebrow = "SEOHub", title, description, children, actions }: PageHeroProps) {
+export function PageHero({
+  eyebrow = "SEOHub",
+  title,
+  description,
+  children,
+  actions,
+}: PageHeroProps) {
   return (
     <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-28 text-white sm:px-6 sm:pb-16 sm:pt-32">
       <div
@@ -21,7 +27,7 @@ export function PageHero({ eyebrow = "SEOHub", title, description, children, act
         }}
       />
       <div className="relative mx-auto max-w-6xl">
-        <p className="animate-rise text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
+        <p className="animate-rise text-xs font-semibold uppercase tracking-[0.22em] text-brand-bright">
           {eyebrow}
         </p>
         <h1 className="font-display animate-rise-delay-1 mt-3 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
@@ -43,7 +49,7 @@ export function PrimaryCta({ href, children }: { href: string; children: React.R
   return (
     <Link
       href={href}
-      className="inline-flex rounded-xl bg-teal-bright px-5 py-2.5 text-sm font-semibold text-ink shadow-glow transition hover:bg-teal"
+      className="inline-flex rounded-xl bg-brand-bright px-5 py-2.5 text-sm font-semibold text-ink shadow-glow transition hover:bg-white"
     >
       {children}
     </Link>

@@ -99,12 +99,12 @@ export default function ToolsPage() {
   return (
     <main className="min-h-screen pb-16">
       <PageHero
-        eyebrow="Full SEO toolkit"
+        eyebrow="SEOHub toolkit"
         title="Audit, research, optimize, generate."
-        description="Everything in SEOHub — free tools with no account required."
+        description="Free tools with no account — built to sit next to your weekly site scan."
       />
 
-      <div className="mx-auto mt-10 max-w-6xl space-y-12 px-4 sm:px-6">
+      <div className="mx-auto mt-10 max-w-6xl space-y-14 px-4 sm:px-6">
         {TOOL_GROUPS.map((group) => (
           <section key={group.label}>
             <h2 className="font-display text-xl font-semibold text-ink">{group.label}</h2>
@@ -113,9 +113,9 @@ export default function ToolsPage() {
                 <Link
                   key={tool.href}
                   href={tool.href}
-                  className="group border-t border-ink/10 pt-4 transition hover:border-teal"
+                  className="group border-t border-ink/10 pt-4 transition hover:border-brand"
                 >
-                  <h3 className="font-display text-lg font-semibold text-ink group-hover:text-teal">
+                  <h3 className="font-display text-lg font-semibold text-ink group-hover:text-brand">
                     {tool.title}
                   </h3>
                   <p className="mt-2 text-sm text-ink-muted">{tool.description}</p>

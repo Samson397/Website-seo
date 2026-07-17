@@ -6,7 +6,7 @@ const sizes = {
   lg: 52,
 } as const;
 
-/** Transparent SEOHub hexagon mark. */
+/** Transparent SEOHub hexagon mark (matches brand logo). */
 export function LogoMark({ size = "md" }: { size?: keyof typeof sizes }) {
   const px = sizes[size];
 
