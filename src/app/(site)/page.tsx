@@ -12,6 +12,7 @@ import { ScanHistoryPanel } from "@/components/ScanHistoryPanel";
 import { BenchmarkCompare } from "@/components/BenchmarkCompare";
 import { WatchToggle } from "@/components/WatchToggle";
 import { AdSlot } from "@/components/AdSlot";
+import { ScanLoadingPanel } from "@/components/ScanLoadingPanel";
 import { saveScanToHistory } from "@/lib/local-history";
 import { routes } from "@/lib/routes";
 import type { AuditReport, AuditCategory } from "@/lib/types";
@@ -22,12 +23,14 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [historyTick, setHistoryTick] = useState(0);
+  const [scanningUrl, setScanningUrl] = useState("");
   const lastUrl = useRef<string>("");
   const resultsRef = useRef<HTMLDivElement>(null);
   const [issueFilter, setIssueFilter] = useState<AuditCategory | "all">("all");
 
   async function runAudit(url: string, isRescan = false) {
     setLoading(true);
+    setScanningUrl(url);
     setError(null);
 
     if (!isRescan) {
@@ -114,18 +117,7 @@ export default function Home() {
           <ScanHistoryPanel onRescan={(url) => runAudit(url)} refreshToken={historyTick} />
         )}
 
-        {loading && (
-          <div className="relative mt-8 rounded-2xl border border-ink/10 bg-white p-10 text-center shadow-sm">
-            <div className="scan-pulse relative mx-auto mb-5 h-12 w-12">
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal border-t-transparent" />
-            </div>
-            <p className="font-display text-xl font-semibold text-ink">Crawling your site…</p>
-            <p className="mt-2 text-sm text-ink-muted">
-              Finding pages from sitemap &amp; links, then checking each one. Large sites may take
-              up to a minute.
-            </p>
-          </div>
-        )}
+        {loading && <ScanLoadingPanel url={scanningUrl || lastUrl.current} />}
 
         {error && (
           <div className="mt-8 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
