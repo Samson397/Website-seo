@@ -26,16 +26,16 @@ No login. No email signup. No private user profiles.
 
 We only keep facts about **public websites that were scanned** — not emails or private identity data.
 
-**Store scan data (easiest → Vercel):**  
-1. Vercel project → **Storage** → create **KV**  
+**Store scan data (use Neon if you already have it):**  
+1. Vercel → **Storage** → confirm **Neon** is connected  
 2. Redeploy  
-3. View key `seoscan:scan_events` in the KV browser (private)  
+3. View table `scan_events` in the Neon SQL editor (private)  
 4. Optional: set `INSIGHTS_SECRET` and call `/api/insights` with that bearer token  
 
 There is **no public `/benchmarks` page** — collected data is for you only.
 
-Guide: [docs/vercel-kv-setup.md](docs/vercel-kv-setup.md)  
-Optional Firebase instead: [docs/firebase-setup.md](docs/firebase-setup.md)
+Guide: [docs/neon-setup.md](docs/neon-setup.md)  
+Alternatives: [KV](docs/vercel-kv-setup.md) · [Firebase](docs/firebase-setup.md)
 
 ---
 
@@ -51,9 +51,9 @@ Optional Firebase instead: [docs/firebase-setup.md](docs/firebase-setup.md)
 | `PAGESPEED_API_KEY` | Google Lighthouse Core Web Vitals |
 | `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlink data |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEOScan’s own SEO |
-| `KV_REST_API_URL` + `KV_REST_API_TOKEN` | Vercel KV (auto when you create Storage → KV) |
+| `DATABASE_URL` / `POSTGRES_URL` | Neon on Vercel Storage (usually auto) |
 | `INSIGHTS_SECRET` | Unlocks private `GET /api/insights` for you only |
-| `FIREBASE_SERVICE_ACCOUNT` | Optional Firebase alternative |
+| `KV_REST_API_*` / `FIREBASE_SERVICE_ACCOUNT` | Optional alternatives |
 | `DATA_WEBHOOK_URL` | Optional forward of scan events to Zapier/Make/n8n |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` / `NEXT_PUBLIC_ADSENSE_SLOT` | Small ads |
 

@@ -1,3 +1,4 @@
+import postgres from "postgres";
 import { kv } from "@vercel/kv";
 import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase";
 
@@ -6,9 +7,32 @@ export const SCAN_EVENTS_KV_KEY = "seoscan:scan_events";
 export const SCAN_EVENTS_COLLECTION = "scan_events";
 const MAX_EVENTS = 5000;
 
-export type StoreBackend = "vercel-kv" | "firebase" | "none";
+export type StoreBackend = "neon" | "vercel-kv" | "firebase" | "none";
 
+let sql: ReturnType<typeof postgres> | null = null;
+let schemaReady: Promise<void> | null = null;
+
+function getDatabaseUrl(): string | undefined {
+  // Vercel Neon / Postgres Storage usually provides one of these
+  return (
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING
+  );
+}
+
+function isNeonConfigured(): boolean {
+  return Boolean(getDatabaseUrl());
+}
+
+function isVercelKvConfigured(): boolean {
+  return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+}
+
+/** Prefer Neon (what you already have on Vercel), then KV, then Firebase. */
 export function getStoreBackend(): StoreBackend {
+  if (isNeonConfigured()) return "neon";
   if (isVercelKvConfigured()) return "vercel-kv";
   if (isFirebaseConfigured()) return "firebase";
   return "none";
@@ -18,11 +42,60 @@ export function isStoreConfigured(): boolean {
   return getStoreBackend() !== "none";
 }
 
-function isVercelKvConfigured(): boolean {
-  return Boolean(
-    process.env.KV_REST_API_URL &&
-      process.env.KV_REST_API_TOKEN
-  );
+function getSql() {
+  const url = getDatabaseUrl();
+  if (!url) return null;
+  if (!sql) {
+    sql = postgres(url, {
+      max: 1,
+      idle_timeout: 20,
+      connect_timeout: 10,
+      ssl: "require",
+      prepare: false, // better with Neon pooled connections
+    });
+  }
+  return sql;
+}
+
+async function ensureNeonSchema() {
+  const db = getSql();
+  if (!db) return;
+  if (!schemaReady) {
+    schemaReady = (async () => {
+      await db`
+        CREATE TABLE IF NOT EXISTS scan_events (
+          id BIGSERIAL PRIMARY KEY,
+          hostname TEXT NOT NULL,
+          tld TEXT,
+          overall SMALLINT,
+          seo SMALLINT,
+          performance SMALLINT,
+          accessibility SMALLINT,
+          security SMALLINT,
+          pass_count SMALLINT,
+          fail_count SMALLINT,
+          attention_count SMALLINT,
+          pages_scanned INTEGER,
+          critical_issues SMALLINT,
+          warning_issues SMALLINT,
+          scanned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `;
+      await db`
+        CREATE INDEX IF NOT EXISTS scan_events_scanned_at_idx
+        ON scan_events (scanned_at DESC)
+      `;
+      await db`
+        CREATE INDEX IF NOT EXISTS scan_events_hostname_idx
+        ON scan_events (hostname)
+      `;
+    })().catch((err) => {
+      schemaReady = null;
+      throw err;
+    });
+  }
+  await schemaReady;
 }
 
 export interface ScanEventInput {
@@ -46,21 +119,39 @@ export async function insertScanEvent(event: ScanEventInput): Promise<boolean> {
   const backend = getStoreBackend();
   if (backend === "none") return false;
 
+  if (backend === "neon") {
+    const db = getSql();
+    if (!db) return false;
+    await ensureNeonSchema();
+    await db`
+      INSERT INTO scan_events (
+        hostname, tld, overall, seo, performance, accessibility, security,
+        pass_count, fail_count, attention_count, pages_scanned,
+        critical_issues, warning_issues, scanned_at
+      ) VALUES (
+        ${event.hostname}, ${event.tld}, ${event.overall},
+        ${event.seo}, ${event.performance}, ${event.accessibility}, ${event.security},
+        ${event.passCount}, ${event.failCount}, ${event.attentionCount}, ${event.pagesScanned},
+        ${event.criticalIssues}, ${event.warningIssues}, ${event.scannedAt}
+      )
+    `;
+    return true;
+  }
+
   const row = {
     ...event,
     createdAt: new Date().toISOString(),
   };
 
   if (backend === "vercel-kv") {
-    // Newest first in a capped list — view via Vercel KV / Upstash console
     await kv.lpush(SCAN_EVENTS_KV_KEY, JSON.stringify(row));
     await kv.ltrim(SCAN_EVENTS_KV_KEY, 0, MAX_EVENTS - 1);
     return true;
   }
 
-  const db = getFirebaseDb();
-  if (!db) return false;
-  await db.collection(SCAN_EVENTS_COLLECTION).add(row);
+  const firestore = getFirebaseDb();
+  if (!firestore) return false;
+  await firestore.collection(SCAN_EVENTS_COLLECTION).add(row);
   return true;
 }
 
@@ -153,6 +244,38 @@ function computeBenchmarks(
   };
 }
 
+async function loadEventsFromNeon(): Promise<ScanEventInput[]> {
+  const db = getSql();
+  if (!db) return [];
+  await ensureNeonSchema();
+  const rows = await db`
+    SELECT
+      hostname, tld, overall, seo, performance, accessibility, security,
+      pass_count, fail_count, attention_count, pages_scanned,
+      critical_issues, warning_issues, scanned_at
+    FROM scan_events
+    ORDER BY scanned_at DESC
+    LIMIT 500
+  `;
+
+  return rows.map((r) => ({
+    hostname: String(r.hostname),
+    tld: String(r.tld || ""),
+    overall: Number(r.overall),
+    seo: Number(r.seo),
+    performance: Number(r.performance),
+    accessibility: Number(r.accessibility),
+    security: Number(r.security),
+    passCount: Number(r.pass_count),
+    failCount: Number(r.fail_count),
+    attentionCount: Number(r.attention_count),
+    pagesScanned: Number(r.pages_scanned),
+    criticalIssues: Number(r.critical_issues),
+    warningIssues: Number(r.warning_issues),
+    scannedAt: new Date(r.scanned_at as string).toISOString(),
+  }));
+}
+
 async function loadEventsFromKv(): Promise<ScanEventInput[]> {
   const raw = await kv.lrange<string>(SCAN_EVENTS_KV_KEY, 0, 499);
   return raw
@@ -177,6 +300,21 @@ async function loadEventsFromFirebase(): Promise<ScanEventInput[]> {
   return snap.docs.map((doc) => doc.data() as ScanEventInput);
 }
 
+export async function loadRecentEvents(limit = 100): Promise<ScanEventInput[]> {
+  const backend = getStoreBackend();
+  if (backend === "neon") {
+    const all = await loadEventsFromNeon();
+    return all.slice(0, limit);
+  }
+  if (backend === "vercel-kv") {
+    return (await loadEventsFromKv()).slice(0, limit);
+  }
+  if (backend === "firebase") {
+    return (await loadEventsFromFirebase()).slice(0, limit);
+  }
+  return [];
+}
+
 export async function getBenchmarkStats(): Promise<
   BenchmarkStats & { source: "live" | "seed"; backend: StoreBackend }
 > {
@@ -186,8 +324,11 @@ export async function getBenchmarkStats(): Promise<
   }
 
   try {
-    const events =
-      backend === "vercel-kv" ? await loadEventsFromKv() : await loadEventsFromFirebase();
+    let events: ScanEventInput[] = [];
+    if (backend === "neon") events = await loadEventsFromNeon();
+    else if (backend === "vercel-kv") events = await loadEventsFromKv();
+    else events = await loadEventsFromFirebase();
+
     return { ...computeBenchmarks(events), backend };
   } catch (err) {
     console.error("[store] benchmarks failed", err instanceof Error ? err.message : err);

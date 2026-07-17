@@ -9,8 +9,14 @@ function checks(): Check[] {
   const backend = getStoreBackend();
   return [
     {
+      key: "NEON",
+      label: "Neon / Vercel Postgres (scan storage)",
+      ok: backend === "neon",
+      required: false,
+    },
+    {
       key: "VERCEL_KV",
-      label: "Vercel KV (recommended scan storage)",
+      label: "Vercel KV (optional alternative)",
       ok: backend === "vercel-kv",
       required: false,
     },
@@ -60,6 +66,7 @@ export async function GET() {
     checks: items,
     optionalConfigured: optionalOk,
     setupDocs: {
+      neon: "docs/neon-setup.md",
       vercelKv: "docs/vercel-kv-setup.md",
       firebase: "docs/firebase-setup.md",
     },

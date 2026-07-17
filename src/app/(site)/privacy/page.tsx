@@ -27,10 +27,10 @@ export default function PrivacyPage() {
         </h2>
         <p className="mt-2 leading-relaxed">
           We may store aggregated facts about public websites that are scanned — for example
-          hostname, TLD, category scores, and issue counts — in private infrastructure (Vercel KV
-          or optionally Firebase). This data is not published on a public leaderboard. We may use
-          it internally or license <em>aggregated market insights</em> derived from public-website
-          scans. This is not personal profile data.
+          hostname, TLD, category scores, and issue counts — in private infrastructure (Neon /
+          Vercel Postgres, or optionally KV/Firebase). This data is not published on a public
+          leaderboard. We may use it internally or license <em>aggregated market insights</em>{" "}
+          derived from public-website scans. This is not personal profile data.
         </p>
 
         <h2 className="font-display mt-6 text-xl font-semibold text-ink">
