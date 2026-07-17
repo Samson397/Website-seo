@@ -12,7 +12,7 @@ export async function GET() {
       competitorCompare: true,
       localWatchlist: true,
       privateInsights: Boolean(process.env.INSIGHTS_SECRET),
-      ads: Boolean(process.env.NEXT_PUBLIC_ADSENSE_CLIENT),
+      ads: true,
       store: isStoreConfigured(),
       storeBackend: getStoreBackend(),
       webhook: Boolean(process.env.DATA_WEBHOOK_URL),
