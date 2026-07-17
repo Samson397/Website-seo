@@ -1,27 +1,66 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" fill="none" role="img" aria-label="SEOHub">
-  <!-- Fully transparent background -->
-  <g transform="translate(28, 8)">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 560" fill="none" role="img" aria-label="SEOHub">
+  <!-- Transparent background (no rect) -->
+  <g transform="translate(96, 24)">
     <!-- Blue rounded hexagon -->
     <path
       fill="#2563EB"
-      d="M72 4c10 0 18 3.5 25 14l34 58c7 12 7 22 0 34l-34 58c-7 10.5-15 14-25 14H40c-10 0-18-3.5-25-14L-19 110c-7-12-7-22 0-34L15 18C22 7.5 30 4 40 4h32z"
+      d="M160 16
+         C184 16 204 28 220 52
+         L292 176
+         C308 204 308 228 292 256
+         L220 380
+         C204 404 184 416 160 416
+         L80 416
+         C56 416 36 404 20 380
+         L-52 256
+         C-68 228 -68 204 -52 176
+         L20 52
+         C36 28 56 16 80 16
+         Z"
     />
-    <!-- White magnifying glass + arrow cutout -->
-    <g fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="62" cy="88" r="26" fill="none" stroke-width="12"/>
-      <path d="M50 78c5-7 15-9 22-4" fill="none" stroke-width="3.5" opacity="0.95"/>
-      <path d="M82 108 L118 58" fill="none" stroke-width="12"/>
-      <path d="M104 48 L130 46 L118 72 Z" stroke="none"/>
+    <!-- White magnifying glass + rising arrow -->
+    <g fill="#FFFFFF">
+      <!-- lens ring -->
+      <path
+        fill-rule="evenodd"
+        d="M118 168
+           a56 56 0 1 1 0 112
+           a56 56 0 1 1 0 -112
+           zm0 28
+           a28 28 0 1 0 0 56
+           a28 28 0 1 0 0 -56z"
+      />
+      <!-- highlight -->
+      <path
+        d="M96 196c10-14 30-18 44-8"
+        fill="none"
+        stroke="#FFFFFF"
+        stroke-width="6"
+        stroke-linecap="round"
+        opacity="0.95"
+      />
+      <!-- handle / arrow shaft -->
+      <rect
+        x="150"
+        y="120"
+        width="22"
+        height="110"
+        rx="11"
+        transform="rotate(-48 160 200)"
+      />
+      <!-- arrow head breaking out of hexagon -->
+      <path d="M214 96 L258 92 L230 140 Z"/>
     </g>
   </g>
+  <!-- Wordmark -->
   <text
-    x="100"
-    y="222"
+    x="256"
+    y="520"
     text-anchor="middle"
     fill="#2563EB"
-    font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
-    font-size="36"
+    font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    font-size="72"
     font-weight="800"
-    letter-spacing="-0.5"
+    letter-spacing="-1.5"
   >SEOHub</text>
 </svg>
