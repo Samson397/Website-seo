@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { isResendConfigured, sendEmail } from "@/lib/resend";
 import { reportEmailHtml } from "@/lib/email-templates";
@@ -13,7 +14,10 @@ export async function POST(req: NextRequest) {
   try {
     if (!isResendConfigured()) {
       return NextResponse.json(
-        { error: "Email is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL." },
+        {
+          error:
+            "Email is not configured. Add RESEND_API_KEY and RESEND_FROM_EMAIL (verified domain).",
+        },
         { status: 503 }
       );
     }
@@ -56,10 +60,27 @@ export async function POST(req: NextRequest) {
       siteUrl: getSiteUrl(),
     });
 
-    await sendEmail({ to: email, subject, html, text });
+    const emailHash = createHash("sha256").update(email.toLowerCase()).digest("hex").slice(0, 16);
+    const reportKey = report.shareId || createHash("sha256").update(report.url).digest("hex").slice(0, 12);
+    const result = await sendEmail({
+      to: email,
+      subject,
+      html,
+      text,
+      idempotencyKey: `audit-report/${reportKey}/${emailHash}`,
+      tags: [
+        { name: "category", value: "audit_report" },
+        { name: "product", value: "seohub" },
+      ],
+    });
 
-    return NextResponse.json({ ok: true, shareUrl });
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 502 });
+    }
+
+    return NextResponse.json({ ok: true, id: result.id, shareUrl });
   } catch (err) {
+    // Network / unexpected failures only — Resend API errors return { data, error }.
     console.error("[email/report]", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Could not send email" },
