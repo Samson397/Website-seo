@@ -11,12 +11,12 @@
     "audit:competitors": "tsx scripts/competitor-audit.ts"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/kv": "^3.0.0",
     "cheerio": "^1.0.0",
     "firebase-admin": "^14.2.0",
     "next": "^14.2.35",
-    "postgres": "^3.4.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zod": "^4.4.3"

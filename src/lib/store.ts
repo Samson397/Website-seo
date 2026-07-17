@@ -1,4 +1,4 @@
-import postgres from "postgres";
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 import { kv } from "@vercel/kv";
 import { getFirebaseDb, isFirebaseConfigured } from "@/lib/firebase";
 
@@ -9,11 +9,13 @@ const MAX_EVENTS = 5000;
 
 export type StoreBackend = "neon" | "vercel-kv" | "firebase" | "none";
 
-let sql: ReturnType<typeof postgres> | null = null;
+type Sql = NeonQueryFunction<false, false>;
+
+let sql: Sql | null = null;
 let schemaReady: Promise<void> | null = null;
 
 function getDatabaseUrl(): string | undefined {
-  // Vercel Neon / Postgres Storage usually provides one of these
+  // Vercel Neon Storage injects these (same as the Neon Quickstart)
   return (
     process.env.DATABASE_URL ||
     process.env.POSTGRES_URL ||
@@ -30,7 +32,7 @@ function isVercelKvConfigured(): boolean {
   return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 }
 
-/** Prefer Neon (what you already have on Vercel), then KV, then Firebase. */
+/** Prefer Neon (Vercel Storage), then KV, then Firebase. */
 export function getStoreBackend(): StoreBackend {
   if (isNeonConfigured()) return "neon";
   if (isVercelKvConfigured()) return "vercel-kv";
@@ -42,17 +44,11 @@ export function isStoreConfigured(): boolean {
   return getStoreBackend() !== "none";
 }
 
-function getSql() {
+function getSql(): Sql | null {
   const url = getDatabaseUrl();
   if (!url) return null;
   if (!sql) {
-    sql = postgres(url, {
-      max: 1,
-      idle_timeout: 20,
-      connect_timeout: 10,
-      ssl: "require",
-      prepare: false, // better with Neon pooled connections
-    });
+    sql = neon(url);
   }
   return sql;
 }
