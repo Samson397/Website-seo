@@ -6,6 +6,7 @@ import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
 import { verifyPaidSession } from "@/lib/stripe-unlock-server";
+import { toFreePreviewReport } from "@/lib/free-preview";
 import type { ScanProgressEvent } from "@/lib/types";
 
 export const maxDuration = 300;
@@ -105,15 +106,21 @@ export async function POST(request: NextRequest) {
 
         void recordScanTelemetry(report);
 
+        let responseReport =
+          tier === "free" ? toFreePreviewReport(report) : { ...report, tier: "full" as const };
+
         if (tier === "full" && canPersistReports()) {
           try {
-            report.shareId = await saveSharedReport(report);
+            responseReport = {
+              ...responseReport,
+              shareId: await saveSharedReport(responseReport),
+            };
           } catch (err) {
             console.error("[stream] share save failed", err instanceof Error ? err.message : err);
           }
         }
 
-        send({ type: "done", report: { ...report, tier } as typeof report & { tier: string } });
+        send({ type: "done", report: responseReport });
       } catch (err) {
         send({
           type: "error",

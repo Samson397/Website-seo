@@ -25,6 +25,12 @@ export async function POST(request: NextRequest) {
     if (!report?.url || !report?.scores || !Array.isArray(report.issues)) {
       return NextResponse.json({ error: "Valid report is required" }, { status: 400 });
     }
+    if (report.tier !== "full") {
+      return NextResponse.json(
+        { error: "Shareable links require a full SEO unlock." },
+        { status: 402 }
+      );
+    }
 
     const id = await saveSharedReport(report);
     return NextResponse.json({ id, path: `/r/${id}` });

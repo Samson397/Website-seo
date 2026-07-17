@@ -14,7 +14,7 @@ import { BenchmarkCompare } from "@/components/BenchmarkCompare";
 import { WatchToggle } from "@/components/WatchToggle";
 import { AdSlot } from "@/components/AdSlot";
 import { ScanLoadingPanel } from "@/components/ScanLoadingPanel";
-import { UnlockFullScan } from "@/components/UnlockFullScan";
+import { FreePreviewReport } from "@/components/FreePreviewReport";
 import { saveScanToHistory } from "@/lib/local-history";
 import { getUnlock, hasFullUnlock, saveUnlock } from "@/lib/unlock";
 import { usePaymentsEnabled } from "@/hooks/usePaymentsEnabled";
@@ -277,56 +277,55 @@ function HomeScanApp() {
 
         {report && !loading && (
           <div ref={resultsRef} className="mt-10 space-y-8 pb-12">
-            {isFreePreview || (paymentsOn && !unlocked && report.tier !== "full") ? (
-              <UnlockFullScan url={report.url} />
-            ) : null}
+            {isFreePreview ? (
+              <FreePreviewReport
+                report={report}
+                onRescan={handleRescan}
+                rescanLoading={loading}
+              />
+            ) : (
+              <>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">
+                  Full SEO unlocked
+                </p>
 
-            {report.tier === "full" || unlocked ? (
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">
-                Full SEO unlocked
-              </p>
-            ) : paymentsOn ? (
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-muted">
-                Free homepage preview
-              </p>
-            ) : null}
+                <div className="flex flex-wrap items-center gap-3">
+                  <WatchToggle report={report} />
+                  <Link
+                    href={routes.history}
+                    className="text-sm font-medium text-brand hover:underline"
+                  >
+                    View History
+                  </Link>
+                  <p className="text-sm text-ink-muted">Saved on this browser — re-check anytime.</p>
+                </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <WatchToggle report={report} />
-              <Link href={routes.history} className="text-sm font-medium text-brand hover:underline">
-                View History
-              </Link>
-              <p className="text-sm text-ink-muted">Saved on this browser — re-check anytime.</p>
-            </div>
+                <BenchmarkCompare report={report} />
+                <AdSlot className="max-w-3xl" />
 
-            <BenchmarkCompare report={report} />
-            <AdSlot className="max-w-3xl" />
+                <ProblemsSummary
+                  report={report}
+                  onJumpToCategory={(category) => {
+                    setIssueFilter(category);
+                    document
+                      .getElementById("audit-issues")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                />
+                {report.checklist && <ChecksPanel checklist={report.checklist} />}
+                <AdSlot format="horizontal" />
 
-            <ProblemsSummary
-              report={report}
-              onJumpToCategory={(category) => {
-                setIssueFilter(category);
-                document
-                  .getElementById("audit-issues")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-            />
-            {report.checklist && <ChecksPanel checklist={report.checklist} />}
-            <AdSlot format="horizontal" />
-
-            <AuditReportView
-              report={report}
-              previousReport={previousReport}
-              onRescan={handleRescan}
-              rescanLoading={loading}
-              showProblemsSummary={false}
-              categoryFilter={issueFilter}
-              onCategoryFilterChange={setIssueFilter}
-            />
-
-            {paymentsOn && report.tier !== "full" ? (
-              <UnlockFullScan url={report.url} />
-            ) : null}
+                <AuditReportView
+                  report={report}
+                  previousReport={previousReport}
+                  onRescan={handleRescan}
+                  rescanLoading={loading}
+                  showProblemsSummary={false}
+                  categoryFilter={issueFilter}
+                  onCategoryFilterChange={setIssueFilter}
+                />
+              </>
+            )}
           </div>
         )}
 

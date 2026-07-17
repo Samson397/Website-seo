@@ -36,6 +36,12 @@ export async function POST(req: NextRequest) {
     if (!report?.url || !report.scores || !Array.isArray(report.issues)) {
       return NextResponse.json({ error: "Valid report is required." }, { status: 400 });
     }
+    if (report.tier !== "full") {
+      return NextResponse.json(
+        { error: "Email reports require a full SEO unlock." },
+        { status: 402 }
+      );
+    }
 
     let shareUrl: string | null = null;
     if (report.shareId) {

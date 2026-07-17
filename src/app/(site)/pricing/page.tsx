@@ -5,23 +5,24 @@ import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 
 export const metadata = {
   title: "Pricing — SEOHub",
-  description: `Free homepage SEO preview. Unlock full-site crawl for ${FULL_SCAN_PRICE_LABEL}.`,
+  description: `Free SEO score preview. Unlock the full report and site crawl for ${FULL_SCAN_PRICE_LABEL}.`,
 };
 
 const FREE = [
-  "Homepage SEO audit (50+ checks)",
-  "Pass / Fail / Review checklist",
-  "Keyword research & content tools",
-  "Redirect, schema, broken-link checkers",
-  "Sitemap & robots generators",
+  "Homepage score (SEO, speed, a11y, security)",
+  "Issue counts + a few locked issue titles",
+  "Google SERP preview",
+  "Keyword research & free toolkit",
   "On-device history & watchlist",
 ];
 
 const PAID = [
+  "Full issue details, recommendations, and fix snippets",
+  "Complete Pass / Fail / Review checklist",
   "Full-site crawl up to 200 pages",
   "Site-wide duplicate / thin / canonical issues",
-  "Shareable report link",
-  "CSV / JSON / PDF export",
+  "Domain, DNS, SSL & tech overview",
+  "CSV / JSON / PDF export + shareable report",
   "Email report when Resend is configured",
   "30-day unlock on this browser",
 ];
@@ -31,11 +32,11 @@ export default function PricingPage() {
     <main className="min-h-screen pb-20">
       <PageHero
         eyebrow="SEOHub pricing"
-        title={<>Free to try. {FULL_SCAN_PRICE_LABEL} for the full site.</>}
-        description="No account. No subscription. Pay once when you need the deep crawl."
+        title={<>Free preview. {FULL_SCAN_PRICE_LABEL} for the full report.</>}
+        description="No account. No subscription. Pay once when you need the fixes and full-site crawl."
         actions={
           <>
-            <PrimaryCta href={routes.home}>Start free scan</PrimaryCta>
+            <PrimaryCta href={routes.home}>Start free preview</PrimaryCta>
             <SecondaryCta href={routes.tools}>Browse free tools</SecondaryCta>
           </>
         }
@@ -45,7 +46,7 @@ export default function PricingPage() {
         <Plan
           label="Free"
           price="$0"
-          note="Always available"
+          note="Score teaser only"
           items={FREE}
           cta={{ href: routes.home, label: "Run free preview" }}
         />
@@ -63,8 +64,8 @@ export default function PricingPage() {
         <h2 className="font-display text-2xl font-semibold text-ink">What you get after unlock</h2>
         <p className="mt-3 text-sm leading-relaxed text-ink-muted">
           Unlock is stored on this browser for 30 days. Use it on as many URLs as you need during
-          that window — crawl depth, exports, and shareable reports stay available without creating
-          an account.
+          that window — full report detail, crawl depth, exports, and shareable reports stay
+          available without creating an account.
         </p>
         <p className="mt-4 text-sm text-ink-muted">
           Prefer the toolkit only?{" "}
