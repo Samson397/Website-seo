@@ -234,14 +234,25 @@ function HomeScanApp() {
         />
 
         <div className="relative mx-auto max-w-6xl">
-          <div className="animate-rise flex items-center gap-3">
+          <div className="animate-rise flex items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-mark.svg" alt="" width={56} height={56} className="h-14 w-14" />
-            <p className="font-display text-4xl font-semibold tracking-tight text-white sm:text-6xl">
-              SEOHub
-            </p>
+            <img
+              src="/logo.png"
+              alt="SEOHub"
+              width={72}
+              height={88}
+              className="animate-soft-float h-[72px] w-auto object-contain drop-shadow-lg"
+            />
+            <div>
+              <p className="font-display text-4xl font-semibold tracking-tight text-white sm:text-6xl">
+                SEOHub
+              </p>
+              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand-bright">
+                Site intelligence
+              </p>
+            </div>
           </div>
-          <h1 className="font-display animate-rise-delay-1 mt-5 max-w-2xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
+          <h1 className="font-display animate-rise-delay-1 mt-6 max-w-2xl text-2xl font-semibold tracking-tight text-white sm:text-4xl">
             Full-site SEO, without the SaaS tax.
           </h1>
           <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-white/75 sm:text-lg">

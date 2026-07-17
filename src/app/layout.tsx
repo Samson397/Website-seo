@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import { CookieConsent } from "@/components/CookieConsent";
-import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { Outfit, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
 import { getSiteUrl } from "@/lib/site-url";
 
-const display = Fraunces({
+const display = Outfit({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
@@ -22,7 +22,7 @@ const siteUrl = getSiteUrl();
 
 const title = "SEOHub — Free full-site SEO audit you run every week";
 const description =
-  "Crawl every page, run 50+ checks, and track a watchlist on your device. Free, no login.";
+  "Crawl every page, run 50+ Pass/Fail SEO checks, and track a watchlist on your device. Free homepage preview, no account required.";
 
 const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 

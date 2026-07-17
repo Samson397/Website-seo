@@ -44,20 +44,20 @@ type Filter = "all" | "fail" | "attention" | "pass";
 function statusStyles(status: "pass" | "fail" | "attention") {
   if (status === "pass") {
     return {
-      badge: "bg-teal-soft text-teal-800",
+      badge: "bg-accent-soft text-accent",
       label: "Pass",
-      dot: "bg-teal",
+      dot: "bg-accent",
     };
   }
   if (status === "fail") {
     return {
-      badge: "bg-rose-100 text-rose-800",
+      badge: "bg-coral-soft text-coral",
       label: "Fail",
-      dot: "bg-rose-500",
+      dot: "bg-coral",
     };
   }
   return {
-    badge: "bg-amber-soft text-amber-900",
+    badge: "bg-amber-soft text-amber",
     label: "Review",
     dot: "bg-amber",
   };
@@ -97,9 +97,9 @@ export function ChecksPanel({ checklist }: ChecksPanelProps) {
   const total = checklist.items.length;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-sm">
-      <div className="border-b border-ink/5 bg-gradient-to-br from-ink to-ink-soft px-5 py-6 text-white sm:px-7">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-bright">
+    <section className="report-shell animate-rise overflow-hidden rounded-3xl bg-white">
+      <div className="border-b border-ink/5 bg-gradient-to-br from-ink via-brand-deep to-brand px-5 py-6 text-white sm:px-7">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-bright">
           Full scan results
         </p>
         <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">

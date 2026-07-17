@@ -10,33 +10,43 @@ const config: Config = {
     extend: {
       colors: {
         ink: {
-          DEFAULT: "#0b1220",
-          soft: "#162033",
-          muted: "#5a6a84",
+          DEFAULT: "#07111f",
+          soft: "#12233a",
+          muted: "#5a6f7d",
         },
-        mist: "#e8eef8",
-        paper: "#f5f7fc",
+        mist: "#e6f0f4",
+        paper: "#f3f7f9",
         brand: {
-          DEFAULT: "#2563EB",
-          bright: "#3B82F6",
-          soft: "#DBEAFE",
+          DEFAULT: "#0e7490",
+          bright: "#14b8a6",
+          deep: "#0c4a6e",
+          soft: "#ccfbf1",
         },
         teal: {
-          DEFAULT: "#2563EB",
-          bright: "#3B82F6",
-          soft: "#DBEAFE",
+          DEFAULT: "#0e7490",
+          bright: "#14b8a6",
+          soft: "#ccfbf1",
+        },
+        accent: {
+          DEFAULT: "#16a34a",
+          soft: "#dcfce7",
         },
         amber: {
-          DEFAULT: "#f59e0b",
+          DEFAULT: "#d97706",
           soft: "#fef3c7",
+        },
+        coral: {
+          DEFAULT: "#e11d48",
+          soft: "#ffe4e6",
         },
       },
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
+        display: ["var(--font-display)", "system-ui", "sans-serif"],
         body: ["var(--font-body)", "Segoe UI", "sans-serif"],
       },
       boxShadow: {
-        glow: "0 20px 50px -20px rgba(37, 99, 235, 0.35)",
+        glow: "0 22px 55px -24px rgba(14, 116, 144, 0.45)",
+        report: "0 24px 60px -36px rgba(7, 17, 31, 0.35)",
       },
     },
   },

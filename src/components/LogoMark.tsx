@@ -1,21 +1,21 @@
 import Image from "next/image";
 
 const sizes = {
-  sm: 32,
-  md: 40,
-  lg: 52,
+  sm: 36,
+  md: 44,
+  lg: 56,
 } as const;
 
-/** Transparent SEOHub hexagon mark (matches brand logo). */
+/** Brand logo mark — uses transparent PNG when available. */
 export function LogoMark({ size = "md" }: { size?: keyof typeof sizes }) {
   const px = sizes[size];
 
   return (
     <Image
-      src="/logo-mark.svg"
+      src="/logo.png"
       alt="SEOHub"
       width={px}
-      height={px}
+      height={Math.round(px * 1.15)}
       priority
       className="shrink-0 object-contain"
     />

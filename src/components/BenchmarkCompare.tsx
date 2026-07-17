@@ -27,19 +27,19 @@ export function BenchmarkCompare({ report }: BenchmarkCompareProps) {
   const delta = overall - REFERENCE.avgOverall;
 
   return (
-    <section className="rounded-2xl border border-ink/10 bg-gradient-to-br from-ink to-ink-soft px-5 py-5 text-white sm:px-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-bright">
+    <section className="report-shell animate-rise overflow-hidden rounded-3xl bg-gradient-to-br from-ink via-brand-deep to-brand px-6 py-6 text-white sm:px-8">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-bright">
         Score snapshot
       </p>
-      <h3 className="font-display mt-2 text-xl font-semibold">
+      <h3 className="font-display mt-2 text-2xl font-semibold tracking-tight">
         Your score {overall} vs typical site ~{REFERENCE.avgOverall}
       </h3>
-      <p className="mt-2 text-sm text-white/70">
+      <p className="mt-2 max-w-xl text-sm text-white/70">
         {delta >= 0
           ? `You're about ${delta} points above a typical site baseline.`
           : `You're about ${Math.abs(delta)} points below a typical site baseline — fix failed checks and re-scan.`}
       </p>
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Mini label="SEO" you={report.scores.seo} avg={REFERENCE.avgSeo} />
         <Mini label="Speed" you={report.scores.performance} avg={REFERENCE.avgPerformance} />
         <Mini label="A11y" you={report.scores.accessibility} avg={REFERENCE.avgAccessibility} />
