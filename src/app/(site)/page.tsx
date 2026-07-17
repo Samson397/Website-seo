@@ -17,7 +17,7 @@ import { ScanLoadingPanel } from "@/components/ScanLoadingPanel";
 import { UnlockFullScan } from "@/components/UnlockFullScan";
 import { saveScanToHistory } from "@/lib/local-history";
 import { getUnlock, hasFullUnlock, saveUnlock } from "@/lib/unlock";
-import { FULL_SCAN_PRICE_LABEL, paymentsEnabledClient } from "@/lib/stripe-public";
+import { usePaymentsEnabled } from "@/hooks/usePaymentsEnabled";
 import { routes } from "@/lib/routes";
 import type { AuditReport, AuditCategory, ScanProgressEvent } from "@/lib/types";
 
@@ -34,12 +34,9 @@ function HomeShell({ children }: { children?: React.ReactNode }) {
     <main className="min-h-screen pb-16">
       <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-24 sm:pt-32">
         <div className="relative mx-auto max-w-6xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
-            SEOHub
-          </p>
-          <h1 className="font-display mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
-            The site check
-            <span className="block text-teal-bright">you run every week.</span>
+          <p className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">SEOHub</p>
+          <h1 className="font-display mt-4 max-w-3xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
+            The site check you run every week.
           </h1>
         </div>
       </section>
@@ -50,7 +47,7 @@ function HomeShell({ children }: { children?: React.ReactNode }) {
 
 function HomeScanApp() {
   const searchParams = useSearchParams();
-  const paymentsOn = paymentsEnabledClient();
+  const { enabled: paymentsOn, priceLabel } = usePaymentsEnabled();
   const [unlocked, setUnlocked] = useState(false);
   const [report, setReport] = useState<AuditReport | null>(null);
   const [previousReport, setPreviousReport] = useState<AuditReport | null>(null);
@@ -90,11 +87,11 @@ function HomeScanApp() {
         }
         saveUnlock(sessionId);
         setUnlocked(true);
-        setUnlockNotice(`Full SEO unlocked for ${FULL_SCAN_PRICE_LABEL}. Running full site scan…`);
+        setUnlockNotice(`Full SEO unlocked for ${priceLabel}. Running full site scan…`);
         const url = searchParams.get("url")?.trim() || lastUrl.current;
         if (url) {
           autoStarted.current = null;
-          void runAudit(url, false, true);
+          void runAudit(url, false, true, sessionId);
         }
       } catch {
         setError("Could not verify payment. Contact support if you were charged.");
@@ -103,7 +100,12 @@ function HomeScanApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  async function runAudit(url: string, isRescan = false, forceFull = false) {
+  async function runAudit(
+    url: string,
+    isRescan = false,
+    forceFull = false,
+    sessionOverride?: string
+  ) {
     setLoading(true);
     setScanningUrl(url);
     setError(null);
@@ -117,7 +119,8 @@ function HomeScanApp() {
     }
 
     const unlock = getUnlock();
-    const useFull = forceFull || !paymentsOn || Boolean(unlock?.sessionId);
+    const sessionId = sessionOverride || unlock?.sessionId;
+    const useFull = forceFull || !paymentsOn || Boolean(sessionId);
 
     try {
       const response = await fetch("/api/audit/stream", {
@@ -126,7 +129,7 @@ function HomeScanApp() {
         body: JSON.stringify({
           url,
           siteCrawl: useFull,
-          unlockSessionId: unlock?.sessionId,
+          unlockSessionId: sessionId,
         }),
       });
 
@@ -231,17 +234,20 @@ function HomeScanApp() {
         />
 
         <div className="relative mx-auto max-w-6xl">
-          <p className="animate-rise text-xs font-semibold uppercase tracking-[0.22em] text-teal-bright">
-            SEOHub
-          </p>
-          <h1 className="font-display animate-rise-delay-1 mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-6xl">
-            The site check
-            <span className="block text-teal-bright">you run every week.</span>
+          <div className="animate-rise flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-mark.svg" alt="" width={56} height={56} className="h-14 w-14" />
+            <p className="font-display text-4xl font-semibold tracking-tight text-white sm:text-6xl">
+              SEOHub
+            </p>
+          </div>
+          <h1 className="font-display animate-rise-delay-1 mt-5 max-w-2xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
+            Full-site SEO, without the SaaS tax.
           </h1>
-          <p className="animate-rise-delay-2 mt-5 max-w-xl text-base text-white/75 sm:text-lg">
+          <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-white/75 sm:text-lg">
             {paymentsOn
-              ? `Free homepage preview. Unlock full-site crawl for ${FULL_SCAN_PRICE_LABEL} — no account.`
-              : "Full-site crawl, 50+ checks, shareable reports, and a watchlist — free, no account."}
+              ? `Free homepage preview. Unlock the full crawl for ${priceLabel} — no account.`
+              : "Audit, keywords, rank checks, and tools — free to start, no account."}
           </p>
 
           <div className="animate-rise-delay-2 glass-panel mt-8 max-w-2xl rounded-2xl border border-white/15 p-4 shadow-glow sm:p-5">
@@ -252,7 +258,7 @@ function HomeScanApp() {
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {unlockNotice ? (
-          <div className="mt-6 rounded-xl border border-teal/30 bg-teal-soft px-4 py-3 text-sm text-teal">
+          <div className="mt-6 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand">
             {unlockNotice}
           </div>
         ) : null}
@@ -276,7 +282,7 @@ function HomeScanApp() {
             ) : null}
 
             {report.tier === "full" || unlocked ? (
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">
                 Full SEO unlocked
               </p>
             ) : paymentsOn ? (
@@ -287,7 +293,7 @@ function HomeScanApp() {
 
             <div className="flex flex-wrap items-center gap-3">
               <WatchToggle report={report} />
-              <Link href={routes.history} className="text-sm font-medium text-teal hover:underline">
+              <Link href={routes.history} className="text-sm font-medium text-brand hover:underline">
                 View History
               </Link>
               <p className="text-sm text-ink-muted">Saved on this browser — re-check anytime.</p>
@@ -356,7 +362,7 @@ function ToolLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="rounded-xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-medium text-ink transition hover:border-teal/40 hover:bg-teal-soft"
+      className="rounded-xl border border-ink/10 bg-white px-4 py-2.5 text-sm font-medium text-ink transition hover:border-brand/40 hover:bg-brand-soft"
     >
       {label}
     </Link>

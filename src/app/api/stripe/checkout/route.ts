@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSiteUrl } from "@/lib/site-url";
 import { getStripe, getStripePriceId, isStripeConfigured } from "@/lib/stripe";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
     if (!isStripeConfigured()) {
-      return NextResponse.json({ error: "Payments are not configured." }, { status: 503 });
+      return NextResponse.json(
+        {
+          error:
+            "Payments are not configured on this deployment. Add STRIPE_SECRET_KEY, STRIPE_PRICE_ID, and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Vercel → Settings → Environment Variables, then redeploy.",
+        },
+        { status: 503 }
+      );
     }
 
     const limited = rateLimit(`stripe:checkout:${clientKeyFromRequest(req)}`, {
@@ -25,21 +31,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
     }
 
-    const body = (await req.json().catch(() => ({}))) as { url?: string; returnPath?: string };
-    const siteUrl = getSiteUrl();
-    const returnPath = body.returnPath?.startsWith("/") ? body.returnPath : "/";
-    const successUrl = `${siteUrl}${returnPath}${returnPath.includes("?") ? "&" : "?"}unlock_session={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${siteUrl}${returnPath}${returnPath.includes("?") ? "&" : "?"}checkout=cancelled`;
+    const body = (await req.json().catch(() => ({}))) as { url?: string };
+    const origin = getRequestOrigin(req);
+    const targetUrl = typeof body.url === "string" ? body.url.slice(0, 500) : "";
+
+    // Stripe replaces {CHECKOUT_SESSION_ID} literally — do not URL-encode the braces.
+    const successUrl =
+      `${origin}/unlock/success?session_id={CHECKOUT_SESSION_ID}` +
+      (targetUrl ? `&url=${encodeURIComponent(targetUrl)}` : "");
+
+    const cancelUrl =
+      `${origin}/?checkout=cancelled` +
+      (targetUrl ? `&url=${encodeURIComponent(targetUrl)}` : "");
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      // Instant unlock — avoid delayed methods that never hit payment_status=paid on return.
+      payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
         app: "seohub",
         product: "full_seo_scan",
-        targetUrl: body.url?.slice(0, 500) || "",
+        targetUrl,
       },
       allow_promotion_codes: true,
     });
@@ -51,9 +66,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url, sessionId: session.id });
   } catch (err) {
     console.error("[stripe/checkout]", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Checkout failed" },
-      { status: 500 }
-    );
+    const message = err instanceof Error ? err.message : "Checkout failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

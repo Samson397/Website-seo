@@ -11,7 +11,12 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
     pathname === "/" ||
     pathname === "/history" ||
     pathname === "/competitors" ||
-    pathname === "/tools";
+    pathname === "/tools" ||
+    pathname === "/pricing" ||
+    pathname === "/tracker" ||
+    pathname === "/guides" ||
+    pathname === "/about" ||
+    pathname.startsWith("/unlock");
 
   return (
     <>

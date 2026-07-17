@@ -41,9 +41,23 @@ export async function POST(request: NextRequest) {
     let tier: "free" | "full" = "full";
 
     if (isStripeConfigured()) {
-      const paid = wantFull ? await verifyPaidSession(unlockSessionId) : false;
-      siteCrawl = paid;
-      tier = paid ? "full" : "free";
+      if (wantFull && unlockSessionId) {
+        const paid = await verifyPaidSession(unlockSessionId);
+        if (!paid) {
+          return NextResponse.json(
+            {
+              error:
+                "Payment could not be verified for a full crawl. Re-open Unlock and complete checkout, or run a free homepage preview.",
+            },
+            { status: 402 }
+          );
+        }
+        siteCrawl = true;
+        tier = "full";
+      } else {
+        siteCrawl = false;
+        tier = "free";
+      }
     }
 
     await validateUrlSafe(urlInput);

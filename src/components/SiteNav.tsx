@@ -32,7 +32,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
           <span>SEOHub</span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">
           {mainNav.map((item) => {
             const href = item.href;
             const active =
@@ -41,11 +41,11 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
               <Link
                 key={href}
                 href={href}
-                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                className={`rounded-lg px-2.5 py-2 text-sm font-medium transition ${
                   active
                     ? isHero
                       ? "bg-white/15 text-white"
-                      : "bg-teal-soft text-teal"
+                      : "bg-brand-soft text-brand"
                     : isHero
                       ? "text-white/70 hover:bg-white/10 hover:text-white"
                       : "text-ink-muted hover:bg-mist hover:text-ink"
@@ -61,16 +61,16 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
           href={routes.home}
           className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
             isHero
-              ? "bg-teal-bright text-ink"
-              : "bg-teal text-white hover:bg-teal-bright"
+              ? "bg-brand-bright text-ink"
+              : "bg-brand text-white hover:bg-brand-bright"
           }`}
         >
-          Free scan
+          Run audit
         </Link>
       </div>
 
       <nav
-        className="mx-auto mt-3 flex max-w-6xl gap-1 overflow-x-auto pb-1 md:hidden"
+        className="mx-auto mt-3 flex max-w-6xl gap-1 overflow-x-auto pb-1 lg:hidden"
         aria-label="Main mobile"
       >
         {mainNav.map((item) => {
@@ -85,7 +85,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
                 active
                   ? isHero
                     ? "bg-white text-ink"
-                    : "bg-teal text-white"
+                    : "bg-brand text-white"
                   : isHero
                     ? "bg-white/10 text-white"
                     : "bg-mist text-ink-muted"

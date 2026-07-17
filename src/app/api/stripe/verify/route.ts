@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import { isStripeConfigured } from "@/lib/stripe";
+import { verifyPaidCheckoutSession } from "@/lib/stripe-unlock-server";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -19,30 +20,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Too many requests." }, { status: 429 });
     }
 
-    const stripe = getStripe();
-    if (!stripe) return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
-
     const { sessionId } = (await req.json()) as { sessionId?: string };
-    if (!sessionId || !sessionId.startsWith("cs_")) {
-      return NextResponse.json({ error: "Valid sessionId is required" }, { status: 400 });
-    }
+    const result = await verifyPaidCheckoutSession(sessionId);
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    const paid =
-      session.payment_status === "paid" ||
-      session.status === "complete";
-
-    if (!paid) {
-      return NextResponse.json({ ok: false, paid: false, error: "Payment not completed" }, { status: 402 });
+    if (!result.paid) {
+      return NextResponse.json(
+        { ok: false, paid: false, error: result.error || "Payment not completed" },
+        { status: result.error?.includes("required") ? 400 : 402 }
+      );
     }
 
     return NextResponse.json({
       ok: true,
       paid: true,
-      sessionId: session.id,
-      targetUrl: session.metadata?.targetUrl || null,
-      amountTotal: session.amount_total,
-      currency: session.currency,
+      sessionId: result.sessionId,
+      targetUrl: result.targetUrl ?? null,
+      amountTotal: result.amountTotal,
+      currency: result.currency,
     });
   } catch (err) {
     console.error("[stripe/verify]", err);

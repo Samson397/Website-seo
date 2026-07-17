@@ -3,15 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --ink: #0c1222;
-  --ink-soft: #1a2438;
-  --mist: #e8eef6;
-  --paper: #f4f7fb;
-  --teal: #0d9488;
-  --teal-bright: #14b8a6;
+  --ink: #0b1220;
+  --ink-soft: #162033;
+  --mist: #e8eef8;
+  --paper: #f5f7fc;
+  --teal: #2563eb;
+  --teal-bright: #3b82f6;
+  --brand: #2563eb;
+  --brand-bright: #3b82f6;
   --amber: #f59e0b;
   --coral: #e11d48;
-  --glass: rgba(255, 255, 255, 0.72);
+  --glass: rgba(255, 255, 255, 0.78);
 }
 
 html {
@@ -80,7 +82,7 @@ body {
   position: absolute;
   inset: -6px;
   border-radius: 9999px;
-  border: 2px solid rgba(20, 184, 166, 0.45);
+  border: 2px solid rgba(59, 130, 246, 0.45);
   animation: pulse-ring 1.6s ease-out infinite;
 }
 
@@ -111,15 +113,15 @@ body {
 
 .scan-grid {
   background-image:
-    linear-gradient(rgba(13, 148, 136, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(13, 148, 136, 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(37, 99, 235, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.07) 1px, transparent 1px);
   background-size: 28px 28px;
   mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, black, transparent 75%);
 }
 
 .scan-radar {
-  border: 1px solid rgba(13, 148, 136, 0.35);
-  background: radial-gradient(circle, rgba(20, 184, 166, 0.18), transparent 65%);
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.18), transparent 65%);
   animation: radar-sweep 2.8s ease-out infinite;
 }
 
@@ -129,10 +131,10 @@ body {
 
 .hero-mesh {
   background:
-    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(20, 184, 166, 0.35), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 10%, rgba(245, 158, 11, 0.22), transparent 50%),
-    radial-gradient(ellipse 60% 70% at 70% 90%, rgba(56, 189, 248, 0.18), transparent 55%),
-    linear-gradient(160deg, #0c1222 0%, #132033 45%, #0f1a2a 100%);
+    radial-gradient(ellipse 75% 55% at 12% 18%, rgba(37, 99, 235, 0.45), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 88% 12%, rgba(59, 130, 246, 0.28), transparent 50%),
+    radial-gradient(ellipse 55% 60% at 70% 88%, rgba(14, 165, 233, 0.16), transparent 55%),
+    linear-gradient(155deg, #070d1a 0%, #101b30 48%, #0a1220 100%);
 }
 
 .glass-panel {
