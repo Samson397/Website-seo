@@ -3,7 +3,7 @@ import { runFullAudit } from "@/lib/audit";
 import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
-import { canPersistReports, saveSharedReport } from "@/lib/reports";
+import { canPersistReports, savePreviewReport, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
 import { verifyPaidSession } from "@/lib/stripe-unlock-server";
 import { toFreePreviewReport } from "@/lib/free-preview";
@@ -113,14 +113,20 @@ export async function POST(request: NextRequest) {
         let responseReport =
           tier === "free" ? toFreePreviewReport(report) : { ...report, tier: "full" as const };
 
-        if (tier === "full" && canPersistReports()) {
+        if (canPersistReports()) {
           try {
-            responseReport = {
-              ...responseReport,
-              shareId: await saveSharedReport(responseReport),
-            };
+            if (tier === "free") {
+              // Stash full homepage audit for unlock-in-place (not public until paid)
+              const previewId = await savePreviewReport(report);
+              responseReport = { ...responseReport, previewId };
+            } else {
+              responseReport = {
+                ...responseReport,
+                shareId: await saveSharedReport(responseReport),
+              };
+            }
           } catch (err) {
-            console.error("[stream] share save failed", err instanceof Error ? err.message : err);
+            console.error("[stream] report save failed", err instanceof Error ? err.message : err);
           }
         }
 

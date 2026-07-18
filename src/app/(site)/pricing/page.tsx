@@ -18,12 +18,13 @@ const FREE = [
 ];
 
 const PAID = [
+  "Unlock this report in place — no waiting to re-scan first",
   "Full issue details, recommendations, and fix snippets",
   "Complete Pass / Fail / Review checklist",
   "Full-site crawl up to 200 pages + crawl controls",
   "Site-wide duplicate / thin / canonical / hreflang issues",
   "Domain, DNS, SSL & tech overview",
-  "CSV / JSON / PDF export + shareable report",
+  "CSV / JSON / PDF export + shareable report link",
   "Email report when Resend is configured",
   "30-day unlock on this browser",
 ];
@@ -34,7 +35,7 @@ export default function PricingPage() {
       <PageHero
         eyebrow="SEOHub pricing"
         title={<>Free preview. {FULL_SCAN_PRICE_LABEL} for the full report.</>}
-        description="No account. No subscription. Pay once when you need the fixes and full-site crawl."
+        description="No account. No subscription. Unlock your report instantly, then expand to a full-site crawl."
         actions={
           <>
             <PrimaryCta href={routes.home}>Start free preview</PrimaryCta>

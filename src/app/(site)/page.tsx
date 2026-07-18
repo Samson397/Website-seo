@@ -4,23 +4,24 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { UrlInput, type ScanSubmitPayload } from "@/components/UrlInput";
-import { AuditReportView } from "@/components/AuditReport";
-import { ProblemsSummary } from "@/components/ProblemsSummary";
-import { ChecksPanel } from "@/components/ChecksPanel";
 import { HomeFeatures } from "@/components/HomeFeatures";
 import { RouteCards } from "@/components/RouteCards";
 import { ScanHistoryPanel } from "@/components/ScanHistoryPanel";
-import { BenchmarkCompare } from "@/components/BenchmarkCompare";
-import { WatchToggle } from "@/components/WatchToggle";
 import { AdSlot } from "@/components/AdSlot";
 import { ScanLoadingPanel } from "@/components/ScanLoadingPanel";
 import { FreePreviewReport } from "@/components/FreePreviewReport";
+import { FullAuditDelivery } from "@/components/FullAuditDelivery";
 import { saveScanToHistory } from "@/lib/local-history";
 import { getUnlock, hasFullUnlock, saveUnlock } from "@/lib/unlock";
+import {
+  clearPreviewStash,
+  readPreviewStash,
+  savePreviewStash,
+} from "@/lib/preview-stash";
 import { usePaymentsEnabled } from "@/hooks/usePaymentsEnabled";
 import { routes } from "@/lib/routes";
 import type { CrawlControls } from "@/lib/crawl-options";
-import type { AuditReport, AuditCategory, ScanProgressEvent } from "@/lib/types";
+import type { AuditReport, ScanProgressEvent } from "@/lib/types";
 
 export default function Home() {
   return (
@@ -65,18 +66,19 @@ function HomeScanApp() {
   const [scanningUrl, setScanningUrl] = useState("");
   const [progressEvents, setProgressEvents] = useState<ScanProgressEvent[]>([]);
   const [unlockNotice, setUnlockNotice] = useState<string | null>(null);
+  const [expandingCrawl, setExpandingCrawl] = useState(false);
+  const [scanMode, setScanMode] = useState<"free" | "full">("free");
   const lastUrl = useRef<string>("");
   const autoStarted = useRef<string | null>(null);
   const unlockHandled = useRef<string | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
-  const [issueFilter, setIssueFilter] = useState<AuditCategory | "all">("all");
   const lastCrawl = useRef<CrawlControls | undefined>(undefined);
 
   useEffect(() => {
     setUnlocked(!paymentsOn || hasFullUnlock());
   }, [paymentsOn]);
 
-  // Complete Stripe Checkout return
+  // Complete Stripe Checkout return — unlock stashed report in place, then expand crawl
   useEffect(() => {
     const sessionId = searchParams.get("unlock_session");
     if (!sessionId || unlockHandled.current === sessionId) return;
@@ -96,8 +98,39 @@ function HomeScanApp() {
         }
         saveUnlock(sessionId);
         setUnlocked(true);
+
+        const stash = readPreviewStash();
+        const url = searchParams.get("url")?.trim() || stash?.url || lastUrl.current;
+        const previewId = stash?.previewId;
+
+        if (previewId) {
+          const unlockRes = await fetch("/api/audit/unlock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ previewId, sessionId }),
+          });
+          const unlockData = await unlockRes.json();
+          if (unlockRes.ok && unlockData.report) {
+            const unlockedReport = unlockData.report as AuditReport;
+            setReport(unlockedReport);
+            saveScanToHistory(unlockedReport);
+            setHistoryTick((n) => n + 1);
+            clearPreviewStash();
+            setUnlockNotice(
+              `Unlocked for ${priceLabel}. Showing your report — expanding to full-site crawl…`
+            );
+            requestAnimationFrame(() => {
+              resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+            if (url) {
+              autoStarted.current = null;
+              void runAudit(url, true, true, sessionId, undefined, true);
+            }
+            return;
+          }
+        }
+
         setUnlockNotice(`Full SEO unlocked for ${priceLabel}. Running full site scan…`);
-        const url = searchParams.get("url")?.trim() || lastUrl.current;
         if (url) {
           autoStarted.current = null;
           void runAudit(url, false, true, sessionId);
@@ -114,9 +147,11 @@ function HomeScanApp() {
     isRescan = false,
     forceFull = false,
     sessionOverride?: string,
-    crawl?: CrawlControls
+    crawl?: CrawlControls,
+    keepVisible = false
   ) {
-    setLoading(true);
+    setLoading(!keepVisible);
+    setExpandingCrawl(keepVisible);
     setScanningUrl(url);
     setError(null);
     setProgressEvents([{ type: "stage", stage: "fetch", message: "Connecting…" }]);
@@ -124,7 +159,7 @@ function HomeScanApp() {
     if (crawl) lastCrawl.current = crawl;
     const crawlOpts = crawl ?? lastCrawl.current;
 
-    if (!isRescan) {
+    if (!isRescan && !keepVisible) {
       setPreviousReport(null);
       setReport(null);
     } else if (report) {
@@ -134,6 +169,7 @@ function HomeScanApp() {
     const unlock = getUnlock();
     const sessionId = sessionOverride || unlock?.sessionId;
     const useFull = forceFull || !paymentsOn || Boolean(sessionId);
+    setScanMode(useFull ? "full" : "free");
 
     try {
       const response = await fetch("/api/audit/stream", {
@@ -209,9 +245,16 @@ function HomeScanApp() {
       lastUrl.current = url;
       setReport(audit);
       setUnlocked(audit.tier === "full" || !paymentsOn || hasFullUnlock());
+      if (audit.tier === "free" && audit.previewId) {
+        savePreviewStash(audit.previewId, audit.url);
+      }
+      if (audit.tier === "full") {
+        clearPreviewStash();
+      }
       saveScanToHistory(audit);
       setHistoryTick((n) => n + 1);
-      setUnlockNotice(null);
+      if (!keepVisible) setUnlockNotice(null);
+      else setUnlockNotice(null);
       requestAnimationFrame(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
@@ -223,6 +266,7 @@ function HomeScanApp() {
       }
     } finally {
       setLoading(false);
+      setExpandingCrawl(false);
       setProgressEvents([]);
     }
   }
@@ -301,7 +345,11 @@ function HomeScanApp() {
         {!report && !loading && <ScanHistoryPanel refreshToken={historyTick} />}
 
         {loading && (
-          <ScanLoadingPanel url={scanningUrl || lastUrl.current} events={progressEvents} />
+          <ScanLoadingPanel
+            url={scanningUrl || lastUrl.current}
+            events={progressEvents}
+            mode={scanMode}
+          />
         )}
 
         {error && (
@@ -310,8 +358,15 @@ function HomeScanApp() {
           </div>
         )}
 
-        {report && !loading && (
+        {report && (!loading || expandingCrawl) && (
           <div ref={resultsRef} className="mt-10 space-y-8 pb-12">
+            {expandingCrawl ? (
+              <ScanLoadingPanel
+                url={scanningUrl || lastUrl.current}
+                events={progressEvents}
+                mode="full"
+              />
+            ) : null}
             {isFreePreview ? (
               <FreePreviewReport
                 report={report}
@@ -319,47 +374,13 @@ function HomeScanApp() {
                 rescanLoading={loading}
               />
             ) : (
-              <>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">
-                  Full SEO unlocked
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <WatchToggle report={report} />
-                  <Link
-                    href={routes.history}
-                    className="text-sm font-medium text-brand hover:underline"
-                  >
-                    View History
-                  </Link>
-                  <p className="text-sm text-ink-muted">Saved on this browser — re-check anytime.</p>
-                </div>
-
-                <BenchmarkCompare report={report} />
-                <AdSlot className="max-w-3xl" />
-
-                <ProblemsSummary
-                  report={report}
-                  onJumpToCategory={(category) => {
-                    setIssueFilter(category);
-                    document
-                      .getElementById("audit-issues")
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                />
-                {report.checklist && <ChecksPanel checklist={report.checklist} />}
-                <AdSlot format="horizontal" />
-
-                <AuditReportView
-                  report={report}
-                  previousReport={previousReport}
-                  onRescan={handleRescan}
-                  rescanLoading={loading}
-                  showProblemsSummary={false}
-                  categoryFilter={issueFilter}
-                  onCategoryFilterChange={setIssueFilter}
-                />
-              </>
+              <FullAuditDelivery
+                report={report}
+                previousReport={previousReport}
+                onRescan={handleRescan}
+                rescanLoading={loading}
+                expandingCrawl={expandingCrawl}
+              />
             )}
           </div>
         )}

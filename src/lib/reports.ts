@@ -41,6 +41,15 @@ async function ensureReportsSchema() {
         CREATE INDEX IF NOT EXISTS shared_reports_created_at_idx
         ON shared_reports (created_at DESC)
       `;
+      // preview = locked stash (unlock API only); shared = public /r/[id]
+      await db`
+        ALTER TABLE shared_reports
+        ADD COLUMN IF NOT EXISTS access TEXT NOT NULL DEFAULT 'shared'
+      `;
+      await db`
+        CREATE INDEX IF NOT EXISTS shared_reports_access_idx
+        ON shared_reports (access)
+      `;
     })().catch((err) => {
       schemaReady = null;
       throw err;
@@ -59,31 +68,42 @@ function overallScore(report: AuditReport): number {
   );
 }
 
-export async function saveSharedReport(report: AuditReport): Promise<string> {
+function hostnameOf(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "site";
+  }
+}
+
+async function insertReport(report: AuditReport, access: "preview" | "shared"): Promise<string> {
   await ensureReportsSchema();
   const db = sql();
   const id = randomBytes(6).toString("hex");
-  let hostname = "site";
-  try {
-    hostname = new URL(report.url).hostname.replace(/^www\./, "");
-  } catch {
-    // keep default
-  }
-
   const reportJson = JSON.parse(JSON.stringify(report)) as AuditReport;
 
   await db`
-    INSERT INTO shared_reports (id, url, hostname, overall, report_json)
+    INSERT INTO shared_reports (id, url, hostname, overall, report_json, access)
     VALUES (
       ${id},
       ${report.url},
-      ${hostname},
+      ${hostnameOf(report.url)},
       ${overallScore(report)},
-      ${reportJson}
+      ${reportJson},
+      ${access}
     )
   `;
 
   return id;
+}
+
+export async function saveSharedReport(report: AuditReport): Promise<string> {
+  return insertReport(report, "shared");
+}
+
+/** Stash full homepage audit for unlock-in-place (not publicly shareable). */
+export async function savePreviewReport(report: AuditReport): Promise<string> {
+  return insertReport({ ...report, tier: "full" }, "preview");
 }
 
 export async function getSharedReport(id: string): Promise<AuditReport | null> {
@@ -91,9 +111,53 @@ export async function getSharedReport(id: string): Promise<AuditReport | null> {
   await ensureReportsSchema();
   const db = sql();
   const rows = await db`
-    SELECT report_json FROM shared_reports WHERE id = ${id} LIMIT 1
+    SELECT report_json, access FROM shared_reports
+    WHERE id = ${id} AND access = 'shared'
+    LIMIT 1
   `;
   if (!rows[0]) return null;
   const raw = rows[0].report_json;
   return (typeof raw === "string" ? JSON.parse(raw) : raw) as AuditReport;
+}
+
+export async function getPreviewReport(id: string): Promise<AuditReport | null> {
+  if (!/^[a-f0-9]{12}$/i.test(id)) return null;
+  await ensureReportsSchema();
+  const db = sql();
+  const rows = await db`
+    SELECT report_json, access FROM shared_reports
+    WHERE id = ${id}
+    LIMIT 1
+  `;
+  if (!rows[0]) return null;
+  const raw = rows[0].report_json;
+  const report = (typeof raw === "string" ? JSON.parse(raw) : raw) as AuditReport;
+  return report;
+}
+
+/** Promote a preview stash to a public shareable full report after payment. */
+export async function promotePreviewToShared(
+  id: string,
+  report: AuditReport
+): Promise<AuditReport> {
+  await ensureReportsSchema();
+  const db = sql();
+  const full: AuditReport = {
+    ...report,
+    tier: "full",
+    shareId: id,
+    previewId: undefined,
+  };
+  const reportJson = JSON.parse(JSON.stringify(full)) as AuditReport;
+
+  await db`
+    UPDATE shared_reports
+    SET
+      report_json = ${reportJson},
+      overall = ${overallScore(full)},
+      access = 'shared'
+    WHERE id = ${id}
+  `;
+
+  return full;
 }

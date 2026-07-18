@@ -27,6 +27,8 @@ export function toFreePreviewReport(report: AuditReport): AuditReport {
     siteOverview: undefined,
     performanceMetrics: undefined,
     shareId: undefined,
+    // Keep stash id so checkout can unlock this report without a re-crawl
+    previewId: report.previewId,
     tier: "free",
   };
 }

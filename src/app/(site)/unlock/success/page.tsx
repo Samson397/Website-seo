@@ -84,7 +84,9 @@ function UnlockSuccessInner() {
       />
       <div className="mx-auto mt-10 max-w-lg px-4 text-center sm:px-6">
         {status === "ok" && targetUrl ? (
-          <p className="text-sm text-ink-muted">Starting your full site scan…</p>
+          <p className="text-sm text-ink-muted">
+            Unlocking your report — then expanding to a full-site crawl…
+          </p>
         ) : null}
         {status === "ok" && !targetUrl ? (
           <Link
