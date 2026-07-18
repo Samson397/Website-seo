@@ -44,6 +44,11 @@ const googleAdImgSrc = [
   "https://*.googleusercontent.com",
   "https://*.g.doubleclick.net",
   "https://*.doubleclick.net",
+  // AdSense sodar / traffic-quality beacons (not covered by *.google.com)
+  "https://ep1.adtrafficquality.google",
+  "https://ep2.adtrafficquality.google",
+  "https://adtrafficquality.google",
+  "https://*.adtrafficquality.google",
 ].join(" ");
 
 const googleAdFrameSrc = [
