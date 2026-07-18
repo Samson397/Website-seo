@@ -443,3 +443,32 @@ export async function updatePromoCodeAdmin(input: {
   if (!updated) return { ok: false, error: "Updated but could not reload code." };
   return { ok: true, code: updated };
 }
+
+export type PromoUnlockRow = {
+  id: string;
+  code: string;
+  clientIp: string | null;
+  consumed: boolean;
+  createdAt: string;
+  consumedAt: string | null;
+};
+
+export async function listPromoUnlocksAdmin(limit = 40): Promise<PromoUnlockRow[]> {
+  if (!canUsePromoCodes()) return [];
+  await ensurePromoSchema();
+  const db = sql();
+  const rows = await db`
+    SELECT id, code, client_ip, consumed, created_at, consumed_at
+    FROM promo_unlocks
+    ORDER BY created_at DESC
+    LIMIT ${Math.max(1, Math.min(200, limit))}
+  `;
+  return rows.map((r) => ({
+    id: String(r.id),
+    code: String(r.code),
+    clientIp: r.client_ip == null ? null : String(r.client_ip),
+    consumed: Boolean(r.consumed),
+    createdAt: new Date(r.created_at as string).toISOString(),
+    consumedAt: r.consumed_at ? new Date(r.consumed_at as string).toISOString() : null,
+  }));
+}

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
+type Tab = "overview" | "scans" | "payments" | "reports" | "promos" | "blog";
+
 type Session = {
   configured: boolean;
   authenticated: boolean;
@@ -31,16 +33,112 @@ type BlogRow = {
   source: "db" | "seed";
 };
 
+type Overview = {
+  health: { key: string; label: string; ok: boolean }[];
+  storeBackend: string;
+  stats: { source: string; sampleSize: number; avgOverall: number; avgSeo: number };
+  counts: {
+    activePromoCodes: number;
+    promoRemaining: number;
+    recentReports: number;
+    recentPaidCheckouts: number;
+  };
+  recentPaid: {
+    id: string;
+    amountTotal: number | null;
+    currency: string | null;
+    url: string | null;
+    createdAt: string;
+    paymentStatus: string | null;
+  }[];
+  recentReports: {
+    id: string;
+    hostname: string;
+    overall: number | null;
+    access: string;
+    createdAt: string;
+  }[];
+};
+
+type ScanEvent = {
+  hostname: string;
+  overall: number;
+  seo: number;
+  failCount: number;
+  pagesScanned: number;
+  scannedAt: string;
+};
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "overview", label: "Overview" },
+  { id: "scans", label: "Scans" },
+  { id: "payments", label: "Payments" },
+  { id: "reports", label: "Reports" },
+  { id: "promos", label: "Promos" },
+  { id: "blog", label: "Blog" },
+];
+
+function money(cents: number | null, currency: string | null) {
+  if (cents == null) return "—";
+  const cur = (currency || "usd").toUpperCase();
+  return `${(cents / 100).toFixed(2)} ${cur}`;
+}
+
+function when(iso: string) {
+  try {
+    return new Date(iso).toLocaleString();
+  } catch {
+    return iso;
+  }
+}
+
 export default function AdminPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loggingIn, setLoggingIn] = useState(false);
-  const [tab, setTab] = useState<"promos" | "blog">("promos");
-  const [promos, setPromos] = useState<PromoRow[]>([]);
-  const [posts, setPosts] = useState<BlogRow[]>([]);
+  const [tab, setTab] = useState<Tab>("overview");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [formMsg, setFormMsg] = useState<string | null>(null);
+
+  const [overview, setOverview] = useState<Overview | null>(null);
+  const [scanStats, setScanStats] = useState<{
+    sampleSize: number;
+    avgOverall: number;
+    avgFailCount: number;
+    source: string;
+  } | null>(null);
+  const [events, setEvents] = useState<ScanEvent[]>([]);
+  const [stripeSessions, setStripeSessions] = useState<
+    {
+      id: string;
+      paymentStatus: string | null;
+      amountTotal: number | null;
+      currency: string | null;
+      url: string | null;
+      customerEmail: string | null;
+      createdAt: string;
+      consumed: boolean;
+    }[]
+  >([]);
+  const [stripeEnabled, setStripeEnabled] = useState(false);
+  const [stripeError, setStripeError] = useState<string | undefined>();
+  const [promoUnlocks, setPromoUnlocks] = useState<
+    { id: string; code: string; clientIp: string | null; consumed: boolean; createdAt: string }[]
+  >([]);
+  const [reports, setReports] = useState<
+    {
+      id: string;
+      url: string;
+      hostname: string;
+      overall: number | null;
+      access: string;
+      createdAt: string;
+    }[]
+  >([]);
+  const [promos, setPromos] = useState<PromoRow[]>([]);
+  const [posts, setPosts] = useState<BlogRow[]>([]);
 
   const [newCode, setNewCode] = useState("");
   const [newMax, setNewMax] = useState("50");
@@ -53,7 +151,6 @@ export default function AdminPage() {
   const [category, setCategory] = useState("SEO");
   const [tags, setTags] = useState("");
   const [bodyText, setBodyText] = useState("");
-  const [formMsg, setFormMsg] = useState<string | null>(null);
 
   const refreshSession = useCallback(async () => {
     const res = await fetch("/api/admin/session", { cache: "no-store" });
@@ -62,34 +159,96 @@ export default function AdminPage() {
     return data;
   }, []);
 
-  const loadData = useCallback(async () => {
+  const loadTab = useCallback(async (active: Tab) => {
     setLoadError(null);
+    setFormMsg(null);
     try {
-      const [pRes, bRes] = await Promise.all([
-        fetch("/api/admin/promos", { cache: "no-store" }),
-        fetch("/api/admin/blog", { cache: "no-store" }),
-      ]);
-      if (pRes.status === 401 || bRes.status === 401) {
-        setSession((s) => (s ? { ...s, authenticated: false } : s));
+      if (active === "overview") {
+        const res = await fetch("/api/admin/overview", { cache: "no-store" });
+        if (res.status === 401) {
+          setSession((s) => (s ? { ...s, authenticated: false } : s));
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Overview failed");
+        setOverview(data as Overview);
         return;
       }
-      const pData = await pRes.json();
-      const bData = await bRes.json();
-      if (!pRes.ok) throw new Error(pData.error || "Could not load promos");
-      if (!bRes.ok) throw new Error(bData.error || "Could not load blog");
-      setPromos(Array.isArray(pData.codes) ? pData.codes : []);
-      setPosts(Array.isArray(bData.posts) ? bData.posts : []);
+      if (active === "scans") {
+        const res = await fetch("/api/admin/scans", { cache: "no-store" });
+        if (res.status === 401) {
+          setSession((s) => (s ? { ...s, authenticated: false } : s));
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Scans failed");
+        setScanStats({
+          sampleSize: Number(data.stats?.sampleSize || 0),
+          avgOverall: Number(data.stats?.avgOverall || 0),
+          avgFailCount: Number(data.stats?.avgFailCount || 0),
+          source: String(data.stats?.source || ""),
+        });
+        setEvents(Array.isArray(data.events) ? data.events : []);
+        return;
+      }
+      if (active === "payments") {
+        const res = await fetch("/api/admin/payments", { cache: "no-store" });
+        if (res.status === 401) {
+          setSession((s) => (s ? { ...s, authenticated: false } : s));
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Payments failed");
+        setStripeEnabled(Boolean(data.stripe?.enabled));
+        setStripeError(data.stripe?.error);
+        setStripeSessions(Array.isArray(data.stripe?.sessions) ? data.stripe.sessions : []);
+        setPromoUnlocks(Array.isArray(data.promoUnlocks) ? data.promoUnlocks : []);
+        return;
+      }
+      if (active === "reports") {
+        const res = await fetch("/api/admin/reports", { cache: "no-store" });
+        if (res.status === 401) {
+          setSession((s) => (s ? { ...s, authenticated: false } : s));
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Reports failed");
+        setReports(Array.isArray(data.reports) ? data.reports : []);
+        return;
+      }
+      if (active === "promos") {
+        const res = await fetch("/api/admin/promos", { cache: "no-store" });
+        if (res.status === 401) {
+          setSession((s) => (s ? { ...s, authenticated: false } : s));
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Promos failed");
+        setPromos(Array.isArray(data.codes) ? data.codes : []);
+        return;
+      }
+      if (active === "blog") {
+        const res = await fetch("/api/admin/blog", { cache: "no-store" });
+        if (res.status === 401) {
+          setSession((s) => (s ? { ...s, authenticated: false } : s));
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Blog failed");
+        setPosts(Array.isArray(data.posts) ? data.posts : []);
+      }
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Load failed");
     }
   }, []);
 
   useEffect(() => {
-    void (async () => {
-      const s = await refreshSession();
-      if (s.authenticated) void loadData();
-    })();
-  }, [refreshSession, loadData]);
+    void refreshSession();
+  }, [refreshSession]);
+
+  useEffect(() => {
+    if (session?.authenticated) void loadTab(tab);
+  }, [tab, session?.authenticated, loadTab]);
 
   async function login(e: FormEvent) {
     e.preventDefault();
@@ -105,7 +264,8 @@ export default function AdminPage() {
       if (!res.ok) throw new Error(data.error || "Login failed");
       setPassword("");
       await refreshSession();
-      await loadData();
+      setTab("overview");
+      await loadTab("overview");
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -115,8 +275,7 @@ export default function AdminPage() {
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
-    setPromos([]);
-    setPosts([]);
+    setOverview(null);
     await refreshSession();
   }
 
@@ -128,17 +287,13 @@ export default function AdminPage() {
       const res = await fetch("/api/admin/promos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: newCode,
-          maxUses: Number(newMax),
-          label: newLabel,
-        }),
+        body: JSON.stringify({ code: newCode, maxUses: Number(newMax), label: newLabel }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not create code");
       setNewCode("");
       setFormMsg(`Created ${data.code.code}`);
-      await loadData();
+      await loadTab("promos");
     } catch (err) {
       setFormMsg(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -156,9 +311,26 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Update failed");
-      await loadData();
+      await loadTab("promos");
     } catch (err) {
       setFormMsg(err instanceof Error ? err.message : "Update failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteReport(id: string) {
+    if (!window.confirm(`Delete report /r/${id}?`)) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/admin/reports?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Delete failed");
+      await loadTab("reports");
+    } catch (err) {
+      setFormMsg(err instanceof Error ? err.message : "Delete failed");
     } finally {
       setBusy(false);
     }
@@ -207,7 +379,7 @@ export default function AdminPage() {
       setSummary("");
       setBodyText("");
       setTags("");
-      await loadData();
+      await loadTab("blog");
     } catch (err) {
       setFormMsg(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -225,7 +397,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Update failed");
-      await loadData();
+      await loadTab("blog");
     } catch (err) {
       setFormMsg(err instanceof Error ? err.message : "Update failed");
     } finally {
@@ -234,9 +406,7 @@ export default function AdminPage() {
   }
 
   async function removePost(slugValue: string) {
-    if (!window.confirm(`Delete DB post “${slugValue}”? Seed posts in code are unaffected.`)) {
-      return;
-    }
+    if (!window.confirm(`Delete DB post “${slugValue}”?`)) return;
     setBusy(true);
     try {
       const res = await fetch(`/api/admin/blog?slug=${encodeURIComponent(slugValue)}`, {
@@ -244,7 +414,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Delete failed");
-      await loadData();
+      await loadTab("blog");
     } catch (err) {
       setFormMsg(err instanceof Error ? err.message : "Delete failed");
     } finally {
@@ -253,9 +423,7 @@ export default function AdminPage() {
   }
 
   if (!session) {
-    return (
-      <main className="mx-auto max-w-lg px-4 py-16 text-sm text-ink-muted">Loading…</main>
-    );
+    return <main className="mx-auto max-w-lg px-4 py-16 text-sm text-ink-muted">Loading…</main>;
   }
 
   if (!session.configured) {
@@ -263,9 +431,8 @@ export default function AdminPage() {
       <main className="mx-auto max-w-lg px-4 py-16">
         <h1 className="font-display text-2xl font-semibold text-ink">Admin not configured</h1>
         <p className="mt-3 text-sm text-ink-muted">
-          Set <code className="font-mono text-ink">ADMIN_SECRET</code> in Vercel (at least 8
-          characters). You can reuse <code className="font-mono text-ink">INSIGHTS_SECRET</code>{" "}
-          instead. Redeploy, then open <code className="font-mono text-ink">/admin</code> again.
+          Set <code className="font-mono text-ink">ADMIN_SECRET</code> in Vercel (8+ chars),
+          redeploy, then open <code className="font-mono text-ink">/admin</code>.
         </p>
       </main>
     );
@@ -275,9 +442,7 @@ export default function AdminPage() {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
         <h1 className="font-display text-2xl font-semibold text-ink">Sign in</h1>
-        <p className="mt-2 text-sm text-ink-muted">
-          Enter your admin secret. No public signup — owner only.
-        </p>
+        <p className="mt-2 text-sm text-ink-muted">Owner secret only — no public signup.</p>
         <form onSubmit={(e) => void login(e)} className="mt-6 space-y-3">
           <input
             type="password"
@@ -285,7 +450,7 @@ export default function AdminPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="ADMIN_SECRET"
             autoComplete="current-password"
-            className="w-full rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm text-ink focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            className="w-full rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           <button
             type="submit"
@@ -306,47 +471,215 @@ export default function AdminPage() {
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink">Dashboard</h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Promo codes + blog posts · DB{" "}
-            {session.database ? "connected" : "missing (set DATABASE_URL)"}
+            Health, scans, payments, reports, promos · DB{" "}
+            {session.database ? "connected" : "missing"}
           </p>
         </div>
         <button
           type="button"
           onClick={() => void logout()}
-          className="rounded-xl border border-ink/15 px-3 py-2 text-xs font-semibold text-ink hover:border-brand/40"
+          className="rounded-xl border border-ink/15 px-3 py-2 text-xs font-semibold hover:border-brand/40"
         >
           Sign out
         </button>
       </div>
 
-      <div className="mt-6 flex gap-2 border-b border-ink/10 pb-2">
-        <button
-          type="button"
-          onClick={() => setTab("promos")}
-          className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-            tab === "promos" ? "bg-brand text-white" : "text-ink-muted hover:text-ink"
-          }`}
-        >
-          Promo codes
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("blog")}
-          className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-            tab === "blog" ? "bg-brand text-white" : "text-ink-muted hover:text-ink"
-          }`}
-        >
-          Blog
-        </button>
+      <div className="mt-6 flex flex-wrap gap-2 border-b border-ink/10 pb-2">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
+              tab === t.id ? "bg-brand text-white" : "text-ink-muted hover:text-ink"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {loadError ? <p className="mt-4 text-sm text-rose-600">{loadError}</p> : null}
       {formMsg ? <p className="mt-4 text-sm text-brand">{formMsg}</p> : null}
 
+      {tab === "overview" && overview ? (
+        <section className="mt-8 space-y-8">
+          <div>
+            <h2 className="font-display text-lg font-semibold">Health</h2>
+            <ul className="mt-3 space-y-2">
+              {overview.health.map((h) => (
+                <li key={h.key} className="flex items-center justify-between text-sm">
+                  <span>{h.label}</span>
+                  <span className={h.ok ? "font-semibold text-teal" : "font-semibold text-rose-600"}>
+                    {h.ok ? "OK" : "Off"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-ink-muted">Store: {overview.storeBackend}</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <p className="text-xs uppercase tracking-wide text-ink-muted">Scans sampled</p>
+              <p className="mt-1 font-display text-2xl font-semibold">{overview.stats.sampleSize}</p>
+              <p className="text-xs text-ink-muted">
+                avg {overview.stats.avgOverall} overall · {overview.stats.source}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-4">
+              <p className="text-xs uppercase tracking-wide text-ink-muted">Promo pool</p>
+              <p className="mt-1 font-display text-2xl font-semibold">
+                {overview.counts.promoRemaining}
+              </p>
+              <p className="text-xs text-ink-muted">
+                {overview.counts.activePromoCodes} active codes
+              </p>
+            </div>
+          </div>
+          <div>
+            <h2 className="font-display text-lg font-semibold">Recent paid unlocks</h2>
+            {overview.recentPaid.length === 0 ? (
+              <p className="mt-2 text-sm text-ink-muted">No recent paid checkouts.</p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {overview.recentPaid.map((p) => (
+                  <li key={p.id} className="border-t border-ink/10 pt-2 text-sm">
+                    <span className="font-medium">{money(p.amountTotal, p.currency)}</span>
+                    <span className="text-ink-muted"> · {when(p.createdAt)}</span>
+                    {p.url ? <p className="truncate text-xs text-ink-muted">{p.url}</p> : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {tab === "scans" ? (
+        <section className="mt-8 space-y-6">
+          {scanStats ? (
+            <p className="text-sm text-ink-muted">
+              {scanStats.sampleSize} samples · avg overall {scanStats.avgOverall} · avg fails{" "}
+              {scanStats.avgFailCount} · {scanStats.source}
+            </p>
+          ) : null}
+          <div className="space-y-2">
+            {events.length === 0 ? (
+              <p className="text-sm text-ink-muted">No scan events yet.</p>
+            ) : (
+              events.map((e, i) => (
+                <div key={`${e.hostname}-${e.scannedAt}-${i}`} className="border-t border-ink/10 pt-2 text-sm">
+                  <p className="font-medium text-ink">{e.hostname}</p>
+                  <p className="text-xs text-ink-muted">
+                    overall {e.overall} · seo {e.seo} · fails {e.failCount} · {e.pagesScanned}{" "}
+                    pages · {when(e.scannedAt)}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {tab === "payments" ? (
+        <section className="mt-8 space-y-8">
+          <div>
+            <h2 className="font-display text-lg font-semibold">Stripe checkouts</h2>
+            {!stripeEnabled ? (
+              <p className="mt-2 text-sm text-ink-muted">Stripe not configured.</p>
+            ) : null}
+            {stripeError ? <p className="mt-2 text-sm text-rose-600">{stripeError}</p> : null}
+            <ul className="mt-3 space-y-2">
+              {stripeSessions.map((s) => (
+                <li key={s.id} className="border-t border-ink/10 pt-2 text-sm">
+                  <p className="font-medium">
+                    {money(s.amountTotal, s.currency)} · {s.paymentStatus}
+                    {s.consumed ? " · consumed" : ""}
+                  </p>
+                  <p className="text-xs text-ink-muted">
+                    {when(s.createdAt)}
+                    {s.customerEmail ? ` · ${s.customerEmail}` : ""}
+                  </p>
+                  {s.url ? <p className="truncate text-xs text-ink-muted">{s.url}</p> : null}
+                  <p className="font-mono text-[10px] text-ink-muted/70">{s.id}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h2 className="font-display text-lg font-semibold">Promo unlocks</h2>
+            <ul className="mt-3 space-y-2">
+              {promoUnlocks.length === 0 ? (
+                <p className="text-sm text-ink-muted">No promo unlocks yet.</p>
+              ) : (
+                promoUnlocks.map((u) => (
+                  <li key={u.id} className="border-t border-ink/10 pt-2 text-sm">
+                    <span className="font-mono font-semibold">{u.code}</span>
+                    <span className="text-ink-muted">
+                      {" "}
+                      · {u.consumed ? "used" : "unused"} · {when(u.createdAt)}
+                    </span>
+                    {u.clientIp ? (
+                      <p className="text-xs text-ink-muted">IP {u.clientIp}</p>
+                    ) : null}
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
+      {tab === "reports" ? (
+        <section className="mt-8 space-y-3">
+          {reports.length === 0 ? (
+            <p className="text-sm text-ink-muted">No stored reports.</p>
+          ) : (
+            reports.map((r) => (
+              <div
+                key={r.id}
+                className="flex flex-wrap items-start justify-between gap-3 border-t border-ink/10 pt-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-ink">{r.hostname}</p>
+                  <p className="text-xs text-ink-muted">
+                    /r/{r.id} · {r.access} · score {r.overall ?? "—"} · {when(r.createdAt)}
+                  </p>
+                  <p className="truncate text-xs text-ink-muted">{r.url}</p>
+                </div>
+                <div className="flex gap-2">
+                  {r.access === "shared" ? (
+                    <a
+                      href={`/r/${r.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold"
+                    >
+                      Open
+                    </a>
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void deleteReport(r.id)}
+                    className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </section>
+      ) : null}
+
       {tab === "promos" ? (
         <section className="mt-8 space-y-8">
-          <form onSubmit={(e) => void createPromo(e)} className="space-y-3 rounded-2xl border border-ink/10 bg-white p-5">
-            <h2 className="font-display text-lg font-semibold text-ink">Create code</h2>
+          <form
+            onSubmit={(e) => void createPromo(e)}
+            className="space-y-3 rounded-2xl border border-ink/10 bg-white p-5"
+          >
+            <h2 className="font-display text-lg font-semibold">Create code</h2>
             <div className="grid gap-3 sm:grid-cols-3">
               <input
                 value={newCode}
@@ -357,7 +690,6 @@ export default function AdminPage() {
               <input
                 value={newMax}
                 onChange={(e) => setNewMax(e.target.value)}
-                placeholder="Max uses"
                 type="number"
                 min={1}
                 className="rounded-xl border border-ink/15 px-3 py-2 text-sm"
@@ -376,45 +708,41 @@ export default function AdminPage() {
             >
               Create promo
             </button>
-            {!session.promoDb ? (
-              <p className="text-xs text-ink-muted">Needs DATABASE_URL (Neon).</p>
-            ) : null}
           </form>
-
           <div className="space-y-3">
-            <h2 className="font-display text-lg font-semibold text-ink">All codes</h2>
-            {promos.length === 0 ? (
-              <p className="text-sm text-ink-muted">No codes yet.</p>
-            ) : (
-              promos.map((c) => (
-                <div
-                  key={c.code}
-                  className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-3"
-                >
-                  <div>
-                    <p className="font-mono font-semibold text-ink">{c.code}</p>
-                    <p className="text-xs text-ink-muted">
-                      {c.usedCount}/{c.maxUses} used · {c.remaining} left ·{" "}
-                      {c.active ? "active" : "inactive"} · {c.label}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void togglePromo(c.code, !c.active)}
-                    className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold hover:border-brand/40"
-                  >
-                    {c.active ? "Deactivate" : "Activate"}
-                  </button>
+            {promos.map((c) => (
+              <div
+                key={c.code}
+                className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-3"
+              >
+                <div>
+                  <p className="font-mono font-semibold">{c.code}</p>
+                  <p className="text-xs text-ink-muted">
+                    {c.usedCount}/{c.maxUses} · {c.remaining} left ·{" "}
+                    {c.active ? "active" : "inactive"}
+                  </p>
                 </div>
-              ))
-            )}
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void togglePromo(c.code, !c.active)}
+                  className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold"
+                >
+                  {c.active ? "Deactivate" : "Activate"}
+                </button>
+              </div>
+            ))}
           </div>
         </section>
-      ) : (
+      ) : null}
+
+      {tab === "blog" ? (
         <section className="mt-8 space-y-8">
-          <form onSubmit={(e) => void savePost(e)} className="space-y-3 rounded-2xl border border-ink/10 bg-white p-5">
-            <h2 className="font-display text-lg font-semibold text-ink">Write / update post</h2>
+          <form
+            onSubmit={(e) => void savePost(e)}
+            className="space-y-3 rounded-2xl border border-ink/10 bg-white p-5"
+          >
+            <h2 className="font-display text-lg font-semibold">Write / update post</h2>
             <input
               value={slug}
               onChange={(e) => setSlug(e.target.value.toLowerCase())}
@@ -430,7 +758,7 @@ export default function AdminPage() {
             <textarea
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              placeholder="Summary (meta description)"
+              placeholder="Summary"
               rows={2}
               className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm"
             />
@@ -444,92 +772,78 @@ export default function AdminPage() {
               <input
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="Category"
                 className="rounded-xl border border-ink/15 px-3 py-2 text-sm"
               />
               <input
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
-                placeholder="tags, comma, separated"
+                placeholder="tags"
                 className="rounded-xl border border-ink/15 px-3 py-2 text-sm"
               />
             </div>
             <textarea
               value={bodyText}
               onChange={(e) => setBodyText(e.target.value)}
-              placeholder={"Body paragraphs.\n\nSeparate paragraphs with a blank line."}
-              rows={10}
-              className="w-full rounded-xl border border-ink/15 px-3 py-2 font-body text-sm leading-relaxed"
+              placeholder={"Paragraphs.\n\nBlank line between them."}
+              rows={8}
+              className="w-full rounded-xl border border-ink/15 px-3 py-2 text-sm"
             />
             <button
               type="submit"
               disabled={busy || !session.blogDb}
               className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
-              Publish to /blog
+              Publish
             </button>
-            {!session.blogDb ? (
-              <p className="text-xs text-ink-muted">Needs DATABASE_URL (Neon) to save posts.</p>
-            ) : (
-              <p className="text-xs text-ink-muted">
-                Goes live after save (no redeploy). Blank line = new paragraph.
-              </p>
-            )}
           </form>
-
           <div className="space-y-3">
-            <h2 className="font-display text-lg font-semibold text-ink">Posts</h2>
-            {posts.length === 0 ? (
-              <p className="text-sm text-ink-muted">No posts.</p>
-            ) : (
-              posts.map((p) => (
-                <div
-                  key={`${p.source}-${p.slug}`}
-                  className="flex flex-wrap items-start justify-between gap-3 border-t border-ink/10 pt-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-ink">{p.title}</p>
-                    <p className="text-xs text-ink-muted">
-                      /blog/{p.slug} · {p.publishedAt} · {p.source}
-                      {p.source === "db" ? (p.published ? " · live" : " · draft") : " · in code"}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => editPost(p)}
-                      className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold"
-                    >
-                      Edit
-                    </button>
-                    {p.source === "db" ? (
-                      <>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => void setPublished(p.slug, !p.published)}
-                          className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold"
-                        >
-                          {p.published ? "Unpublish" : "Publish"}
-                        </button>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => void removePost(p.slug)}
-                          className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700"
-                        >
-                          Delete
-                        </button>
-                      </>
-                    ) : null}
-                  </div>
+            {posts.map((p) => (
+              <div
+                key={`${p.source}-${p.slug}`}
+                className="flex flex-wrap items-start justify-between gap-3 border-t border-ink/10 pt-3"
+              >
+                <div>
+                  <p className="font-medium">{p.title}</p>
+                  <p className="text-xs text-ink-muted">
+                    /blog/{p.slug} · {p.source}
+                    {p.source === "db" ? (p.published ? " · live" : " · draft") : ""}
+                  </p>
                 </div>
-              ))
-            )}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => editPost(p)}
+                    className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold"
+                  >
+                    Edit
+                  </button>
+                  {p.source === "db" ? (
+                    <>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void setPublished(p.slug, !p.published)}
+                        className="rounded-lg border border-ink/15 px-3 py-1.5 text-xs font-semibold"
+                      >
+                        {p.published ? "Unpublish" : "Publish"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void removePost(p.slug)}
+                        className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
-      )}
+      ) : null}
     </main>
   );
 }
