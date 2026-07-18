@@ -35,7 +35,12 @@ function sql() {
 
 let schemaReady: Promise<void> | null = null;
 
-/** PROMO_CODES=WELCOME:100 — defaults to first 100 via WELCOME. */
+/**
+ * Configure codes via env (Vercel / host):
+ *   PROMO_CODES=WELCOME:100,SPRING26:50
+ * Defaults to WELCOME with first 100 (or PROMO_MAX_USES).
+ * Add a new campaign later by appending another CODE:MAX entry — it is seeded on next request.
+ */
 function seedSpecs(): { code: string; maxUses: number; label: string }[] {
   const raw = process.env.PROMO_CODES?.trim();
   if (raw) {
@@ -47,17 +52,18 @@ function seedSpecs(): { code: string; maxUses: number; label: string }[] {
         {
           code: code.toUpperCase(),
           maxUses,
-          label: "First free unlocks",
+          label: "Promo unlock",
         },
       ];
     });
   }
   const maxFromEnv = Number(process.env.PROMO_MAX_USES);
+  const maxUses = Number.isFinite(maxFromEnv) && maxFromEnv > 0 ? maxFromEnv : DEFAULT_MAX;
   return [
     {
       code: DEFAULT_CODE,
-      maxUses: Number.isFinite(maxFromEnv) && maxFromEnv > 0 ? maxFromEnv : DEFAULT_MAX,
-      label: "First 100 free unlocks",
+      maxUses,
+      label: `First ${maxUses} free unlocks`,
     },
   ];
 }
@@ -108,19 +114,17 @@ async function ensurePromoSchema() {
         )
       `;
 
-      // Seed only — never overwrite used_count on existing rows
+      // Seed new codes; never overwrite used_count. Do not force-reactivate exhausted pools.
       for (const spec of seedSpecs()) {
         await db`
           INSERT INTO promo_codes (code, label, max_uses, used_count, active)
           VALUES (${spec.code}, ${spec.label}, ${spec.maxUses}, 0, TRUE)
           ON CONFLICT (code) DO NOTHING
         `;
-        // Keep label/max/active in sync without touching used_count
         await db`
           UPDATE promo_codes
           SET label = ${spec.label},
-              max_uses = ${spec.maxUses},
-              active = TRUE
+              max_uses = ${spec.maxUses}
           WHERE code = ${spec.code}
         `;
       }
@@ -138,6 +142,23 @@ async function ensurePromoSchema() {
           SELECT COUNT(*)::int FROM promo_unlocks u WHERE u.code = c.code
         )
       `;
+
+      // Hide fully claimed codes from the public board; raising max_uses via env reactivates them.
+      await db`
+        UPDATE promo_codes AS c
+        SET active = FALSE
+        WHERE c.active = TRUE
+          AND c.used_count >= c.max_uses
+      `;
+      for (const spec of seedSpecs()) {
+        await db`
+          UPDATE promo_codes
+          SET active = TRUE
+          WHERE code = ${spec.code}
+            AND active = FALSE
+            AND used_count < max_uses
+        `;
+      }
     })().catch((err) => {
       schemaReady = null;
       throw err;
@@ -154,7 +175,8 @@ export async function listPublicPromoCodes(): Promise<PublicPromoCode[]> {
   if (!canUsePromoCodes()) return [];
   await ensurePromoSchema();
   const db = sql();
-  // Count unlocks directly so the public board can't drift / get cached wrong from used_count
+  // Count unlocks directly so the public board can't drift / get cached wrong from used_count.
+  // Only codes with remaining uses — depleted launch passes disappear from the site.
   const rows = await db`
     SELECT
       c.code,
@@ -169,6 +191,7 @@ export async function listPublicPromoCodes(): Promise<PublicPromoCode[]> {
       GROUP BY code
     ) u ON u.code = c.code
     WHERE c.active = TRUE
+      AND COALESCE(u.cnt, 0) < c.max_uses
     ORDER BY c.created_at ASC
   `;
   return rows.map((row) => {
@@ -270,11 +293,20 @@ export async function redeemPromoCode(
   `;
   const maxUses = Number(row.max_uses);
   const usedCount = Number(counted[0]?.cnt ?? row.used_count);
+  const remaining = Math.max(0, maxUses - usedCount);
+
+  // Last claim — deactivate so homepage / pricing stop advertising this code.
+  if (remaining <= 0) {
+    await db`
+      UPDATE promo_codes SET active = FALSE WHERE code = ${String(row.code)}
+    `;
+  }
+
   return {
     ok: true,
     sessionId,
     code: String(row.code),
-    remaining: Math.max(0, maxUses - usedCount),
+    remaining,
     usedCount,
     maxUses,
   };

@@ -98,10 +98,11 @@ export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
     );
   }
 
-  if (!codes.length) return null;
+  // API only returns codes with remaining uses — hide board when the pool is empty.
+  const available = codes.filter((c) => c.remaining > 0);
+  if (!available.length) return null;
 
-  const primary = codes[0];
-  const gone = primary.remaining <= 0;
+  const primary = available[0];
   const pct =
     primary.maxUses > 0 ? Math.min(100, (primary.usedCount / primary.maxUses) * 100) : 100;
 
@@ -145,16 +146,10 @@ export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
           </code>
           <span
             className={`text-sm font-semibold ${
-              gone
-                ? compact
-                  ? "text-rose-300"
-                  : "text-rose-600"
-                : compact
-                  ? "text-brand-bright"
-                  : "text-brand"
+              compact ? "text-brand-bright" : "text-brand"
             }`}
           >
-            {gone ? "Fully claimed" : `${primary.remaining} left`}
+            {primary.remaining} left
           </span>
         </div>
         <p className={`mt-1 text-xs ${compact ? "text-white/55" : "text-ink-muted"}`}>
@@ -165,7 +160,7 @@ export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
         >
           <div
             className={`h-full rounded-full transition-all duration-500 ${
-              gone ? "bg-rose-400" : compact ? "bg-brand-bright" : "bg-brand"
+              compact ? "bg-brand-bright" : "bg-brand"
             }`}
             style={{ width: `${pct}%` }}
           />
