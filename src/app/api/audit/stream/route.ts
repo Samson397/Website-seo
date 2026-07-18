@@ -5,7 +5,8 @@ import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, savePreviewReport, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
-import { consumePaidSession, verifyPaidSession } from "@/lib/stripe-unlock-server";
+import { consumeUnlockSession, verifyUnlockSession } from "@/lib/unlock-access";
+import { isPromoSessionId } from "@/lib/promo-codes";
 import { toFreePreviewReport } from "@/lib/free-preview";
 import { auditOptionsFromBody } from "@/lib/audit-request";
 import type { AuditOptions, ScanProgressEvent } from "@/lib/types";
@@ -62,15 +63,17 @@ export async function POST(request: NextRequest) {
 
   let siteCrawl = wantFull;
   let tier: "free" | "full" = "full";
-  if (isStripeConfigured()) {
+  const gated =
+    isStripeConfigured() || Boolean(unlockSessionId && isPromoSessionId(unlockSessionId));
+  if (gated) {
     if (wantFull && unlockSessionId) {
-      const paid = await verifyPaidSession(unlockSessionId);
-      if (!paid) {
+      const unlocked = await verifyUnlockSession(unlockSessionId);
+      if (!unlocked) {
         return new Response(
           JSON.stringify({
             type: "error",
             error:
-              "This payment was already used for a full scan, or could not be verified. Pay again for another full crawl, or run a free homepage preview.",
+              "This payment or promo code was already used for a full scan, or could not be verified. Pay again, redeem a new code, or run a free homepage preview.",
           }) + "\n",
           { status: 402, headers: { "Content-Type": "application/x-ndjson" } }
         );
@@ -130,10 +133,10 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // One checkout = one full-site scan (mark used after success)
+        // One checkout / promo redeem = one full-site scan
         if (tier === "full" && unlockSessionId) {
           try {
-            await consumePaidSession(unlockSessionId);
+            await consumeUnlockSession(unlockSessionId);
           } catch (err) {
             console.error(
               "[stream] consume session failed",

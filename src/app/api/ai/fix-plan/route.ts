@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isDeepSeekConfigured } from "@/lib/deepseek";
 import { generateAiFixPlan } from "@/lib/ai-fix-plan";
-import { verifyPaidCheckoutSession } from "@/lib/stripe-unlock-server";
+import { verifyUnlockAccess } from "@/lib/unlock-access";
 import { isStripeConfigured } from "@/lib/stripe";
+import { isPromoSessionId } from "@/lib/promo-codes";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import type { AuditReport } from "@/lib/types";
 
@@ -53,18 +54,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (isStripeConfigured()) {
+  if (isStripeConfigured() || (sessionId && isPromoSessionId(sessionId))) {
     if (!sessionId) {
       return NextResponse.json(
-        { error: "Paid session required to generate an AI fix plan." },
+        { error: "Paid session or promo unlock required to generate an AI fix plan." },
         { status: 402 }
       );
     }
-    const paid = await verifyPaidCheckoutSession(sessionId);
-    // Consumed sessions are allowed — the plan belongs to the scan they paid for.
-    if (!paid.paid) {
+    // Consumed sessions are allowed — the plan belongs to that scan.
+    const ok = await verifyUnlockAccess(sessionId);
+    if (!ok) {
       return NextResponse.json(
-        { error: paid.error || "Payment could not be verified." },
+        { error: "Payment or promo could not be verified." },
         { status: 402 }
       );
     }

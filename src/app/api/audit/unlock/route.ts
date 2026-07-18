@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isStripeConfigured } from "@/lib/stripe";
-import { verifyPaidSession } from "@/lib/stripe-unlock-server";
+import { verifyUnlockSession } from "@/lib/unlock-access";
+import { isPromoSessionId } from "@/lib/promo-codes";
 import {
   canPersistReports,
   getPreviewReport,
@@ -11,12 +12,9 @@ export const runtime = "nodejs";
 
 /**
  * Unlock a stashed free-preview report in place (no re-crawl).
- * Body: { previewId, sessionId }
+ * Body: { previewId, sessionId } — sessionId is Stripe cs_… or promo_…
  */
 export async function POST(request: NextRequest) {
-  if (!isStripeConfigured()) {
-    return NextResponse.json({ error: "Payments are not configured." }, { status: 503 });
-  }
   if (!canPersistReports()) {
     return NextResponse.json(
       { error: "Report stash unavailable. Run a full scan after unlock instead." },
@@ -38,12 +36,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "previewId and sessionId are required" }, { status: 400 });
   }
 
-  const paid = await verifyPaidSession(sessionId);
-  if (!paid) {
+  if (!isPromoSessionId(sessionId) && !isStripeConfigured()) {
+    return NextResponse.json({ error: "Payments are not configured." }, { status: 503 });
+  }
+
+  const unlocked = await verifyUnlockSession(sessionId);
+  if (!unlocked) {
     return NextResponse.json(
       {
         error:
-          "Payment could not be verified, or this payment was already used for a full scan.",
+          "Payment or promo code could not be verified, or was already used for a full scan.",
       },
       { status: 402 }
     );

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { usePaymentsEnabled } from "@/hooks/usePaymentsEnabled";
-import { routes } from "@/lib/routes";
+import { saveUnlock } from "@/lib/unlock";
+import { routes, scanUrlFor } from "@/lib/routes";
+import { PromoCodesBoard, notifyPromoRedeemed } from "@/components/PromoCodesBoard";
 
 interface UnlockFullScanProps {
   url?: string;
@@ -13,7 +15,9 @@ interface UnlockFullScanProps {
 export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps) {
   const { enabled, priceLabel, ready } = usePaymentsEnabled();
   const [loading, setLoading] = useState(false);
+  const [promoLoading, setPromoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState("");
 
   async function checkout() {
     setLoading(true);
@@ -37,31 +41,91 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
     }
   }
 
+  async function redeemPromo(e?: FormEvent) {
+    e?.preventDefault();
+    const code = promoCode.trim();
+    if (!code) {
+      setError("Enter a promo code.");
+      return;
+    }
+    setPromoLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/promo/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not redeem code");
+      saveUnlock(data.sessionId as string);
+      notifyPromoRedeemed();
+      window.location.href = scanUrlFor(url || "", data.sessionId as string);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not redeem code");
+      setPromoLoading(false);
+    }
+  }
+
+  const promoForm = (
+    <form onSubmit={(e) => void redeemPromo(e)} className="mt-4 flex flex-wrap gap-2">
+      <input
+        value={promoCode}
+        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+        placeholder="WELCOME"
+        autoComplete="off"
+        spellCheck={false}
+        className={
+          variant === "banner"
+            ? "min-w-[10rem] flex-1 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 font-mono text-sm uppercase tracking-wide text-white placeholder:text-white/40 focus:border-brand-bright focus:outline-none"
+            : "min-w-[10rem] flex-1 rounded-xl border border-ink/15 bg-white px-3 py-2 font-mono text-sm uppercase tracking-wide text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+        }
+      />
+      <button
+        type="submit"
+        disabled={promoLoading}
+        className={
+          variant === "banner"
+            ? "rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-60"
+            : "rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-brand/40 disabled:opacity-60"
+        }
+      >
+        {promoLoading ? "Applying…" : "Apply code"}
+      </button>
+    </form>
+  );
+
   if (ready && !enabled) {
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-soft/50 px-5 py-4 text-sm text-amber-950">
-        Payments aren’t live on this deployment yet. Add Stripe keys in Vercel → Environment
-        Variables, then redeploy.{" "}
-        <Link href={routes.pricing} className="font-medium underline">
-          See what’s included
-        </Link>
-        .
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-amber-200 bg-amber-soft/50 px-5 py-4 text-sm text-amber-950">
+          Stripe isn’t live on this deployment yet. You can still try a promo code below, or{" "}
+          <Link href={routes.pricing} className="font-medium underline">
+            see pricing
+          </Link>
+          .
+        </div>
+        {promoForm}
+        <PromoCodesBoard />
       </div>
     );
   }
 
   if (variant === "inline") {
     return (
-      <div>
-        <button
-          type="button"
-          onClick={() => void checkout()}
-          disabled={loading || !ready}
-          className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-bright disabled:opacity-60"
-        >
-          {loading ? "Opening checkout…" : `Unlock report — ${priceLabel}`}
-        </button>
-        {error ? <p className="mt-1 text-xs text-rose-600">{error}</p> : null}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void checkout()}
+            disabled={loading || !ready}
+            className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-bright disabled:opacity-60"
+          >
+            {loading ? "Opening checkout…" : `Unlock report — ${priceLabel}`}
+          </button>
+        </div>
+        {promoForm}
+        {error ? <p className="text-xs text-rose-600">{error}</p> : null}
       </div>
     );
   }
@@ -90,6 +154,10 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
         <Link href={routes.pricing} className="text-xs text-white/55 hover:text-white">
           Compare free vs full
         </Link>
+      </div>
+      {promoForm}
+      <div className="mt-5 border-t border-white/10 pt-5">
+        <PromoCodesBoard compact />
       </div>
       {error ? <p className="mt-3 text-sm text-rose-300">{error}</p> : null}
     </div>

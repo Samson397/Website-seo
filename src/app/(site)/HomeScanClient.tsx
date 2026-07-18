@@ -51,23 +51,26 @@ export default function HomeScanClient() {
     setUnlocked(!paymentsOn || hasFullUnlock());
   }, [paymentsOn]);
 
-  // Complete Stripe Checkout return — unlock stashed report in place, then expand crawl
+  // Complete Stripe / promo unlock — unlock stashed report in place, then expand crawl
   useEffect(() => {
     const sessionId = searchParams.get("unlock_session");
     if (!sessionId || unlockHandled.current === sessionId) return;
     unlockHandled.current = sessionId;
+    const isPromo = sessionId.startsWith("promo_");
 
     void (async () => {
       try {
-        const res = await fetch("/api/stripe/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.paid) {
-          setError(data.error || "Payment could not be verified.");
-          return;
+        if (!isPromo) {
+          const res = await fetch("/api/stripe/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionId }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.paid) {
+            setError(data.error || "Payment could not be verified.");
+            return;
+          }
         }
         saveUnlock(sessionId);
         setUnlocked(true);
@@ -75,6 +78,7 @@ export default function HomeScanClient() {
         const stash = readPreviewStash();
         const url = searchParams.get("url")?.trim() || stash?.url || lastUrl.current;
         const previewId = stash?.previewId;
+        const unlockLabel = isPromo ? "promo code" : priceLabel;
 
         if (previewId) {
           const unlockRes = await fetch("/api/audit/unlock", {
@@ -90,7 +94,7 @@ export default function HomeScanClient() {
             setHistoryTick((n) => n + 1);
             clearPreviewStash();
             setUnlockNotice(
-              `Unlocked for ${priceLabel}. Showing your report — expanding to full-site crawl…`
+              `Unlocked with ${unlockLabel}. Showing your report — expanding to full-site crawl…`
             );
             requestAnimationFrame(() => {
               resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -103,13 +107,17 @@ export default function HomeScanClient() {
           }
         }
 
-        setUnlockNotice(`Full SEO unlocked for ${priceLabel}. Running full site scan…`);
+        setUnlockNotice(`Full SEO unlocked with ${unlockLabel}. Running full site scan…`);
         if (url) {
           autoStarted.current = null;
           void runAudit(url, false, true, sessionId);
         }
       } catch {
-        setError("Could not verify payment. Contact support if you were charged.");
+        setError(
+          isPromo
+            ? "Could not apply promo code. Try again or pay with Stripe."
+            : "Could not verify payment. Contact support if you were charged."
+        );
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
