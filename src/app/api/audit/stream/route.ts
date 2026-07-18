@@ -5,7 +5,7 @@ import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, savePreviewReport, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
-import { verifyPaidSession } from "@/lib/stripe-unlock-server";
+import { consumePaidSession, verifyPaidSession } from "@/lib/stripe-unlock-server";
 import { toFreePreviewReport } from "@/lib/free-preview";
 import { auditOptionsFromBody } from "@/lib/audit-request";
 import type { AuditOptions, ScanProgressEvent } from "@/lib/types";
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
           JSON.stringify({
             type: "error",
             error:
-              "Payment could not be verified for a full crawl. Re-open Unlock and complete checkout, or run a free homepage preview.",
+              "This payment was already used for a full scan, or could not be verified. Pay again for another full crawl, or run a free homepage preview.",
           }) + "\n",
           { status: 402, headers: { "Content-Type": "application/x-ndjson" } }
         );
@@ -127,6 +127,18 @@ export async function POST(request: NextRequest) {
             }
           } catch (err) {
             console.error("[stream] report save failed", err instanceof Error ? err.message : err);
+          }
+        }
+
+        // One checkout = one full-site scan (mark used after success)
+        if (tier === "full" && unlockSessionId) {
+          try {
+            await consumePaidSession(unlockSessionId);
+          } catch (err) {
+            console.error(
+              "[stream] consume session failed",
+              err instanceof Error ? err.message : err
+            );
           }
         }
 

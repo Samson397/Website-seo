@@ -30,6 +30,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (result.consumed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          paid: false,
+          consumed: true,
+          error: "This payment was already used for a full scan. Pay again for another scan.",
+        },
+        { status: 402 }
+      );
+    }
+
     return NextResponse.json({
       ok: true,
       paid: true,
@@ -37,6 +49,8 @@ export async function POST(req: NextRequest) {
       targetUrl: result.targetUrl ?? null,
       amountTotal: result.amountTotal,
       currency: result.currency,
+      // One checkout unlocks a single full-site scan
+      scansRemaining: 1,
     });
   } catch (err) {
     console.error("[stripe/verify]", err);

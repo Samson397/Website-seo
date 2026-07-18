@@ -15,8 +15,8 @@ const FEATURES = [
     text: "Up to 200 pages, crawl controls, redirects, broken links, schema, and generators — free tools stay free.",
   },
   {
-    title: "Pay once when you need depth",
-    text: "Free shows /10 scores and AI visibility. Unlock full fixes, checklist, crawl, and exports for $0.99.",
+    title: "Pay per full scan",
+    text: "Free shows /10 scores and AI visibility. $0.99 unlocks one full-site crawl with fixes, checklist, and exports.",
   },
 ];
 

@@ -6,6 +6,7 @@ export interface PaidSessionResult {
   targetUrl?: string | null;
   amountTotal?: number | null;
   currency?: string | null;
+  consumed?: boolean;
   error?: string;
 }
 
@@ -63,12 +64,15 @@ export async function verifyPaidCheckoutSession(
       }
     }
 
+    const consumed = session.metadata?.consumed === "1";
+
     return {
       paid: true,
       sessionId: session.id,
       targetUrl: session.metadata?.targetUrl || null,
       amountTotal: session.amount_total,
       currency: session.currency,
+      consumed,
     };
   } catch (err) {
     return {
@@ -78,8 +82,31 @@ export async function verifyPaidCheckoutSession(
   }
 }
 
-/** Server-side: confirm a Checkout session unlocks full site crawl. */
+/**
+ * Server-side: session is paid and not yet used for a full scan.
+ * One checkout = one full-site scan.
+ */
 export async function verifyPaidSession(sessionId: string | undefined | null): Promise<boolean> {
   const result = await verifyPaidCheckoutSession(sessionId);
-  return result.paid;
+  return Boolean(result.paid && !result.consumed);
+}
+
+/** Mark a Checkout session as used after a successful full scan. */
+export async function consumePaidSession(sessionId: string): Promise<void> {
+  const stripe = getStripe();
+  if (!stripe || !sessionId.startsWith("cs_")) return;
+
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (session.payment_status !== "paid") return;
+  if (session.metadata?.consumed === "1") return;
+
+  await stripe.checkout.sessions.update(sessionId, {
+    metadata: {
+      ...(session.metadata || {}),
+      app: session.metadata?.app || "seohub",
+      product: session.metadata?.product || "full_seo_scan",
+      consumed: "1",
+      consumedAt: new Date().toISOString(),
+    },
+  });
 }

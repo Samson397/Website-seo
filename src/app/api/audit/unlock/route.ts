@@ -40,7 +40,13 @@ export async function POST(request: NextRequest) {
 
   const paid = await verifyPaidSession(sessionId);
   if (!paid) {
-    return NextResponse.json({ error: "Payment could not be verified." }, { status: 402 });
+    return NextResponse.json(
+      {
+        error:
+          "Payment could not be verified, or this payment was already used for a full scan.",
+      },
+      { status: 402 }
+    );
   }
 
   const stashed = await getPreviewReport(previewId);

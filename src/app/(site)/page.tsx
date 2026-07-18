@@ -12,7 +12,7 @@ import { ScanLoadingPanel } from "@/components/ScanLoadingPanel";
 import { FreePreviewReport } from "@/components/FreePreviewReport";
 import { FullAuditDelivery } from "@/components/FullAuditDelivery";
 import { saveScanToHistory } from "@/lib/local-history";
-import { getUnlock, hasFullUnlock, saveUnlock } from "@/lib/unlock";
+import { getUnlock, hasFullUnlock, markUnlockUsed, saveUnlock } from "@/lib/unlock";
 import {
   clearPreviewStash,
   readPreviewStash,
@@ -244,7 +244,13 @@ function HomeScanApp() {
 
       lastUrl.current = url;
       setReport(audit);
-      setUnlocked(audit.tier === "full" || !paymentsOn || hasFullUnlock());
+      if (audit.tier === "full" && useFull && sessionId) {
+        // One payment = one full scan — burn the unlock after success
+        markUnlockUsed();
+        setUnlocked(false);
+      } else {
+        setUnlocked(audit.tier === "full" || !paymentsOn || hasFullUnlock());
+      }
       if (audit.tier === "free" && audit.previewId) {
         savePreviewStash(audit.previewId, audit.url);
       }

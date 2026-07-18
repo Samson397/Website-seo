@@ -130,8 +130,8 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
           Get fixes, checklist, and full-site crawl
         </h3>
         <p className="mt-3 max-w-xl text-sm text-white/70">
-          Unlock this report instantly — then we expand to a full-site crawl (up to 200 pages). No
-          account. Shareable link included.
+          One payment = one full-site scan. Unlock this report instantly, then we expand to a crawl
+          (up to 200 pages). Shareable link included. No account.
         </p>
         <ul className="mt-4 space-y-2 text-sm text-white/75">
           <li>✓ Issue details and fix recommendations</li>

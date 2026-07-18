@@ -22,9 +22,9 @@ No login. No email signup. No private user profiles.
 When Stripe env vars are set:
 
 - **Free** — homepage SEO preview + all toolkit pages
-- **$0.99** — unlock full-site crawl (up to 200 pages), shareable report, deeper site-wide checks
+- **$0.99** — one full-site scan (up to 200 pages), shareable report, deeper site-wide checks
 
-Paid via Stripe Checkout (one-time). Unlock is stored in the browser (no account).
+Paid via Stripe Checkout (one scan per payment). No account.
 
 ### Monetization
 

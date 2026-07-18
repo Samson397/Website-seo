@@ -75,8 +75,8 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
         Unlock this report
       </h3>
       <p className="mt-3 max-w-xl text-sm text-white/70 sm:text-base">
-        Pay {priceLabel} once — unlock fixes instantly, then expand to a full-site crawl (up to 200
-        pages), exports, and a shareable link. No account.
+        Pay {priceLabel} for this full-site scan — unlock fixes instantly, crawl up to 200 pages,
+        export, and get a shareable link. One scan per payment. No account.
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <button
