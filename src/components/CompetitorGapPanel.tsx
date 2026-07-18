@@ -3,6 +3,7 @@
 import type { CompetitorAuditResult } from "@/lib/competitor-scores";
 import { buildCompetitorGapRows } from "@/lib/competitor-gap";
 import { formatUrlDisplay } from "@/lib/url-display";
+import { formatTenLabel } from "@/lib/score-display";
 
 interface CompetitorGapPanelProps {
   results: CompetitorAuditResult[];

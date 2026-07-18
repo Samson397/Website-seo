@@ -9,7 +9,8 @@ export const metadata = {
 };
 
 const FREE = [
-  "Homepage score (SEO, speed, a11y, security)",
+  "Homepage scores out of 10 (SEO, speed, a11y, security, AI)",
+  "AI visibility check — will assistants promote you?",
   "Issue counts + a few locked issue titles",
   "Google SERP preview",
   "Keyword research & free toolkit",
@@ -19,8 +20,8 @@ const FREE = [
 const PAID = [
   "Full issue details, recommendations, and fix snippets",
   "Complete Pass / Fail / Review checklist",
-  "Full-site crawl up to 200 pages",
-  "Site-wide duplicate / thin / canonical issues",
+  "Full-site crawl up to 200 pages + crawl controls",
+  "Site-wide duplicate / thin / canonical / hreflang issues",
   "Domain, DNS, SSL & tech overview",
   "CSV / JSON / PDF export + shareable report",
   "Email report when Resend is configured",

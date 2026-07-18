@@ -28,6 +28,20 @@ export interface AuditScores {
   performance: number;
   accessibility: number;
   security: number;
+  /** GEO / AI-assistant visibility (0–100 internal; show as /10) */
+  ai: number;
+}
+
+export interface AiVisibilitySummary {
+  score: number;
+  signals: {
+    id: string;
+    label: string;
+    status: "pass" | "fail" | "attention";
+    detail: string;
+  }[];
+  botsAllowed: string[];
+  botsBlocked: string[];
 }
 
 export interface AuditSummary {
@@ -209,6 +223,8 @@ export interface AuditReport {
   crawl?: CrawlSummary;
   siteOverview?: SiteOverview;
   checklist?: SiteChecklist;
+  /** AI / GEO visibility breakdown */
+  aiVisibility?: AiVisibilitySummary;
   /** Present when the report was saved for sharing */
   shareId?: string;
   /** free = homepage preview; full = paid unlock (when Stripe is configured) */

@@ -18,6 +18,8 @@ Goal: be the best **browser-first weekly SEO audit** — not a full Ahrefs/Semru
 - Public sample report (`/r/sample`)
 - HTML-only crawl disclaimer in product UI
 - Rank history charts (local on-device)
+- Scores displayed out of 10 (+ AI visibility / GEO panel)
+- $0.99 unlock positioning (Stripe Price ID must match)
 
 ## Still optional / env-gated
 

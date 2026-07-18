@@ -10,21 +10,21 @@ const config: Config = {
     extend: {
       colors: {
         ink: {
-          DEFAULT: "#0b1220",
-          soft: "#162033",
+          DEFAULT: "#0b1f3a",
+          soft: "#123a6b",
           muted: "#5a6a84",
         },
-        mist: "#e8eef8",
-        paper: "#f5f7fc",
+        mist: "#e6f4f2",
+        paper: "#f3f7f9",
         brand: {
-          DEFAULT: "#2563EB",
+          DEFAULT: "#1d4ed8",
           bright: "#3B82F6",
           soft: "#DBEAFE",
         },
         teal: {
-          DEFAULT: "#2563EB",
-          bright: "#3B82F6",
-          soft: "#DBEAFE",
+          DEFAULT: "#0d9488",
+          bright: "#14b8a6",
+          soft: "#ccfbf1",
         },
         amber: {
           DEFAULT: "#f59e0b",
@@ -36,7 +36,7 @@ const config: Config = {
         body: ["var(--font-body)", "Segoe UI", "sans-serif"],
       },
       boxShadow: {
-        glow: "0 20px 50px -20px rgba(37, 99, 235, 0.35)",
+        glow: "0 20px 50px -20px rgba(29, 78, 216, 0.35)",
       },
     },
   },

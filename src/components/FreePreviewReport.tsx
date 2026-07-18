@@ -4,7 +4,9 @@ import { formatUrlDisplay } from "@/lib/url-display";
 import { ScoreGauge } from "@/components/ScoreGauge";
 import { UnlockFullScan } from "@/components/UnlockFullScan";
 import { SerpPreview } from "@/components/SerpPreview";
+import { AiVisibilityPanel } from "@/components/AiVisibilityPanel";
 import { categoryLabel } from "@/lib/issue-summary";
+import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 import type { AuditReport } from "@/lib/types";
 
 interface FreePreviewReportProps {
@@ -15,13 +17,7 @@ interface FreePreviewReportProps {
 
 /** Limited free teaser — scores + locked issue titles. Full detail requires unlock. */
 export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePreviewReportProps) {
-  const overall = Math.round(
-    (report.scores.seo +
-      report.scores.performance +
-      report.scores.accessibility +
-      report.scores.security) /
-      4
-  );
+  const overall = overallFromScores(report.scores);
   const lockedIssues = Math.max(0, report.summary.critical + report.summary.warning + report.summary.info - report.issues.length);
   const checklist = report.checklist;
 
@@ -45,9 +41,11 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
             </div>
             <div className="text-right">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
-                Overall
+                Overall /10
               </p>
-              <p className="font-display text-5xl font-semibold leading-none">{overall}</p>
+              <p className="font-display text-5xl font-semibold leading-none tabular-nums">
+                {formatTenLabel(overall)}
+              </p>
             </div>
           </div>
           {onRescan ? (
@@ -62,13 +60,16 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-6 px-6 py-7 sm:grid-cols-4 sm:px-8">
+        <div className="grid grid-cols-2 gap-6 px-6 py-7 sm:grid-cols-3 lg:grid-cols-5 sm:px-8">
           <ScoreGauge label="SEO" score={report.scores.seo} />
           <ScoreGauge label="Performance" score={report.scores.performance} />
           <ScoreGauge label="Accessibility" score={report.scores.accessibility} />
           <ScoreGauge label="Security" score={report.scores.security} />
+          <ScoreGauge label="AI visibility" score={report.scores.ai ?? 0} />
         </div>
       </section>
+
+      {report.aiVisibility ? <AiVisibilityPanel ai={report.aiVisibility} /> : null}
 
       {report.serpPreview ? (
         <SerpPreview

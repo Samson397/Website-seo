@@ -57,16 +57,8 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
           })}
         </nav>
 
-        <Link
-          href={routes.home}
-          className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-            isHero
-              ? "bg-brand-bright text-ink"
-              : "bg-brand text-white hover:bg-brand-bright"
-          }`}
-        >
-          Run audit
-        </Link>
+        {/* Spacer keeps logo / nav alignment without a redundant CTA */}
+        <div className="hidden w-8 lg:block" aria-hidden />
       </div>
 
       <nav

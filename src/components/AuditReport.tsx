@@ -14,6 +14,8 @@ import { ShareReportButton } from "@/components/ShareReportButton";
 import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
 import { IssueGroupsPanel } from "@/components/IssueGroupsPanel";
+import { AiVisibilityPanel } from "@/components/AiVisibilityPanel";
+import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 
 interface AuditReportViewProps {
   report: AuditReport;
@@ -107,7 +109,8 @@ export function AuditReportView({
             <h2 className="font-display mt-1 text-2xl font-semibold text-ink">Audit results</h2>
             <p className="mt-1 break-all text-sm text-ink-muted">{formatUrlDisplay(report.url)}</p>
             <p className="text-xs text-ink-muted/80">
-              Scanned {new Date(report.scannedAt).toLocaleString()}
+              Scanned {new Date(report.scannedAt).toLocaleString()} · Overall{" "}
+              {formatTenLabel(overallFromScores(report.scores))}
             </p>
           </div>
           <div className="flex flex-col items-stretch gap-3 sm:items-end">
@@ -139,11 +142,12 @@ export function AuditReportView({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-5">
           <ScoreGauge label="SEO" score={report.scores.seo} />
           <ScoreGauge label="Performance" score={report.scores.performance} />
           <ScoreGauge label="Accessibility" score={report.scores.accessibility} />
           <ScoreGauge label="Security" score={report.scores.security} />
+          <ScoreGauge label="AI visibility" score={report.scores.ai ?? 0} />
         </div>
 
         {report.performanceMetrics && (
@@ -174,6 +178,8 @@ export function AuditReportView({
           url={report.serpPreview.url}
         />
       )}
+
+      {report.aiVisibility && <AiVisibilityPanel ai={report.aiVisibility} />}
 
       {report.siteOverview && <SiteOverviewPanel overview={report.siteOverview} />}
 

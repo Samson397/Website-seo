@@ -33,9 +33,14 @@ export interface WatchItem {
 }
 
 function overallFromScores(scores: AuditReport["scores"]): number {
-  return Math.round(
-    (scores.seo + scores.performance + scores.accessibility + scores.security) / 4
-  );
+  const parts = [
+    scores.seo,
+    scores.performance,
+    scores.accessibility,
+    scores.security,
+    scores.ai,
+  ].filter((n): n is number => typeof n === "number");
+  return Math.round(parts.reduce((a, b) => a + b, 0) / Math.max(1, parts.length));
 }
 
 function hostnameFromUrl(url: string): string {

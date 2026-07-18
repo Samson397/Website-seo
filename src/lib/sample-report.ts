@@ -8,7 +8,62 @@ export function getSampleReport(): AuditReport {
     url: "https://example.com/",
     scannedAt: "2026-07-15T12:00:00.000Z",
     tier: "full",
-    scores: { seo: 72, performance: 81, accessibility: 88, security: 76 },
+    scores: { seo: 72, performance: 81, accessibility: 88, security: 76, ai: 64 },
+    aiVisibility: {
+      score: 64,
+      botsAllowed: ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"],
+      botsBlocked: [],
+      signals: [
+        {
+          id: "ai-bots",
+          label: "AI crawlers allowed",
+          status: "pass",
+          detail: "No blanket Disallow for major AI bots.",
+        },
+        {
+          id: "llms-txt",
+          label: "llms.txt missing",
+          status: "attention",
+          detail: "Add /llms.txt so assistants know how to use your content.",
+        },
+        {
+          id: "org-schema",
+          label: "Organization schema missing",
+          status: "fail",
+          detail: "Without Organization JSON-LD, assistants struggle to ground your brand.",
+        },
+        {
+          id: "website-schema",
+          label: "WebSite schema",
+          status: "pass",
+          detail: "WebSite markup present.",
+        },
+        {
+          id: "same-as",
+          label: "No sameAs links",
+          status: "attention",
+          detail: "Link profiles via schema sameAs.",
+        },
+        {
+          id: "faq",
+          label: "No FAQ schema",
+          status: "attention",
+          detail: "Add FAQPage markup on key pages.",
+        },
+        {
+          id: "clear-copy",
+          label: "Clear brand copy",
+          status: "pass",
+          detail: "Title, H1, and description give AI enough context.",
+        },
+        {
+          id: "og-site",
+          label: "og:site_name set",
+          status: "pass",
+          detail: "Site name: Example",
+        },
+      ],
+    },
     summary: { critical: 2, warning: 5, info: 4 },
     serpPreview: {
       title: "Example Domain — Sample SEOHub Report",

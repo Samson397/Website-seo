@@ -1,8 +1,8 @@
 import Stripe from "stripe";
 
-export const FULL_SCAN_PRICE_CENTS = 199;
+export const FULL_SCAN_PRICE_CENTS = 99;
 export const FULL_SCAN_PRICE_LABEL =
-  process.env.NEXT_PUBLIC_STRIPE_PRICE_DISPLAY || "$1.99";
+  process.env.NEXT_PUBLIC_STRIPE_PRICE_DISPLAY || "$0.99";
 
 let stripeClient: Stripe | null = null;
 

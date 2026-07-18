@@ -3,13 +3,14 @@ import type { AuditReport } from "@/lib/types";
 import type { DigestSite } from "@/lib/digest";
 
 function overall(report: AuditReport): number {
-  return Math.round(
-    (report.scores.seo +
-      report.scores.performance +
-      report.scores.accessibility +
-      report.scores.security) /
-      4
-  );
+  const parts = [
+    report.scores.seo,
+    report.scores.performance,
+    report.scores.accessibility,
+    report.scores.security,
+    report.scores.ai,
+  ].filter((n): n is number => typeof n === "number");
+  return Math.round(parts.reduce((a, b) => a + b, 0) / Math.max(1, parts.length));
 }
 
 export function reportEmailHtml(opts: {
@@ -38,7 +39,7 @@ export function reportEmailHtml(opts: {
   const html = `<!DOCTYPE html><html><body style="font-family:Georgia,serif;color:#0c1222;line-height:1.5;max-width:560px;margin:0 auto;padding:24px">
   <p style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#0d9488;font-weight:700">${APP_NAME}</p>
   <h1 style="font-size:28px;margin:8px 0 16px">Your SEO report for ${escapeHtml(host)}</h1>
-  <p>Overall score <strong>${score}</strong> · SEO ${report.scores.seo} · Speed ${report.scores.performance} · A11y ${report.scores.accessibility} · Security ${report.scores.security}</p>
+  <p>Overall <strong>${(score / 10).toFixed(1)}/10</strong> · SEO ${(report.scores.seo / 10).toFixed(1)} · Speed ${(report.scores.performance / 10).toFixed(1)} · A11y ${(report.scores.accessibility / 10).toFixed(1)} · Security ${(report.scores.security / 10).toFixed(1)} · AI ${((report.scores.ai ?? 0) / 10).toFixed(1)}</p>
   <p>${report.summary.critical} critical · ${report.summary.warning} warnings · ${report.summary.info} info</p>
   ${shareUrl ? `<p><a href="${shareUrl}" style="display:inline-block;background:#0d9488;color:#fff;text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:600">Open full report</a></p>` : ""}
   <h2 style="font-size:18px;margin-top:28px">Top issues</h2>

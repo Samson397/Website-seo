@@ -16,6 +16,7 @@ import {
   runLinkDepthAudit,
 } from "@/lib/audit/site-wide";
 import { pathToTemplate } from "@/lib/issue-groups";
+import { runAiVisibilityAudit } from "@/lib/audit/ai-visibility";
 import { runTrustAudit, runModernWebAudit, runWwwConsistencyAudit } from "@/lib/audit/trust";
 import {
   fetchDomainInfo,
@@ -109,6 +110,7 @@ export async function runFullAudit(
   const backlinkIssues = runBacklinkAudit(backlinkProfile);
   const deepIssues = await runDeepChecksAudit(ctx);
   const comprehensiveIssues = await runComprehensiveChecksAudit(ctx);
+  const aiVisibility = await runAiVisibilityAudit(ctx);
 
   let crawlSummary: CrawlSummary | undefined;
   let siteWideIssues: ReturnType<typeof runDuplicateMetaAudit> = [];
@@ -336,6 +338,7 @@ export async function runFullAudit(
     ...backlinkIssues,
     ...deepIssues,
     ...comprehensiveIssues,
+    ...aiVisibility.issues,
     ...siteWideIssues,
     ...perfResult.issues,
   ];
@@ -377,6 +380,7 @@ export async function runFullAudit(
       performance: performanceScore,
       accessibility: accessibilityScore,
       security: computeCategoryScore(allIssues, "security"),
+      ai: aiVisibility.score,
     },
     issues: allIssues,
     summary: computeSummary(allIssues),
@@ -388,6 +392,12 @@ export async function runFullAudit(
     },
     crawl: crawlSummary,
     checklist,
+    aiVisibility: {
+      score: aiVisibility.score,
+      signals: aiVisibility.signals,
+      botsAllowed: aiVisibility.botsAllowed,
+      botsBlocked: aiVisibility.botsBlocked,
+    },
     siteOverview: {
       domain: {
         registrar: domainInfo.registrar,
