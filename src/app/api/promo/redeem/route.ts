@@ -4,10 +4,11 @@ import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-/** Redeem a promo code for one full-site unlock (bypasses Stripe). */
+/** Redeem WELCOME (or configured) code — 1 per IP, shared first-100 pool. */
 export async function POST(request: NextRequest) {
-  const limited = rateLimit(`promo:redeem:${clientKeyFromRequest(request)}`, {
-    limit: 15,
+  const ip = clientKeyFromRequest(request);
+  const limited = rateLimit(`promo:redeem:${ip}`, {
+    limit: 8,
     windowMs: 60 * 60 * 1000,
   });
   if (!limited.ok) {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Promo code is required." }, { status: 400 });
   }
 
-  const result = await redeemPromoCode(code);
+  const result = await redeemPromoCode(code, ip);
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: result.status });
   }

@@ -11,7 +11,7 @@ interface PromoCodeRow {
   active: boolean;
 }
 
-/** Live board of public promo codes — updates when codes are redeemed. */
+/** Live board for the launch pass — first N free unlocks, 1 per IP. */
 export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
   const [codes, setCodes] = useState<PromoCodeRow[]>([]);
   const [enabled, setEnabled] = useState<boolean | null>(null);
@@ -25,7 +25,7 @@ export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
       setCodes(Array.isArray(data.codes) ? data.codes : []);
       setError(null);
     } catch {
-      setError("Could not load promo codes.");
+      setError("Could not load free unlock status.");
       setEnabled(false);
     }
   }, []);
@@ -49,89 +49,85 @@ export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
 
   if (enabled === null && codes.length === 0) {
     return (
-      <p className="text-sm text-ink-muted">{compact ? "Loading codes…" : "Loading promo codes…"}</p>
+      <p className="text-sm text-ink-muted">
+        {compact ? "Loading…" : "Loading free unlock status…"}
+      </p>
     );
   }
 
   if (!codes.length) return null;
+
+  const primary = codes[0];
+  const gone = primary.remaining <= 0;
+  const pct =
+    primary.maxUses > 0 ? Math.min(100, (primary.usedCount / primary.maxUses) * 100) : 100;
 
   return (
     <section className={compact ? "space-y-3" : "space-y-4"}>
       {!compact ? (
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
-            Free unlock codes
+            Launch pass
           </p>
           <h2 className="font-display mt-2 text-2xl font-semibold text-ink">
-            Skip Stripe with a pass
+            First {primary.maxUses} full unlocks free
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-            Limited codes for friends and early users. Each redeem unlocks one full-site scan.
-            Counts update live when someone uses a code.
+            Use code <span className="font-mono font-semibold text-ink">{primary.code}</span> for
+            one full-site scan — no Stripe. One claim per network (IP). Counts update live.
           </p>
         </div>
       ) : (
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-bright/90">
-          Or use a free pass
+          Or claim a free launch unlock
         </p>
       )}
 
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
 
-      <ul className={compact ? "space-y-2" : "grid gap-3 sm:grid-cols-3"}>
-        {codes.map((c) => {
-          const gone = c.remaining <= 0;
-          const pct = c.maxUses > 0 ? Math.min(100, (c.usedCount / c.maxUses) * 100) : 100;
-          return (
-            <li
-              key={c.code}
-              className={
-                compact
-                  ? "rounded-xl border border-white/15 bg-white/5 px-3 py-2.5"
-                  : "rounded-2xl border border-ink/10 bg-white px-4 py-4"
-              }
-            >
-              <div className="flex items-baseline justify-between gap-2">
-                <code
-                  className={`font-mono text-sm font-semibold tracking-wide ${
-                    compact ? "text-white" : "text-ink"
-                  }`}
-                >
-                  {c.code}
-                </code>
-                <span
-                  className={`text-xs font-medium ${
-                    gone
-                      ? compact
-                        ? "text-rose-300"
-                        : "text-rose-600"
-                      : compact
-                        ? "text-brand-bright"
-                        : "text-brand"
-                  }`}
-                >
-                  {gone ? "Used up" : `${c.remaining} left`}
-                </span>
-              </div>
-              <p className={`mt-1 text-xs ${compact ? "text-white/55" : "text-ink-muted"}`}>
-                {c.label} · {c.usedCount}/{c.maxUses} used
-              </p>
-              <div
-                className={`mt-2 h-1.5 overflow-hidden rounded-full ${
-                  compact ? "bg-white/10" : "bg-mist"
-                }`}
-              >
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    gone ? "bg-rose-400" : compact ? "bg-brand-bright" : "bg-brand"
-                  }`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <div
+        className={
+          compact
+            ? "rounded-xl border border-white/15 bg-white/5 px-3 py-3"
+            : "max-w-md rounded-2xl border border-ink/10 bg-white px-5 py-5"
+        }
+      >
+        <div className="flex items-baseline justify-between gap-2">
+          <code
+            className={`font-mono text-base font-semibold tracking-wide ${
+              compact ? "text-white" : "text-ink"
+            }`}
+          >
+            {primary.code}
+          </code>
+          <span
+            className={`text-sm font-semibold ${
+              gone
+                ? compact
+                  ? "text-rose-300"
+                  : "text-rose-600"
+                : compact
+                  ? "text-brand-bright"
+                  : "text-brand"
+            }`}
+          >
+            {gone ? "Fully claimed" : `${primary.remaining} left`}
+          </span>
+        </div>
+        <p className={`mt-1 text-xs ${compact ? "text-white/55" : "text-ink-muted"}`}>
+          {primary.usedCount}/{primary.maxUses} claimed · 1 per IP
+        </p>
+        <div
+          className={`mt-3 h-2 overflow-hidden rounded-full ${compact ? "bg-white/10" : "bg-mist"}`}
+        >
+          <div
+            className={`h-full rounded-full transition-all ${
+              gone ? "bg-rose-400" : compact ? "bg-brand-bright" : "bg-brand"
+            }`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
     </section>
   );
 }

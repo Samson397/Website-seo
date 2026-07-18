@@ -10,6 +10,10 @@ export interface PublicPromoCode {
   active: boolean;
 }
 
+const DEFAULT_CODE = "WELCOME";
+const DEFAULT_MAX = 100;
+const LEGACY_CODES = ["FRIENDS", "LAUNCH", "VIP"] as const;
+
 function getDatabaseUrl(): string | undefined {
   return (
     process.env.DATABASE_URL ||
@@ -31,22 +35,40 @@ function sql() {
 
 let schemaReady: Promise<void> | null = null;
 
-/** Default public codes — seeded once. Override with PROMO_CODES=CODE:MAX,CODE:MAX */
+/** PROMO_CODES=WELCOME:100 — defaults to first 100 via WELCOME. */
 function seedSpecs(): { code: string; maxUses: number; label: string }[] {
   const raw = process.env.PROMO_CODES?.trim();
   if (raw) {
     return raw.split(",").flatMap((part) => {
       const [code, max] = part.trim().split(":");
       if (!code) return [];
-      const maxUses = Math.max(1, Number(max) || 5);
-      return [{ code: code.toUpperCase(), maxUses, label: "Promo unlock" }];
+      const maxUses = Math.max(1, Number(max) || DEFAULT_MAX);
+      return [
+        {
+          code: code.toUpperCase(),
+          maxUses,
+          label: "First free unlocks",
+        },
+      ];
     });
   }
+  const maxFromEnv = Number(process.env.PROMO_MAX_USES);
   return [
-    { code: "FRIENDS", maxUses: 5, label: "Friends & early access" },
-    { code: "LAUNCH", maxUses: 10, label: "Launch pass" },
-    { code: "VIP", maxUses: 3, label: "VIP pass" },
+    {
+      code: DEFAULT_CODE,
+      maxUses: Number.isFinite(maxFromEnv) && maxFromEnv > 0 ? maxFromEnv : DEFAULT_MAX,
+      label: "First 100 free unlocks",
+    },
   ];
+}
+
+function normalizeIp(raw: string | undefined | null): string {
+  const ip = (raw || "unknown").trim().toLowerCase();
+  if (!ip || ip === "unknown" || ip === "::1" || ip === "127.0.0.1") {
+    // Still bind localhost in dev so repeat redeems are blocked there too
+    return ip || "unknown";
+  }
+  return ip.slice(0, 64);
 }
 
 async function ensurePromoSchema() {
@@ -57,7 +79,7 @@ async function ensurePromoSchema() {
         CREATE TABLE IF NOT EXISTS promo_codes (
           code TEXT PRIMARY KEY,
           label TEXT NOT NULL DEFAULT 'Promo unlock',
-          max_uses INTEGER NOT NULL DEFAULT 5,
+          max_uses INTEGER NOT NULL DEFAULT 100,
           used_count INTEGER NOT NULL DEFAULT 0,
           active BOOLEAN NOT NULL DEFAULT TRUE,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -67,6 +89,7 @@ async function ensurePromoSchema() {
         CREATE TABLE IF NOT EXISTS promo_unlocks (
           id TEXT PRIMARY KEY,
           code TEXT NOT NULL REFERENCES promo_codes(code),
+          client_ip TEXT,
           consumed BOOLEAN NOT NULL DEFAULT FALSE,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           consumed_at TIMESTAMPTZ
@@ -75,12 +98,35 @@ async function ensurePromoSchema() {
       await db`
         CREATE INDEX IF NOT EXISTS promo_unlocks_code_idx ON promo_unlocks (code)
       `;
+      await db`
+        ALTER TABLE promo_unlocks
+        ADD COLUMN IF NOT EXISTS client_ip TEXT
+      `;
+      // One free unlock per IP across the whole launch pass
+      await db`
+        CREATE TABLE IF NOT EXISTS promo_ip_claims (
+          client_ip TEXT PRIMARY KEY,
+          code TEXT NOT NULL,
+          unlock_id TEXT,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `;
 
       for (const spec of seedSpecs()) {
         await db`
           INSERT INTO promo_codes (code, label, max_uses, used_count, active)
           VALUES (${spec.code}, ${spec.label}, ${spec.maxUses}, 0, TRUE)
-          ON CONFLICT (code) DO NOTHING
+          ON CONFLICT (code) DO UPDATE SET
+            label = EXCLUDED.label,
+            max_uses = EXCLUDED.max_uses,
+            active = TRUE
+        `;
+      }
+
+      // Retire older multi-code seeds so only the launch pass shows
+      for (const legacy of LEGACY_CODES) {
+        await db`
+          UPDATE promo_codes SET active = FALSE WHERE code = ${legacy}
         `;
       }
     })().catch((err) => {
@@ -123,8 +169,14 @@ export type RedeemResult =
   | { ok: true; sessionId: string; code: string; remaining: number; usedCount: number; maxUses: number }
   | { ok: false; error: string; status: number };
 
-/** Redeem a public code → one single-use unlock session (like one Stripe checkout). */
-export async function redeemPromoCode(rawCode: string): Promise<RedeemResult> {
+/**
+ * Redeem a public code → one full-site unlock.
+ * Enforces global pool max + one claim per IP.
+ */
+export async function redeemPromoCode(
+  rawCode: string,
+  clientIpRaw?: string | null
+): Promise<RedeemResult> {
   if (!canUsePromoCodes()) {
     return { ok: false, error: "Promo codes need Neon / DATABASE_URL on this deployment.", status: 503 };
   }
@@ -134,10 +186,26 @@ export async function redeemPromoCode(rawCode: string): Promise<RedeemResult> {
     return { ok: false, error: "Enter a valid promo code.", status: 400 };
   }
 
+  const clientIp = normalizeIp(clientIpRaw);
   await ensurePromoSchema();
   const db = sql();
 
-  // Atomic: only increment when uses remain
+  // Reserve this IP first (unique) so one network can't burn the pool
+  const claimed = await db`
+    INSERT INTO promo_ip_claims (client_ip, code)
+    VALUES (${clientIp}, ${code})
+    ON CONFLICT (client_ip) DO NOTHING
+    RETURNING client_ip
+  `;
+  if (claimed.length === 0) {
+    return {
+      ok: false,
+      error: "This network already claimed a free unlock. Pay $0.99 for another full scan.",
+      status: 409,
+    };
+  }
+
+  // Atomic pool increment
   const updated = await db`
     UPDATE promo_codes
     SET used_count = used_count + 1
@@ -148,6 +216,9 @@ export async function redeemPromoCode(rawCode: string): Promise<RedeemResult> {
   `;
 
   if (updated.length === 0) {
+    // Release IP reservation — pool empty or bad code
+    await db`DELETE FROM promo_ip_claims WHERE client_ip = ${clientIp} AND unlock_id IS NULL`;
+
     const existing = await db`
       SELECT code, max_uses, used_count, active FROM promo_codes WHERE code = ${code}
     `;
@@ -157,14 +228,23 @@ export async function redeemPromoCode(rawCode: string): Promise<RedeemResult> {
     if (!existing[0].active) {
       return { ok: false, error: "That promo code is no longer active.", status: 410 };
     }
-    return { ok: false, error: "That promo code is fully used.", status: 410 };
+    return {
+      ok: false,
+      error: "The free launch pass is fully claimed (first 100). Pay $0.99 for a full scan.",
+      status: 410,
+    };
   }
 
   const row = updated[0];
   const sessionId = `promo_${randomBytes(16).toString("hex")}`;
   await db`
-    INSERT INTO promo_unlocks (id, code, consumed)
-    VALUES (${sessionId}, ${String(row.code)}, FALSE)
+    INSERT INTO promo_unlocks (id, code, client_ip, consumed)
+    VALUES (${sessionId}, ${String(row.code)}, ${clientIp}, FALSE)
+  `;
+  await db`
+    UPDATE promo_ip_claims
+    SET unlock_id = ${sessionId}, code = ${String(row.code)}
+    WHERE client_ip = ${clientIp}
   `;
 
   const maxUses = Number(row.max_uses);

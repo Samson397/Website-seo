@@ -72,7 +72,7 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
       <input
         value={promoCode}
         onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-        placeholder="PROMO CODE"
+        placeholder="WELCOME"
         autoComplete="off"
         spellCheck={false}
         className={
