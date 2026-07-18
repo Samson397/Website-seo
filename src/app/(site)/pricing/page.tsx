@@ -18,14 +18,16 @@ const FREE = [
 ];
 
 const PAID = [
+  "One full-site scan per payment (not a monthly pass)",
+  "Unlock this report in place — then expand to full crawl",
   "Full issue details, recommendations, and fix snippets",
   "Complete Pass / Fail / Review checklist",
   "Full-site crawl up to 200 pages + crawl controls",
   "Site-wide duplicate / thin / canonical / hreflang issues",
   "Domain, DNS, SSL & tech overview",
-  "CSV / JSON / PDF export + shareable report",
+  "CSV / JSON / PDF export + shareable report link",
+  "AI priority fix plan + draft llms.txt (when DeepSeek is configured)",
   "Email report when Resend is configured",
-  "30-day unlock on this browser",
 ];
 
 export default function PricingPage() {
@@ -34,7 +36,7 @@ export default function PricingPage() {
       <PageHero
         eyebrow="SEOHub pricing"
         title={<>Free preview. {FULL_SCAN_PRICE_LABEL} for the full report.</>}
-        description="No account. No subscription. Pay once when you need the fixes and full-site crawl."
+        description="No account. No subscription. Pay once per full-site scan — unlock that report, then crawl up to 200 pages."
         actions={
           <>
             <PrimaryCta href={routes.home}>Start free preview</PrimaryCta>
@@ -64,9 +66,9 @@ export default function PricingPage() {
       <section className="mx-auto mt-16 max-w-3xl px-4 sm:px-6">
         <h2 className="font-display text-2xl font-semibold text-ink">What you get after unlock</h2>
         <p className="mt-3 text-sm leading-relaxed text-ink-muted">
-          Unlock is stored on this browser for 30 days. Use it on as many URLs as you need during
-          that window — full report detail, crawl depth, exports, and shareable reports stay
-          available without creating an account.
+          Each payment covers <span className="font-semibold text-ink">one full-site scan</span> —
+          unlock that report’s fixes, run the crawl (up to 200 pages), export, and share. Want
+          another site later? Pay again. Free homepage previews stay free.
         </p>
         <p className="mt-4 text-sm text-ink-muted">
           Prefer the toolkit only?{" "}

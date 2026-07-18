@@ -76,7 +76,7 @@ function UnlockSuccessInner() {
         }
         description={
           status === "ok"
-            ? `Thanks — ${FULL_SCAN_PRICE_LABEL} unlock is active on this browser for 30 days.`
+            ? `Thanks — ${FULL_SCAN_PRICE_LABEL} covers one full-site scan for this report.`
             : status === "error"
               ? error || "Something went wrong."
               : "Verifying with Stripe. Don’t close this tab."
@@ -84,7 +84,9 @@ function UnlockSuccessInner() {
       />
       <div className="mx-auto mt-10 max-w-lg px-4 text-center sm:px-6">
         {status === "ok" && targetUrl ? (
-          <p className="text-sm text-ink-muted">Starting your full site scan…</p>
+          <p className="text-sm text-ink-muted">
+            Unlocking your report — then expanding to a full-site crawl…
+          </p>
         ) : null}
         {status === "ok" && !targetUrl ? (
           <Link

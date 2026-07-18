@@ -10,7 +10,7 @@ export function toFreePreviewReport(report: AuditReport): AuditReport {
     severity: issue.severity,
     title: issue.title,
     description: "Unlock the full report to see the diagnosis and fix.",
-    recommendation: "Pay once to unlock full issue details, checklist, crawl, and exports.",
+    recommendation: "Pay for one full-site scan to unlock issue details, checklist, crawl, and exports.",
   }));
 
   return {
@@ -27,6 +27,8 @@ export function toFreePreviewReport(report: AuditReport): AuditReport {
     siteOverview: undefined,
     performanceMetrics: undefined,
     shareId: undefined,
+    // Keep stash id so checkout can unlock this report without a re-crawl
+    previewId: report.previewId,
     tier: "free",
   };
 }

@@ -7,6 +7,8 @@ interface IssueCardProps {
   issue: AuditIssue;
   resolved?: boolean;
   onToggleResolved?: (id: string) => void;
+  /** Optional AI plain-English rewrite for this issue */
+  aiHint?: { plainEnglish: string; action: string };
 }
 
 const SEVERITY_STYLES = {
@@ -24,7 +26,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   domain: "Domain",
 };
 
-export function IssueCard({ issue, resolved, onToggleResolved }: IssueCardProps) {
+export function IssueCard({ issue, resolved, onToggleResolved, aiHint }: IssueCardProps) {
   const [copied, setCopied] = useState(false);
 
   async function copyFix() {
@@ -66,6 +68,14 @@ export function IssueCard({ issue, resolved, onToggleResolved }: IssueCardProps)
         {issue.title}
       </h3>
       <p className="mt-2 text-sm text-slate-600">{issue.description}</p>
+
+      {aiHint ? (
+        <div className="mt-3 rounded-lg border border-teal/20 bg-teal-soft/40 px-3 py-3">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-teal">In plain English</p>
+          <p className="mt-1 text-sm text-ink">{aiHint.plainEnglish}</p>
+          <p className="mt-2 text-sm font-medium text-ink">{aiHint.action}</p>
+        </div>
+      ) : null}
 
       {issue.currentValue && (
         <div className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm">

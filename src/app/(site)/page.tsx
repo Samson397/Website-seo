@@ -4,23 +4,24 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { UrlInput, type ScanSubmitPayload } from "@/components/UrlInput";
-import { AuditReportView } from "@/components/AuditReport";
-import { ProblemsSummary } from "@/components/ProblemsSummary";
-import { ChecksPanel } from "@/components/ChecksPanel";
 import { HomeFeatures } from "@/components/HomeFeatures";
 import { RouteCards } from "@/components/RouteCards";
 import { ScanHistoryPanel } from "@/components/ScanHistoryPanel";
-import { BenchmarkCompare } from "@/components/BenchmarkCompare";
-import { WatchToggle } from "@/components/WatchToggle";
 import { AdSlot } from "@/components/AdSlot";
 import { ScanLoadingPanel } from "@/components/ScanLoadingPanel";
 import { FreePreviewReport } from "@/components/FreePreviewReport";
+import { FullAuditDelivery } from "@/components/FullAuditDelivery";
 import { saveScanToHistory } from "@/lib/local-history";
-import { getUnlock, hasFullUnlock, saveUnlock } from "@/lib/unlock";
+import { getUnlock, hasFullUnlock, markUnlockUsed, saveUnlock } from "@/lib/unlock";
+import {
+  clearPreviewStash,
+  readPreviewStash,
+  savePreviewStash,
+} from "@/lib/preview-stash";
 import { usePaymentsEnabled } from "@/hooks/usePaymentsEnabled";
 import { routes } from "@/lib/routes";
 import type { CrawlControls } from "@/lib/crawl-options";
-import type { AuditReport, AuditCategory, ScanProgressEvent } from "@/lib/types";
+import type { AuditReport, ScanProgressEvent } from "@/lib/types";
 
 export default function Home() {
   return (
@@ -33,19 +34,17 @@ export default function Home() {
 function HomeShell({ children }: { children?: React.ReactNode }) {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-24">
         <div className="relative mx-auto max-w-6xl">
-          <div className="logo-plate">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo.png"
-              alt="SEOHub"
-              width={260}
-              height={290}
-              className="h-32 w-auto sm:h-40"
-            />
-          </div>
-          <h1 className="font-display mt-8 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-hero.png"
+            alt="SEOHub"
+            width={260}
+            height={290}
+            className="h-28 w-auto sm:h-36"
+          />
+          <h1 className="font-display mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
             The site check you run every week.
           </h1>
         </div>
@@ -67,18 +66,19 @@ function HomeScanApp() {
   const [scanningUrl, setScanningUrl] = useState("");
   const [progressEvents, setProgressEvents] = useState<ScanProgressEvent[]>([]);
   const [unlockNotice, setUnlockNotice] = useState<string | null>(null);
+  const [expandingCrawl, setExpandingCrawl] = useState(false);
+  const [scanMode, setScanMode] = useState<"free" | "full">("free");
   const lastUrl = useRef<string>("");
   const autoStarted = useRef<string | null>(null);
   const unlockHandled = useRef<string | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
-  const [issueFilter, setIssueFilter] = useState<AuditCategory | "all">("all");
   const lastCrawl = useRef<CrawlControls | undefined>(undefined);
 
   useEffect(() => {
     setUnlocked(!paymentsOn || hasFullUnlock());
   }, [paymentsOn]);
 
-  // Complete Stripe Checkout return
+  // Complete Stripe Checkout return — unlock stashed report in place, then expand crawl
   useEffect(() => {
     const sessionId = searchParams.get("unlock_session");
     if (!sessionId || unlockHandled.current === sessionId) return;
@@ -98,8 +98,39 @@ function HomeScanApp() {
         }
         saveUnlock(sessionId);
         setUnlocked(true);
+
+        const stash = readPreviewStash();
+        const url = searchParams.get("url")?.trim() || stash?.url || lastUrl.current;
+        const previewId = stash?.previewId;
+
+        if (previewId) {
+          const unlockRes = await fetch("/api/audit/unlock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ previewId, sessionId }),
+          });
+          const unlockData = await unlockRes.json();
+          if (unlockRes.ok && unlockData.report) {
+            const unlockedReport = unlockData.report as AuditReport;
+            setReport(unlockedReport);
+            saveScanToHistory(unlockedReport);
+            setHistoryTick((n) => n + 1);
+            clearPreviewStash();
+            setUnlockNotice(
+              `Unlocked for ${priceLabel}. Showing your report — expanding to full-site crawl…`
+            );
+            requestAnimationFrame(() => {
+              resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+            if (url) {
+              autoStarted.current = null;
+              void runAudit(url, true, true, sessionId, undefined, true);
+            }
+            return;
+          }
+        }
+
         setUnlockNotice(`Full SEO unlocked for ${priceLabel}. Running full site scan…`);
-        const url = searchParams.get("url")?.trim() || lastUrl.current;
         if (url) {
           autoStarted.current = null;
           void runAudit(url, false, true, sessionId);
@@ -116,9 +147,11 @@ function HomeScanApp() {
     isRescan = false,
     forceFull = false,
     sessionOverride?: string,
-    crawl?: CrawlControls
+    crawl?: CrawlControls,
+    keepVisible = false
   ) {
-    setLoading(true);
+    setLoading(!keepVisible);
+    setExpandingCrawl(keepVisible);
     setScanningUrl(url);
     setError(null);
     setProgressEvents([{ type: "stage", stage: "fetch", message: "Connecting…" }]);
@@ -126,7 +159,7 @@ function HomeScanApp() {
     if (crawl) lastCrawl.current = crawl;
     const crawlOpts = crawl ?? lastCrawl.current;
 
-    if (!isRescan) {
+    if (!isRescan && !keepVisible) {
       setPreviousReport(null);
       setReport(null);
     } else if (report) {
@@ -136,6 +169,7 @@ function HomeScanApp() {
     const unlock = getUnlock();
     const sessionId = sessionOverride || unlock?.sessionId;
     const useFull = forceFull || !paymentsOn || Boolean(sessionId);
+    setScanMode(useFull ? "full" : "free");
 
     try {
       const response = await fetch("/api/audit/stream", {
@@ -210,10 +244,23 @@ function HomeScanApp() {
 
       lastUrl.current = url;
       setReport(audit);
-      setUnlocked(audit.tier === "full" || !paymentsOn || hasFullUnlock());
+      if (audit.tier === "full" && useFull && sessionId) {
+        // One payment = one full scan — burn the unlock after success
+        markUnlockUsed();
+        setUnlocked(false);
+      } else {
+        setUnlocked(audit.tier === "full" || !paymentsOn || hasFullUnlock());
+      }
+      if (audit.tier === "free" && audit.previewId) {
+        savePreviewStash(audit.previewId, audit.url);
+      }
+      if (audit.tier === "full") {
+        clearPreviewStash();
+      }
       saveScanToHistory(audit);
       setHistoryTick((n) => n + 1);
-      setUnlockNotice(null);
+      if (!keepVisible) setUnlockNotice(null);
+      else setUnlockNotice(null);
       requestAnimationFrame(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
@@ -225,6 +272,7 @@ function HomeScanApp() {
       }
     } finally {
       setLoading(false);
+      setExpandingCrawl(false);
       setProgressEvents([]);
     }
   }
@@ -251,28 +299,32 @@ function HomeScanApp() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
-        <div className="relative mx-auto max-w-6xl">
-          <div className="logo-plate animate-logo">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-24">
+        <div className="relative z-[1] mx-auto max-w-6xl">
+          <div className="animate-logo">
+            {/* Hero uses slate-baked mark so cutout AA matches the field (no white halo). */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo.png"
+              src="/logo-hero.png"
               alt="SEOHub"
               width={260}
               height={290}
-              className="h-32 w-auto sm:h-40"
+              className="h-28 w-auto sm:h-36"
             />
           </div>
-          <h1 className="font-display animate-rise-delay-1 mt-8 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
-            Full-site SEO, without the SaaS tax.
+          <h1 className="font-display animate-rise-delay-1 mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
+            Full-site SEO. No subscription.
           </h1>
-          <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-ink-muted sm:text-lg">
+          <p className="animate-rise-delay-2 mt-3 max-w-xl text-base text-ink-muted sm:text-lg">
             {paymentsOn
-              ? `Free homepage preview. Unlock the full crawl for ${priceLabel} — no account.`
+              ? `Free homepage scores + AI visibility. Unlock the full crawl and fixes for ${priceLabel}.`
               : "Audit, keywords, rank checks, and tools — free to start, no account."}
           </p>
+          <p className="animate-rise-delay-2 mt-2 text-sm font-medium tracking-wide text-ink/70">
+            50+ checks · up to 200 pages · no account
+          </p>
 
-          <div className="animate-rise-delay-2 scan-shell mt-9 max-w-2xl rounded-2xl p-4 sm:p-5">
+          <div className="animate-rise-delay-2 scan-shell mt-6 max-w-2xl rounded-2xl p-4 sm:p-5">
             <UrlInput
               onSubmit={handleScanSubmit}
               loading={loading}
@@ -299,7 +351,11 @@ function HomeScanApp() {
         {!report && !loading && <ScanHistoryPanel refreshToken={historyTick} />}
 
         {loading && (
-          <ScanLoadingPanel url={scanningUrl || lastUrl.current} events={progressEvents} />
+          <ScanLoadingPanel
+            url={scanningUrl || lastUrl.current}
+            events={progressEvents}
+            mode={scanMode}
+          />
         )}
 
         {error && (
@@ -308,8 +364,15 @@ function HomeScanApp() {
           </div>
         )}
 
-        {report && !loading && (
+        {report && (!loading || expandingCrawl) && (
           <div ref={resultsRef} className="mt-10 space-y-8 pb-12">
+            {expandingCrawl ? (
+              <ScanLoadingPanel
+                url={scanningUrl || lastUrl.current}
+                events={progressEvents}
+                mode="full"
+              />
+            ) : null}
             {isFreePreview ? (
               <FreePreviewReport
                 report={report}
@@ -317,47 +380,13 @@ function HomeScanApp() {
                 rescanLoading={loading}
               />
             ) : (
-              <>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">
-                  Full SEO unlocked
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <WatchToggle report={report} />
-                  <Link
-                    href={routes.history}
-                    className="text-sm font-medium text-brand hover:underline"
-                  >
-                    View History
-                  </Link>
-                  <p className="text-sm text-ink-muted">Saved on this browser — re-check anytime.</p>
-                </div>
-
-                <BenchmarkCompare report={report} />
-                <AdSlot className="max-w-3xl" />
-
-                <ProblemsSummary
-                  report={report}
-                  onJumpToCategory={(category) => {
-                    setIssueFilter(category);
-                    document
-                      .getElementById("audit-issues")
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }}
-                />
-                {report.checklist && <ChecksPanel checklist={report.checklist} />}
-                <AdSlot format="horizontal" />
-
-                <AuditReportView
-                  report={report}
-                  previousReport={previousReport}
-                  onRescan={handleRescan}
-                  rescanLoading={loading}
-                  showProblemsSummary={false}
-                  categoryFilter={issueFilter}
-                  onCategoryFilterChange={setIssueFilter}
-                />
-              </>
+              <FullAuditDelivery
+                report={report}
+                previousReport={previousReport}
+                onRescan={handleRescan}
+                rescanLoading={loading}
+                expandingCrawl={expandingCrawl}
+              />
             )}
           </div>
         )}

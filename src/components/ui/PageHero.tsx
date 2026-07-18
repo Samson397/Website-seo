@@ -17,21 +17,21 @@ export function PageHero({
   actions,
 }: PageHeroProps) {
   return (
-    <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-16 sm:pt-32">
-      <div className="relative mx-auto max-w-6xl">
+    <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pb-14 sm:pt-24">
+      <div className="relative z-[1] mx-auto max-w-6xl">
         <p className="animate-rise text-xs font-semibold uppercase tracking-[0.22em] text-teal">
           {eyebrow}
         </p>
-        <h1 className="font-display animate-rise-delay-1 mt-3 max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
+        <h1 className="font-display animate-rise-delay-1 mt-2 max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
           {title}
         </h1>
         {description && (
-          <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-ink-muted sm:text-lg">
+          <p className="animate-rise-delay-2 mt-3 max-w-xl text-base text-ink-muted sm:text-lg">
             {description}
           </p>
         )}
-        {actions && <div className="animate-rise-delay-2 mt-6 flex flex-wrap gap-3">{actions}</div>}
-        {children && <div className="animate-rise-delay-2 mt-8">{children}</div>}
+        {actions && <div className="animate-rise-delay-2 mt-5 flex flex-wrap gap-3">{actions}</div>}
+        {children && <div className="animate-rise-delay-2 mt-6">{children}</div>}
       </div>
     </section>
   );

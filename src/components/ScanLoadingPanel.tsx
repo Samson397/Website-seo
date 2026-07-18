@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ScanProgressEvent } from "@/lib/types";
 
-const STAGES = [
+const FULL_STAGES = [
   { id: "fetch", label: "Fetching page", detail: "Loading the starting URL" },
   { id: "sitemap", label: "Reading sitemap", detail: "Discovering URLs from sitemap.xml" },
   { id: "crawl", label: "Crawling links", detail: "Following internal links across the site" },
@@ -11,10 +11,16 @@ const STAGES = [
   { id: "score", label: "Scoring results", detail: "Building your full scan report" },
 ] as const;
 
-function stageIndexFromId(stage: string): number {
-  const i = STAGES.findIndex((s) => s.id === stage);
+const FREE_STAGES = [
+  { id: "fetch", label: "Fetching page", detail: "Loading the homepage" },
+  { id: "checks", label: "Running checks", detail: "Scores, AI visibility & top issues" },
+  { id: "score", label: "Building preview", detail: "Preparing your free brief" },
+] as const;
+
+function stageIndexFromId(stage: string, stages: readonly { id: string }[]): number {
+  const i = stages.findIndex((s) => s.id === stage);
   if (i >= 0) return i;
-  if (stage === "crawl") return 2;
+  if (stage === "sitemap" || stage === "crawl") return Math.min(2, stages.length - 1);
   return 0;
 }
 
@@ -22,10 +28,13 @@ interface ScanLoadingPanelProps {
   url?: string;
   /** Live events from /api/audit/stream */
   events?: ScanProgressEvent[];
+  /** Free homepage preview vs full-site crawl */
+  mode?: "free" | "full";
 }
 
-export function ScanLoadingPanel({ url, events = [] }: ScanLoadingPanelProps) {
+export function ScanLoadingPanel({ url, events = [], mode = "full" }: ScanLoadingPanelProps) {
   const [elapsed, setElapsed] = useState(0);
+  const stages = mode === "free" ? FREE_STAGES : FULL_STAGES;
 
   const host = useMemo(() => {
     if (!url) return "your site";
@@ -51,14 +60,12 @@ export function ScanLoadingPanel({ url, events = [] }: ScanLoadingPanelProps) {
 
   let stageIndex = 0;
   if (stageEvent && stageEvent.type === "stage") {
-    stageIndex = stageIndexFromId(stageEvent.stage);
-    if (stageEvent.stage === "checks" || stageEvent.stage === "score") {
-      // keep
-    } else if (crawlEvent && crawlEvent.type === "crawl" && crawlEvent.scanned > 0) {
-      stageIndex = Math.max(stageIndex, 2);
+    stageIndex = stageIndexFromId(stageEvent.stage, stages);
+    if (mode === "full" && crawlEvent && crawlEvent.type === "crawl" && crawlEvent.scanned > 0) {
+      stageIndex = Math.max(stageIndex, stageIndexFromId("crawl", stages));
     }
-  } else if (crawlEvent) {
-    stageIndex = 2;
+  } else if (crawlEvent && mode === "full") {
+    stageIndex = stageIndexFromId("crawl", stages);
   }
 
   const activityLines: string[] = [];
@@ -73,36 +80,41 @@ export function ScanLoadingPanel({ url, events = [] }: ScanLoadingPanelProps) {
     }
   }
   if (activityLines.length === 0) {
-    activityLines.push("Connecting…", "Starting full-site scan…");
+    activityLines.push(
+      "Connecting…",
+      mode === "free" ? "Starting homepage preview…" : "Starting full-site scan…"
+    );
   }
   const visibleActivity = activityLines.slice(-3);
 
   const crawlScanned = crawlEvent && crawlEvent.type === "crawl" ? crawlEvent.scanned : 0;
   const progress =
-    stageIndex >= 4
+    stageIndex >= stages.length - 1
       ? 92
-      : stageIndex === 3
+      : mode === "full" && stageIndex === 3
         ? 70 + Math.min(20, crawlScanned)
-        : ((stageIndex + 1) / STAGES.length) * 100;
+        : ((stageIndex + 1) / stages.length) * 100;
 
   return (
-    <div className="relative mt-8 overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-glow">
-      <div className="pointer-events-none absolute inset-0 opacity-[0.35]" aria-hidden>
+    <div className="relative mt-6 overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-glow">
+      <div className="scan-sheen absolute inset-x-0 top-0" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.28]" aria-hidden>
         <div className="scan-grid absolute inset-0" />
-        <div className="scan-radar absolute left-1/2 top-8 h-56 w-56 -translate-x-1/2 rounded-full" />
       </div>
 
-      <div className="relative px-5 py-8 sm:px-8 sm:py-10">
+      <div className="relative px-5 py-6 sm:px-8 sm:py-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-md">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal">
-              Full site scan
+              {mode === "free" ? "Free preview" : "Full site scan"}
             </p>
             <h2 className="font-display mt-2 text-2xl font-semibold text-ink sm:text-3xl">
               Scanning {host}
             </h2>
             <p className="mt-2 text-sm text-ink-muted">
-              Discovering pages, then checking each one. Large sites may take up to a minute.
+              {mode === "free"
+                ? "Homepage scores, AI visibility, and top issues — usually under 30 seconds."
+                : "Discovering pages, then checking each one. Large sites may take up to a minute."}
             </p>
             <p className="mt-3 font-mono text-xs text-ink-muted/80">
               {elapsed}s elapsed
@@ -112,7 +124,7 @@ export function ScanLoadingPanel({ url, events = [] }: ScanLoadingPanelProps) {
 
           <div className="w-full max-w-sm">
             <div className="mb-2 flex items-center justify-between text-xs text-ink-muted">
-              <span>{STAGES[stageIndex].label}</span>
+              <span>{stages[stageIndex]?.label}</span>
               <span>{Math.round(Math.min(progress, 98))}%</span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-mist">
@@ -124,8 +136,10 @@ export function ScanLoadingPanel({ url, events = [] }: ScanLoadingPanelProps) {
           </div>
         </div>
 
-        <ol className="mt-8 grid gap-2 sm:grid-cols-5">
-          {STAGES.map((stage, i) => {
+        <ol
+          className={`mt-8 grid gap-2 ${mode === "free" ? "sm:grid-cols-3" : "sm:grid-cols-5"}`}
+        >
+          {stages.map((stage, i) => {
             const done = i < stageIndex;
             const active = i === stageIndex;
             return (

@@ -34,7 +34,7 @@ body {
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -81,7 +81,7 @@ body {
 @keyframes logo-presence {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.97);
+    transform: translateY(4px) scale(0.985);
   }
   to {
     opacity: 1;
@@ -89,20 +89,43 @@ body {
   }
 }
 
+@keyframes hero-sheen {
+  0% {
+    transform: translateX(-40%);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+@keyframes scan-sheen {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
 .animate-rise {
-  animation: rise-in 0.55s ease-out both;
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-rise-delay-1 {
-  animation: rise-in 0.55s ease-out 0.08s both;
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
 }
 
 .animate-rise-delay-2 {
-  animation: rise-in 0.55s ease-out 0.16s both;
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
 .animate-logo {
-  animation: logo-presence 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: logo-presence 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .scan-pulse::before {
@@ -114,24 +137,10 @@ body {
   animation: pulse-ring 1.6s ease-out infinite;
 }
 
-@keyframes radar-sweep {
-  0% {
-    transform: translate(-50%, 0) scale(0.55);
-    opacity: 0.45;
-  }
-  70% {
-    opacity: 0.12;
-  }
-  100% {
-    transform: translate(-50%, 0) scale(1.35);
-    opacity: 0;
-  }
-}
-
 @keyframes activity-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -141,53 +150,76 @@ body {
 
 .scan-grid {
   background-image:
-    linear-gradient(rgba(13, 148, 136, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(29, 78, 216, 0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, black, transparent 75%);
+    linear-gradient(rgba(13, 148, 136, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 78, 216, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black, transparent 70%);
 }
 
-.scan-radar {
-  border: 1px solid rgba(13, 148, 136, 0.35);
-  background: radial-gradient(circle, rgba(20, 184, 166, 0.18), transparent 65%);
-  animation: radar-sweep 2.8s ease-out infinite;
+/* Slim premium progress sheen — sits at the top, not a low radar blob */
+.scan-sheen {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(13, 148, 136, 0.15) 25%,
+    rgba(13, 148, 136, 0.85) 50%,
+    rgba(13, 148, 136, 0.15) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: scan-sheen 1.8s ease-in-out infinite;
 }
 
 .scan-activity-line {
-  animation: activity-in 0.35s ease-out both;
+  animation: activity-in 0.3s ease-out both;
 }
 
 /*
-  Premium luminous hero — cool mist + navy/teal washes.
-  Dark logo reads as the brand; no flat white slab, no navy void.
+  Premium cool slate hero — even teal/ink atmosphere.
+  No white blooms, plates, or washed center behind the logo.
 */
 .hero-mesh {
   color: var(--ink);
-  background:
-    radial-gradient(ellipse 95% 70% at 6% -12%, rgba(13, 148, 136, 0.34), transparent 56%),
-    radial-gradient(ellipse 80% 60% at 100% 0%, rgba(11, 31, 58, 0.22), transparent 50%),
-    radial-gradient(ellipse 65% 50% at 48% 105%, rgba(18, 58, 107, 0.16), transparent 55%),
-    linear-gradient(168deg, #d9e8ed 0%, #c9dde5 46%, #bcd3dd 100%);
+  /* Flat slate — exact match for public/logo-hero.png so the mark has no box/halo */
+  background: #a9c4d0;
+  position: relative;
 }
 
+/* High sheen — premium motion at the top of the hero, not low in the section */
 .hero-mesh::before {
   content: "";
   position: absolute;
-  inset: -10% -5%;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 48% 38% at 28% 22%, rgba(20, 184, 166, 0.2), transparent 70%),
-    radial-gradient(ellipse 42% 32% at 78% 30%, rgba(29, 78, 216, 0.14), transparent 70%);
-  animation: mist-drift 14s ease-in-out infinite;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(11, 31, 58, 0.08) 20%,
+    rgba(13, 148, 136, 0.55) 50%,
+    rgba(11, 31, 58, 0.08) 80%,
+    transparent 100%
+  );
+  opacity: 0.9;
 }
 
 .hero-mesh::after {
   content: "";
-  position: absolute;
-  inset: 0;
   pointer-events: none;
-  opacity: 0.45;
-  background-image: url("data:image/svg+xml,%3Csvg width='72' height='72' viewBox='0 0 72 72' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230b1f3a' fill-opacity='0.045'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 120px;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 45%,
+    transparent 70%
+  );
+  animation: hero-sheen 7s ease-in-out infinite;
 }
 
 .glass-panel {
@@ -196,35 +228,9 @@ body {
   -webkit-backdrop-filter: blur(16px);
 }
 
+/* Interaction surface — tinted to hero, not a white card */
 .scan-shell {
-  border: 1px solid rgba(11, 31, 58, 0.14);
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95) inset,
-    0 28px 56px -30px rgba(11, 31, 58, 0.38);
-}
-
-/* Soft luminous bloom behind the mark — no hard plate / sticker edge */
-.logo-plate {
-  position: relative;
-  display: inline-block;
-}
-
-.logo-plate::before {
-  content: "";
-  position: absolute;
-  inset: -18% -22% -12%;
-  background: radial-gradient(
-    ellipse 55% 50% at 50% 42%,
-    rgba(236, 247, 248, 0.55) 0%,
-    rgba(201, 221, 229, 0.18) 45%,
-    transparent 70%
-  );
-  filter: blur(8px);
-  z-index: 0;
-}
-
-.logo-plate > * {
-  position: relative;
-  z-index: 1;
+  border: 1px solid rgba(11, 31, 58, 0.16);
+  background: rgba(232, 242, 246, 0.55);
+  box-shadow: 0 22px 44px -30px rgba(11, 31, 58, 0.35);
 }

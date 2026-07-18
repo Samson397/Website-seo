@@ -55,7 +55,7 @@ export const mainNav = [
   {
     href: routes.pricing,
     label: "Pricing",
-    description: "Free preview vs $0.99 full-site unlock",
+    description: "Free preview vs $0.99 per full-site scan",
   },
 ] as const;
 
