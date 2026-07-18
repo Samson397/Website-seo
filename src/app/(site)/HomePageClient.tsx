@@ -108,6 +108,7 @@ export function HomePageClient() {
       const response = await fetch("/api/audit/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
           url,
           siteCrawl: useFull,
@@ -440,36 +441,58 @@ function HomeUrlEffects({
   runAuditRef: MutableRefObject<RunAuditFn | null>;
 }) {
   const searchParams = useSearchParams();
+  const unlockInFlight = useRef<string | null>(null);
 
   useEffect(() => {
     const sessionId = searchParams.get("unlock_session");
-    if (!sessionId || unlockHandled.current === sessionId) return;
-    unlockHandled.current = sessionId;
+    if (
+      !sessionId ||
+      unlockHandled.current === sessionId ||
+      unlockInFlight.current === sessionId
+    ) {
+      return;
+    }
 
+    unlockInFlight.current = sessionId;
+    let cancelled = false;
     void (async () => {
       try {
         const res = await fetch("/api/stripe/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sessionId }),
+          credentials: "same-origin",
         });
         const data = await res.json();
+        if (cancelled) return;
         if (!res.ok || !data.paid) {
-          setError(data.error || "Payment could not be verified.");
+          setError(
+            data.error ||
+              "Payment could not be verified. Re-open Unlock if you were charged, or run a free preview."
+          );
           return;
         }
+        unlockHandled.current = sessionId;
         saveUnlock(sessionId);
         setUnlocked(true);
         setUnlockNotice(`Full SEO unlocked for ${priceLabel}. Running full site scan…`);
         const url = searchParams.get("url")?.trim() || lastUrl.current;
         if (url) {
-          autoStarted.current = null;
+          autoStarted.current = url;
           void runAuditRef.current?.(url, false, true, sessionId);
         }
       } catch {
-        setError("Could not verify payment. Contact support if you were charged.");
+        if (!cancelled) {
+          setError("Could not verify payment. Contact support if you were charged.");
+        }
+      } finally {
+        if (unlockInFlight.current === sessionId) unlockInFlight.current = null;
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     searchParams,
     priceLabel,
@@ -487,6 +510,7 @@ function HomeUrlEffects({
     const url = searchParams.get("url")?.trim();
     if (!url || autoStarted.current === url) return;
     autoStarted.current = url;
+    // Prefer stored unlock session so full crawl auth is included after checkout return.
     void runAuditRef.current?.(url);
   }, [searchParams, autoStarted, runAuditRef]);
 

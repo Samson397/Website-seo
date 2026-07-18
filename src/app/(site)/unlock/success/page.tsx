@@ -42,6 +42,7 @@ function UnlockSuccessInner() {
         const res = await fetch("/api/stripe/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
           body: JSON.stringify({ sessionId }),
         });
         const data = await res.json();

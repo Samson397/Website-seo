@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isStripeConfigured } from "@/lib/stripe";
 import { verifyPaidCheckoutSession } from "@/lib/stripe-unlock-server";
+import { attachUnlockGrantCookie } from "@/lib/unlock-grant";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -23,14 +24,14 @@ export async function POST(req: NextRequest) {
     const { sessionId } = (await req.json()) as { sessionId?: string };
     const result = await verifyPaidCheckoutSession(sessionId);
 
-    if (!result.paid) {
+    if (!result.paid || !result.sessionId) {
       return NextResponse.json(
         { ok: false, paid: false, error: result.error || "Payment not completed" },
         { status: result.error?.includes("required") ? 400 : 402 }
       );
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       ok: true,
       paid: true,
       sessionId: result.sessionId,
@@ -38,6 +39,8 @@ export async function POST(req: NextRequest) {
       amountTotal: result.amountTotal,
       currency: result.currency,
     });
+    attachUnlockGrantCookie(res, result.sessionId);
+    return res;
   } catch (err) {
     console.error("[stripe/verify]", err);
     return NextResponse.json(

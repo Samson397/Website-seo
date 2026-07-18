@@ -1,11 +1,15 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { runFullAudit } from "@/lib/audit";
 import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
-import { verifyPaidSession } from "@/lib/stripe-unlock-server";
+import { authorizeFullUnlock } from "@/lib/stripe-unlock-server";
+import {
+  attachUnlockGrantCookie,
+  readUnlockGrantFromRequest,
+} from "@/lib/unlock-grant";
 import { toFreePreviewReport } from "@/lib/free-preview";
 import { auditOptionsFromBody } from "@/lib/audit-request";
 import type { AuditOptions, ScanProgressEvent } from "@/lib/types";
@@ -62,19 +66,25 @@ export async function POST(request: NextRequest) {
 
   let siteCrawl = wantFull;
   let tier: "free" | "full" = "full";
+  let grantedSessionId: string | null = null;
   if (isStripeConfigured()) {
-    if (wantFull && unlockSessionId) {
-      const paid = await verifyPaidSession(unlockSessionId);
-      if (!paid) {
+    if (wantFull && (unlockSessionId || readUnlockGrantFromRequest(request))) {
+      const auth = await authorizeFullUnlock({
+        unlockSessionId,
+        grantCookie: readUnlockGrantFromRequest(request),
+      });
+      if (!auth.ok) {
         return new Response(
           JSON.stringify({
             type: "error",
             error:
+              auth.error ||
               "Payment could not be verified for a full crawl. Re-open Unlock and complete checkout, or run a free homepage preview.",
           }) + "\n",
           { status: 402, headers: { "Content-Type": "application/x-ndjson" } }
         );
       }
+      grantedSessionId = auth.sessionId;
       siteCrawl = true;
       tier = "full";
     } else {
@@ -136,7 +146,7 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return new Response(stream, {
+  const res = new NextResponse(stream, {
     headers: {
       "Content-Type": "application/x-ndjson; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
@@ -144,4 +154,8 @@ export async function POST(request: NextRequest) {
       "X-SEOHub-Tier": tier,
     },
   });
+  if (grantedSessionId) {
+    attachUnlockGrantCookie(res, grantedSessionId);
+  }
+  return res;
 }

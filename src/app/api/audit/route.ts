@@ -5,7 +5,11 @@ import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
-import { verifyPaidSession } from "@/lib/stripe-unlock-server";
+import { authorizeFullUnlock } from "@/lib/stripe-unlock-server";
+import {
+  attachUnlockGrantCookie,
+  readUnlockGrantFromRequest,
+} from "@/lib/unlock-grant";
 import { toFreePreviewReport } from "@/lib/free-preview";
 import { auditOptionsFromBody } from "@/lib/audit-request";
 
@@ -38,19 +42,25 @@ export async function POST(request: NextRequest) {
 
     let siteCrawl = wantFull;
     let tier: "free" | "full" = "full";
+    let grantedSessionId: string | null = null;
 
     if (isStripeConfigured()) {
-      if (wantFull && unlockSessionId) {
-        const paid = await verifyPaidSession(unlockSessionId);
-        if (!paid) {
+      if (wantFull && (unlockSessionId || readUnlockGrantFromRequest(request))) {
+        const auth = await authorizeFullUnlock({
+          unlockSessionId,
+          grantCookie: readUnlockGrantFromRequest(request),
+        });
+        if (!auth.ok) {
           return NextResponse.json(
             {
               error:
+                auth.error ||
                 "Payment could not be verified for a full crawl. Re-open Unlock and complete checkout, or run a free homepage preview.",
             },
             { status: 402 }
           );
         }
+        grantedSessionId = auth.sessionId;
         siteCrawl = true;
         tier = "full";
       } else {
@@ -82,12 +92,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(responseReport, {
+    const res = NextResponse.json(responseReport, {
       headers: {
         "X-RateLimit-Remaining": String(limited.remaining),
         "X-SEOHub-Tier": tier,
       },
     });
+    if (grantedSessionId) {
+      attachUnlockGrantCookie(res, grantedSessionId);
+    }
+    return res;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Audit failed";
     const status = message.includes("not allowed") || message.includes("resolve") ? 400 : 500;
