@@ -129,8 +129,21 @@ export async function runDeepChecksAudit(ctx: AuditContext): Promise<AuditIssue[
     const raw = $(el).html()?.trim();
     if (!raw) return;
     try {
-      const parsed = JSON.parse(raw);
-      if (!parsed["@context"]) {
+      const parsed = JSON.parse(raw) as unknown;
+      // Bare arrays are valid JSON-LD but Safari's parser errors on them — prefer @graph.
+      const hasContext = (() => {
+        if (!parsed || typeof parsed !== "object") return false;
+        if (Array.isArray(parsed)) {
+          return parsed.some(
+            (node) =>
+              node &&
+              typeof node === "object" &&
+              Boolean((node as Record<string, unknown>)["@context"])
+          );
+        }
+        return Boolean((parsed as Record<string, unknown>)["@context"]);
+      })();
+      if (!hasContext) {
         issues.push(
           createIssue({
             category: "seo",
@@ -138,7 +151,8 @@ export async function runDeepChecksAudit(ctx: AuditContext): Promise<AuditIssue[
             title: "Invalid structured data (missing @context)",
             description: "JSON-LD blocks need an @context property to be valid.",
             currentValue: `Block ${i + 1}`,
-            recommendation: 'Add "@context": "https://schema.org" to your JSON-LD.',
+            recommendation:
+              'Use a single object with "@context": "https://schema.org" and "@graph" for multiple types (avoids Safari errors from bare arrays).',
           })
         );
       }
