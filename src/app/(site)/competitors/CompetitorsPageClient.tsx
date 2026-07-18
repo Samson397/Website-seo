@@ -75,7 +75,7 @@ export default function CompetitorsPageClient() {
         </div>
       </PageHero>
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {loading && !progress && (
           <div className="mt-8 rounded-2xl border border-ink/10 bg-white p-10 text-center shadow-sm">
             <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-4 border-teal border-t-transparent" />

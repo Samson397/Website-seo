@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SectionTabs } from "@/components/ui/SectionTabs";
 import type { SiteOverview } from "@/lib/types";
 
 interface SiteOverviewPanelProps {
@@ -9,41 +10,33 @@ interface SiteOverviewPanelProps {
 
 type Tab = "links" | "domain" | "tech" | "social";
 
+const OVERVIEW_TABS = [
+  { id: "links" as const, label: "Link profile" },
+  { id: "domain" as const, label: "Domain & DNS" },
+  { id: "tech" as const, label: "Technology" },
+  { id: "social" as const, label: "Social" },
+];
+
 export function SiteOverviewPanel({ overview }: SiteOverviewPanelProps) {
   const [tab, setTab] = useState<Tab>("links");
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "links", label: "Link Profile" },
-    { key: "domain", label: "Domain & DNS" },
-    { key: "tech", label: "Technology" },
-    { key: "social", label: "Social" },
-  ];
-
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-5 pt-5">
-        <h3 className="text-lg font-bold text-slate-900">Complete Site Intelligence</h3>
-        <p className="mt-1 text-sm text-slate-500">
+    <div className="rounded-2xl border border-ink/10 bg-white">
+      <div className="px-5 pt-5 sm:px-6">
+        <h3 className="font-display text-lg font-semibold text-ink">Site intelligence</h3>
+        <p className="mt-1 text-sm text-ink-muted">
           Domain, DNS, SSL, technology, and link profile — no API keys required
         </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-                tab === t.key
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <SectionTabs
+          className="mt-4"
+          tabs={OVERVIEW_TABS}
+          value={tab}
+          onChange={setTab}
+          ariaLabel="Site intelligence"
+        />
       </div>
 
-      <div className="p-5">
+      <div className="p-5 sm:p-6">
         {tab === "links" && <LinksTab overview={overview} />}
         {tab === "domain" && <DomainTab overview={overview} />}
         {tab === "tech" && <TechTab overview={overview} />}

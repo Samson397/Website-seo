@@ -48,7 +48,7 @@ export default function PricingPage() {
         }
       />
 
-      <div className="mx-auto mt-12 grid max-w-5xl gap-12 px-4 sm:grid-cols-2 sm:px-6">
+      <div className="mx-auto mt-12 grid max-w-7xl gap-12 px-4 sm:grid-cols-2 sm:px-6 lg:px-8">
         <Plan
           label="Free"
           price="$0"
@@ -66,7 +66,7 @@ export default function PricingPage() {
         />
       </div>
 
-      <section className="mx-auto mt-16 max-w-5xl px-4 sm:px-6">
+      <section className="mx-auto mt-14 max-w-2xl px-4 text-center sm:px-6">
         <PromoCodesBoard />
       </section>
 

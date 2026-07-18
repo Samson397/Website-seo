@@ -12,12 +12,20 @@ import { BenchmarkCompare } from "@/components/BenchmarkCompare";
 import { WatchToggle } from "@/components/WatchToggle";
 import { AdSlot } from "@/components/AdSlot";
 import { AiFixPlanPanel } from "@/components/AiFixPlanPanel";
+import { SectionTabs } from "@/components/ui/SectionTabs";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 import { routes } from "@/lib/routes";
 import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
 import type { AuditCategory, AuditReport } from "@/lib/types";
 
 type Tab = "brief" | "issues" | "checklist" | "details";
+
+const REPORT_TABS = [
+  { id: "brief" as const, label: "Brief" },
+  { id: "issues" as const, label: "Issues" },
+  { id: "checklist" as const, label: "Checklist" },
+  { id: "details" as const, label: "Full detail" },
+];
 
 interface FullAuditDeliveryProps {
   report: AuditReport;
@@ -118,27 +126,12 @@ export function FullAuditDelivery({
         </div>
       </section>
 
-      <div className="flex flex-wrap gap-2 border-b border-ink/10 pb-1">
-        {(
-          [
-            ["brief", "Brief"],
-            ["issues", "Issues"],
-            ["checklist", "Checklist"],
-            ["details", "Full detail"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
-              tab === id ? "bg-ink text-white" : "text-ink-muted hover:bg-mist hover:text-ink"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <SectionTabs
+        tabs={REPORT_TABS}
+        value={tab}
+        onChange={setTab}
+        ariaLabel="Report sections"
+      />
 
       {tab === "brief" ? (
         <div className="space-y-8">

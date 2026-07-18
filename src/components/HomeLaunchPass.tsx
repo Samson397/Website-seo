@@ -9,12 +9,13 @@ import {
   type PromoCodeRow,
 } from "@/components/PromoCodesBoard";
 
-/** Homepage launch pass — only while a free code still has remaining uses. */
+/** Quiet homepage claim — sits below explore links, not as a top promo strip. */
 export function HomeLaunchPass() {
   const [codes, setCodes] = useState<PromoCodeRow[] | null>(null);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -42,9 +43,7 @@ export function HomeLaunchPass() {
     if (codes?.[0] && !code) setCode(codes[0].code);
   }, [codes, code]);
 
-  // Still loading — avoid flashing a depleted WELCOME section.
   if (codes === null) return null;
-  // Pool empty (or no DB) — remove launch pass entirely. New codes via PROMO_CODES env reappear here.
   if (codes.length === 0) return null;
 
   async function redeem(e?: FormEvent) {
@@ -81,33 +80,49 @@ export function HomeLaunchPass() {
   }
 
   return (
-    <section className="mt-12 border-t border-ink/10 pt-10">
-      <PromoCodesBoard />
-      <form
-        onSubmit={(e) => void redeem(e)}
-        className="mt-5 flex max-w-md flex-wrap gap-2"
-      >
-        <input
-          value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder={codes[0]?.code || "CODE"}
-          autoComplete="off"
-          spellCheck={false}
-          className="min-w-[10rem] flex-1 rounded-xl border border-ink/15 bg-white px-3 py-2.5 font-mono text-sm uppercase tracking-wide text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-bright disabled:opacity-60"
-        >
-          {loading ? "Claiming…" : "Claim free unlock"}
-        </button>
-      </form>
-      {error ? <p className="mt-2 text-sm text-rose-600">{error}</p> : null}
-      <p className="mt-3 max-w-lg text-xs text-ink-muted">
-        One free full-site scan per network. After you claim, paste a URL above and run the scan —
-        or scan first, then apply the code on the unlock panel.
-      </p>
+    <section className="mt-16 border-t border-ink/10 pt-10">
+      <div className="mx-auto max-w-2xl text-center">
+        <h2 className="font-display text-lg font-semibold text-ink">Free full unlock</h2>
+        <div className="mt-2">
+          <PromoCodesBoard />
+        </div>
+
+        {!open ? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="mt-4 text-sm font-medium text-teal underline-offset-2 hover:underline"
+          >
+            Claim with code
+          </button>
+        ) : (
+          <form
+            onSubmit={(e) => void redeem(e)}
+            className="mx-auto mt-5 flex max-w-md flex-col items-stretch gap-2 sm:flex-row sm:items-center"
+          >
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              placeholder={codes[0]?.code || "CODE"}
+              autoComplete="off"
+              spellCheck={false}
+              className="min-w-0 flex-1 rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-center font-mono text-sm uppercase tracking-wide text-ink placeholder:text-ink-muted focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20 sm:text-left"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-ink-soft disabled:opacity-60"
+            >
+              {loading ? "Claiming…" : "Claim"}
+            </button>
+          </form>
+        )}
+
+        {error ? <p className="mt-2 text-sm text-rose-600">{error}</p> : null}
+        <p className="mt-3 text-xs text-ink-muted">
+          After claiming, paste a URL above and run the scan — or apply the code on the unlock panel.
+        </p>
+      </div>
     </section>
   );
 }
