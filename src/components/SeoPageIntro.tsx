@@ -7,7 +7,7 @@ export function SeoPageIntro({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mx-auto max-w-3xl px-4 pb-2 pt-6 text-sm leading-relaxed text-ink-muted sm:px-6">
+    <section className="mx-auto max-w-2xl px-4 pb-2 pt-6 text-center text-sm leading-relaxed text-ink-muted sm:px-6">
       {heading ? (
         <h2 className="font-display text-lg font-semibold text-ink">{heading}</h2>
       ) : null}
