@@ -61,7 +61,9 @@ export const mainNav = [
 
 /** Build a home URL that starts a scan for the given site. */
 export function scanUrlFor(url: string, unlockSessionId?: string): string {
-  const params = new URLSearchParams({ url });
+  const params = new URLSearchParams();
+  if (url.trim()) params.set("url", url.trim());
   if (unlockSessionId) params.set("unlock_session", unlockSessionId);
-  return `${routes.home}?${params.toString()}`;
+  const q = params.toString();
+  return q ? `${routes.home}?${q}` : routes.home;
 }

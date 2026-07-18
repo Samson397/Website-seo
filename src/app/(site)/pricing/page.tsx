@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHero, PrimaryCta, SecondaryCta } from "@/components/ui/PageHero";
+import { PromoCodesBoard } from "@/components/PromoCodesBoard";
 import { routes } from "@/lib/routes";
 import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 
@@ -63,6 +64,10 @@ export default function PricingPage() {
           cta={{ href: routes.home, label: "Scan, then unlock" }}
         />
       </div>
+
+      <section className="mx-auto mt-16 max-w-5xl px-4 sm:px-6">
+        <PromoCodesBoard />
+      </section>
 
       <section className="mx-auto mt-16 max-w-3xl px-4 sm:px-6">
         <h2 className="font-display text-2xl font-semibold text-ink">What you get after unlock</h2>

@@ -5,7 +5,8 @@ import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
-import { verifyPaidSession } from "@/lib/stripe-unlock-server";
+import { verifyUnlockSession } from "@/lib/unlock-access";
+import { isPromoSessionId } from "@/lib/promo-codes";
 import { toFreePreviewReport } from "@/lib/free-preview";
 import { auditOptionsFromBody } from "@/lib/audit-request";
 
@@ -39,14 +40,16 @@ export async function POST(request: NextRequest) {
     let siteCrawl = wantFull;
     let tier: "free" | "full" = "full";
 
-    if (isStripeConfigured()) {
+    const gated =
+      isStripeConfigured() || Boolean(unlockSessionId && isPromoSessionId(unlockSessionId));
+    if (gated) {
       if (wantFull && unlockSessionId) {
-        const paid = await verifyPaidSession(unlockSessionId);
-        if (!paid) {
+        const unlocked = await verifyUnlockSession(unlockSessionId);
+        if (!unlocked) {
           return NextResponse.json(
             {
               error:
-                "Payment could not be verified for a full crawl. Re-open Unlock and complete checkout, or run a free homepage preview.",
+                "Payment or promo could not be verified for a full crawl. Pay again, redeem a code, or run a free homepage preview.",
             },
             { status: 402 }
           );
