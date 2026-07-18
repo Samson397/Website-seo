@@ -204,7 +204,7 @@ body {
     0 28px 56px -30px rgba(11, 31, 58, 0.38);
 }
 
-/* Soft plate behind dark logo so cutout edges don't flash white haze */
+/* Soft luminous bloom behind the mark — no hard plate / sticker edge */
 .logo-plate {
   position: relative;
   display: inline-block;
@@ -213,14 +213,14 @@ body {
 .logo-plate::before {
   content: "";
   position: absolute;
-  inset: -10% -8% -6%;
-  border-radius: 32%;
+  inset: -18% -22% -12%;
   background: radial-gradient(
-    ellipse at 50% 42%,
-    rgba(244, 250, 252, 0.9) 0%,
-    rgba(217, 232, 237, 0.45) 52%,
-    transparent 74%
+    ellipse 55% 50% at 50% 42%,
+    rgba(236, 247, 248, 0.55) 0%,
+    rgba(201, 221, 229, 0.18) 45%,
+    transparent 70%
   );
+  filter: blur(8px);
   z-index: 0;
 }
 
