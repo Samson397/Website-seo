@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-interface PromoCodeRow {
+export interface PromoCodeRow {
   code: string;
   label: string;
   maxUses: number;
@@ -11,15 +11,53 @@ interface PromoCodeRow {
   active: boolean;
 }
 
+type PromoSnapshot = {
+  code: string;
+  usedCount: number;
+  maxUses: number;
+  remaining: number;
+};
+
 /** Live board for the launch pass — first N free unlocks, 1 per IP. */
 export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
   const [codes, setCodes] = useState<PromoCodeRow[]>([]);
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const applySnapshot = useCallback((snap: PromoSnapshot) => {
+    setCodes((prev) => {
+      if (!prev.length) {
+        return [
+          {
+            code: snap.code,
+            label: "First 100 free unlocks",
+            maxUses: snap.maxUses,
+            usedCount: snap.usedCount,
+            remaining: snap.remaining,
+            active: true,
+          },
+        ];
+      }
+      return prev.map((c) =>
+        c.code === snap.code
+          ? {
+              ...c,
+              usedCount: snap.usedCount,
+              maxUses: snap.maxUses,
+              remaining: snap.remaining,
+            }
+          : c
+      );
+    });
+    setEnabled(true);
+  }, []);
+
   const load = useCallback(async () => {
     try {
-      const res = await fetch("/api/promo", { cache: "no-store" });
+      const res = await fetch(`/api/promo?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { Pragma: "no-cache" },
+      });
       const data = await res.json();
       setEnabled(Boolean(data.enabled));
       setCodes(Array.isArray(data.codes) ? data.codes : []);
@@ -32,16 +70,21 @@ export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
 
   useEffect(() => {
     void load();
-    const id = window.setInterval(() => void load(), 20_000);
+    const id = window.setInterval(() => void load(), 12_000);
     const onFocus = () => void load();
+    const onRedeemed = (event: Event) => {
+      const detail = (event as CustomEvent<PromoSnapshot>).detail;
+      if (detail?.code) applySnapshot(detail);
+      else void load();
+    };
     window.addEventListener("focus", onFocus);
-    window.addEventListener("seohub:promo-redeemed", onFocus);
+    window.addEventListener("seohub:promo-redeemed", onRedeemed as EventListener);
     return () => {
       window.clearInterval(id);
       window.removeEventListener("focus", onFocus);
-      window.removeEventListener("seohub:promo-redeemed", onFocus);
+      window.removeEventListener("seohub:promo-redeemed", onRedeemed as EventListener);
     };
-  }, [load]);
+  }, [load, applySnapshot]);
 
   if (enabled === false && codes.length === 0) {
     return null;
@@ -121,7 +164,7 @@ export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
           className={`mt-3 h-2 overflow-hidden rounded-full ${compact ? "bg-white/10" : "bg-mist"}`}
         >
           <div
-            className={`h-full rounded-full transition-all ${
+            className={`h-full rounded-full transition-all duration-500 ${
               gone ? "bg-rose-400" : compact ? "bg-brand-bright" : "bg-brand"
             }`}
             style={{ width: `${pct}%` }}
@@ -132,8 +175,11 @@ export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function notifyPromoRedeemed() {
-  if (typeof window !== "undefined") {
-    window.dispatchEvent(new Event("seohub:promo-redeemed"));
-  }
+export function notifyPromoRedeemed(snapshot?: PromoSnapshot) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent("seohub:promo-redeemed", {
+      detail: snapshot,
+    })
+  );
 }
