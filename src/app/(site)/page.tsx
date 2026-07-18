@@ -12,7 +12,12 @@ import { ScanLoadingPanel } from "@/components/ScanLoadingPanel";
 import { FreePreviewReport } from "@/components/FreePreviewReport";
 import { FullAuditDelivery } from "@/components/FullAuditDelivery";
 import { saveScanToHistory } from "@/lib/local-history";
-import { getUnlock, hasFullUnlock, markUnlockUsed, saveUnlock } from "@/lib/unlock";
+import {
+  getUsableUnlockSessionId,
+  hasFullUnlock,
+  markUnlockUsed,
+  saveUnlock,
+} from "@/lib/unlock";
 import {
   clearPreviewStash,
   readPreviewStash,
@@ -166,8 +171,8 @@ function HomeScanApp() {
       setPreviousReport(report);
     }
 
-    const unlock = getUnlock();
-    const sessionId = sessionOverride || unlock?.sessionId;
+    // Spent checkouts must not force another full crawl — fall back to free preview.
+    const sessionId = sessionOverride || getUsableUnlockSessionId() || undefined;
     const useFull = forceFull || !paymentsOn || Boolean(sessionId);
     setScanMode(useFull ? "full" : "free");
 
