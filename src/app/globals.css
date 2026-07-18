@@ -164,10 +164,10 @@ body {
 .hero-mesh {
   color: var(--ink);
   background:
-    radial-gradient(ellipse 90% 65% at 8% -8%, rgba(13, 148, 136, 0.28), transparent 58%),
-    radial-gradient(ellipse 75% 55% at 96% 4%, rgba(18, 58, 107, 0.2), transparent 52%),
-    radial-gradient(ellipse 70% 45% at 55% 100%, rgba(11, 31, 58, 0.1), transparent 58%),
-    linear-gradient(168deg, #eaf4f6 0%, #dcebf0 48%, #d3e4ea 100%);
+    radial-gradient(ellipse 95% 70% at 6% -12%, rgba(13, 148, 136, 0.34), transparent 56%),
+    radial-gradient(ellipse 80% 60% at 100% 0%, rgba(11, 31, 58, 0.22), transparent 50%),
+    radial-gradient(ellipse 65% 50% at 48% 105%, rgba(18, 58, 107, 0.16), transparent 55%),
+    linear-gradient(168deg, #d9e8ed 0%, #c9dde5 46%, #bcd3dd 100%);
 }
 
 .hero-mesh::before {
@@ -213,13 +213,13 @@ body {
 .logo-plate::before {
   content: "";
   position: absolute;
-  inset: -8% -6% -4%;
-  border-radius: 28%;
+  inset: -10% -8% -6%;
+  border-radius: 32%;
   background: radial-gradient(
-    ellipse at 50% 45%,
-    rgba(255, 255, 255, 0.72) 0%,
-    rgba(238, 246, 248, 0.35) 55%,
-    transparent 72%
+    ellipse at 50% 42%,
+    rgba(244, 250, 252, 0.9) 0%,
+    rgba(217, 232, 237, 0.45) 52%,
+    transparent 74%
   );
   z-index: 0;
 }
