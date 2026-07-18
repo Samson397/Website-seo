@@ -8,8 +8,10 @@ export interface CompetitorAuditResult {
 }
 
 export function overallScore(report: AuditReport): number {
-  const { seo, performance, accessibility, security } = report.scores;
-  return Math.round((seo + performance + accessibility + security) / 4);
+  const { seo, performance, accessibility, security, ai } = report.scores;
+  const parts = [seo, performance, accessibility, security];
+  if (typeof ai === "number") parts.push(ai);
+  return Math.round(parts.reduce((a, b) => a + b, 0) / parts.length);
 }
 
 export function checklistPassRate(report: AuditReport): number | null {

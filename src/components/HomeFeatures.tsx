@@ -3,20 +3,20 @@ import { routes } from "@/lib/routes";
 
 const FEATURES = [
   {
-    title: "Technical site audit",
-    text: "Crawl up to 200 pages. Titles, canonicals, schema, security headers, Core Web Vitals signals, and 50+ Pass/Fail checks.",
+    title: "Scores out of 10",
+    text: "SEO, speed, accessibility, security, and AI visibility — clear /10 gauges, not opaque dashboards.",
   },
   {
-    title: "Keywords & content",
-    text: "Research phrases, score on-page rank signals, optimize copy, and track keywords on this device.",
+    title: "Will AI promote you?",
+    text: "GEO checks for ChatGPT, Perplexity, Claude, and Google AI: bots, llms.txt, entity schema, and brand signals.",
   },
   {
-    title: "Toolkit that ships",
-    text: "Redirects, broken links, JSON-LD, robots/sitemap inspect + generators — free forever.",
+    title: "Full-site crawl + toolkit",
+    text: "Up to 200 pages, crawl controls, redirects, broken links, schema, and generators — free tools stay free.",
   },
   {
-    title: "Pay only when you need depth",
-    text: "Free shows scores and locked issue titles. Unlock full fixes, checklist, crawl, and exports for a one-time fee.",
+    title: "Pay once when you need depth",
+    text: "Free shows /10 scores and AI visibility. Unlock full fixes, checklist, crawl, and exports for $0.99.",
   },
 ];
 

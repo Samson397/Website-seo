@@ -9,14 +9,14 @@ Payments fail with “not configured” until these exist on the **Vercel projec
 3. Add each key below for **Production** (and Preview if you test there)  
 4. **Deployments** → ⋯ on latest → **Redeploy**
 
-## Required for $1.99 unlock
+## Required for $0.99 unlock
 
 | Name | Value |
 |------|--------|
 | `STRIPE_SECRET_KEY` | `sk_test_…` (test) or `sk_live_…` (real charges) |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Matching `pk_test_…` / `pk_live_…` (same mode as secret) |
 | `STRIPE_PRICE_ID` | Price ID from **the same Stripe account + mode** (e.g. `price_…`) |
-| `NEXT_PUBLIC_STRIPE_PRICE_DISPLAY` | `$1.99` |
+| `NEXT_PUBLIC_STRIPE_PRICE_DISPLAY` | `$0.99` (must match the Stripe Price ID amount) |
 | `NEXT_PUBLIC_SITE_URL` | Canonical production URL, e.g. `https://your-app.vercel.app` |
 
 Notes:

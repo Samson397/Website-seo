@@ -4,6 +4,7 @@ export const routes = {
   history: "/history",
   tracker: "/tracker",
   competitors: "/competitors",
+  sampleReport: "/r/sample",
   tools: "/tools",
   metaPreview: "/tools/meta-preview",
   robotsInspector: "/tools/robots",
@@ -54,7 +55,7 @@ export const mainNav = [
   {
     href: routes.pricing,
     label: "Pricing",
-    description: "Free preview vs $1.99 full-site unlock",
+    description: "Free preview vs $0.99 full-site unlock",
   },
 ] as const;
 

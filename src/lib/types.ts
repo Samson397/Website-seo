@@ -17,6 +17,10 @@ export interface AuditIssue {
   currentValue?: string;
   recommendation: string;
   fixSnippet?: string;
+  /** Pathname for URL-template grouping when known */
+  pagePath?: string;
+  /** Collapsed template e.g. /blog/:slug */
+  pathTemplate?: string;
 }
 
 export interface AuditScores {
@@ -24,6 +28,20 @@ export interface AuditScores {
   performance: number;
   accessibility: number;
   security: number;
+  /** GEO / AI-assistant visibility (0–100 internal; show as /10) */
+  ai: number;
+}
+
+export interface AiVisibilitySummary {
+  score: number;
+  signals: {
+    id: string;
+    label: string;
+    status: "pass" | "fail" | "attention";
+    detail: string;
+  }[];
+  botsAllowed: string[];
+  botsBlocked: string[];
 }
 
 export interface AuditSummary {
@@ -58,6 +76,25 @@ export interface PageSummary {
   hasOg?: boolean;
   wordCount?: number;
   h1Count?: number;
+  /** BFS depth from crawl start (0 = start URL) */
+  depth?: number;
+  /** Internal pages linking to this URL within the crawl */
+  inboundLinks?: number;
+  /** Requested URL differed from final URL after redirects */
+  redirected?: boolean;
+  finalUrl?: string;
+  hreflangCount?: number;
+}
+
+export interface CrawlCoverage {
+  withCanonical: number;
+  missingCanonical: number;
+  selfCanonical: number;
+  redirected: number;
+  withHreflang: number;
+  orphans: number;
+  maxDepth: number;
+  byDepth: { depth: number; count: number }[];
 }
 
 export interface CrawlSummary {
@@ -72,6 +109,14 @@ export interface CrawlSummary {
   /** All scanned page paths */
   allPagePaths?: string[];
   pages: PageSummary[];
+  /** Controls applied for this crawl */
+  controls?: {
+    maxPages: number;
+    includePaths: string[];
+    excludePaths: string[];
+    startPath?: string;
+  };
+  coverage?: CrawlCoverage;
 }
 
 export interface SiteOverview {
@@ -154,6 +199,14 @@ export interface SiteChecklist {
 export interface AuditOptions {
   /** Homepage-only when false (competitors). Default true. */
   siteCrawl?: boolean;
+  /** Cap unique pages (1–200). */
+  maxPages?: number;
+  /** Only include matching path prefixes/globs. */
+  includePaths?: string[];
+  /** Exclude matching path prefixes/globs. */
+  excludePaths?: string[];
+  /** Start crawl at this path on the same origin. */
+  startPath?: string;
   /** Optional progress callbacks for streaming UI */
   onProgress?: (event: Exclude<ScanProgressEvent, { type: "done" } | { type: "error" }>) => void;
 }
@@ -170,6 +223,8 @@ export interface AuditReport {
   crawl?: CrawlSummary;
   siteOverview?: SiteOverview;
   checklist?: SiteChecklist;
+  /** AI / GEO visibility breakdown */
+  aiVisibility?: AiVisibilitySummary;
   /** Present when the report was saved for sharing */
   shareId?: string;
   /** free = homepage preview; full = paid unlock (when Stripe is configured) */

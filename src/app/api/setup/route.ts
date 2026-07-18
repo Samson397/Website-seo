@@ -52,7 +52,7 @@ function checks(): Check[] {
     },
     {
       key: "STRIPE",
-      label: "Stripe Checkout ($1.99 full SEO unlock)",
+      label: "Stripe Checkout ($0.99 full SEO unlock)",
       ok: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_PRICE_ID),
       required: false,
     },

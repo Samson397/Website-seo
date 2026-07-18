@@ -4,8 +4,10 @@ import { useState } from "react";
 import type { CompetitorAuditResult } from "@/lib/competitor-scores";
 import { checklistPassRate, overallScore, rankCompetitorResults } from "@/lib/competitor-scores";
 import { formatUrlDisplay } from "@/lib/url-display";
+import { formatTen } from "@/lib/score-display";
 import { AuditReportView } from "@/components/AuditReport";
 import { ChecksPanel } from "@/components/ChecksPanel";
+import { CompetitorGapPanel } from "@/components/CompetitorGapPanel";
 
 interface CompetitorComparisonPanelProps {
   results: CompetitorAuditResult[];
@@ -26,6 +28,8 @@ export function CompetitorComparisonPanel({ results }: CompetitorComparisonPanel
 
   return (
     <div className="space-y-8">
+      <CompetitorGapPanel results={results} />
+
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-bold text-slate-900">Competitor comparison</h2>
         <p className="mt-1 text-sm text-slate-500">
@@ -38,11 +42,12 @@ export function CompetitorComparisonPanel({ results }: CompetitorComparisonPanel
               <tr className="border-b border-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 <th className="pb-3 pr-4">Rank</th>
                 <th className="pb-3 pr-4">Site</th>
-                <th className="pb-3 pr-4 text-center">Overall</th>
+                <th className="pb-3 pr-4 text-center">Overall/10</th>
                 <th className="pb-3 pr-4 text-center">SEO</th>
                 <th className="pb-3 pr-4 text-center">Perf</th>
                 <th className="pb-3 pr-4 text-center">A11y</th>
                 <th className="pb-3 pr-4 text-center">Security</th>
+                <th className="pb-3 pr-4 text-center">AI</th>
                 <th className="pb-3 pr-4 text-center">Critical</th>
                 <th className="pb-3 text-center">Checklist</th>
               </tr>
@@ -57,7 +62,7 @@ export function CompetitorComparisonPanel({ results }: CompetitorComparisonPanel
                         <div className="font-medium text-slate-700">{result.label}</div>
                         <div className="text-xs text-red-600">{result.error}</div>
                       </td>
-                      <td colSpan={7} className="py-3 text-center text-red-500">
+                      <td colSpan={8} className="py-3 text-center text-red-500">
                         Failed
                       </td>
                     </tr>
@@ -86,12 +91,13 @@ export function CompetitorComparisonPanel({ results }: CompetitorComparisonPanel
                       </button>
                     </td>
                     <td className={`py-3 pr-4 text-center font-bold ${scoreColor(overall)}`}>
-                      {overall}
+                      {formatTen(overall)}
                     </td>
-                    <td className="py-3 pr-4 text-center">{report.scores.seo}</td>
-                    <td className="py-3 pr-4 text-center">{report.scores.performance}</td>
-                    <td className="py-3 pr-4 text-center">{report.scores.accessibility}</td>
-                    <td className="py-3 pr-4 text-center">{report.scores.security}</td>
+                    <td className="py-3 pr-4 text-center">{formatTen(report.scores.seo)}</td>
+                    <td className="py-3 pr-4 text-center">{formatTen(report.scores.performance)}</td>
+                    <td className="py-3 pr-4 text-center">{formatTen(report.scores.accessibility)}</td>
+                    <td className="py-3 pr-4 text-center">{formatTen(report.scores.security)}</td>
+                    <td className="py-3 pr-4 text-center">{formatTen(report.scores.ai ?? 0)}</td>
                     <td className="py-3 pr-4 text-center">
                       {report.summary.critical > 0 ? (
                         <span className="font-semibold text-red-600">

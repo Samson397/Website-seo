@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { UrlInput } from "@/components/UrlInput";
+import { UrlInput, type ScanSubmitPayload } from "@/components/UrlInput";
 import { AuditReportView } from "@/components/AuditReport";
 import { ProblemsSummary } from "@/components/ProblemsSummary";
 import { ChecksPanel } from "@/components/ChecksPanel";
@@ -19,6 +19,7 @@ import { saveScanToHistory } from "@/lib/local-history";
 import { getUnlock, hasFullUnlock, saveUnlock } from "@/lib/unlock";
 import { usePaymentsEnabled } from "@/hooks/usePaymentsEnabled";
 import { routes } from "@/lib/routes";
+import type { CrawlControls } from "@/lib/crawl-options";
 import type { AuditReport, AuditCategory, ScanProgressEvent } from "@/lib/types";
 
 export default function Home() {
@@ -62,6 +63,7 @@ function HomeScanApp() {
   const unlockHandled = useRef<string | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const [issueFilter, setIssueFilter] = useState<AuditCategory | "all">("all");
+  const lastCrawl = useRef<CrawlControls | undefined>(undefined);
 
   useEffect(() => {
     setUnlocked(!paymentsOn || hasFullUnlock());
@@ -104,12 +106,16 @@ function HomeScanApp() {
     url: string,
     isRescan = false,
     forceFull = false,
-    sessionOverride?: string
+    sessionOverride?: string,
+    crawl?: CrawlControls
   ) {
     setLoading(true);
     setScanningUrl(url);
     setError(null);
     setProgressEvents([{ type: "stage", stage: "fetch", message: "Connecting…" }]);
+
+    if (crawl) lastCrawl.current = crawl;
+    const crawlOpts = crawl ?? lastCrawl.current;
 
     if (!isRescan) {
       setPreviousReport(null);
@@ -130,6 +136,14 @@ function HomeScanApp() {
           url,
           siteCrawl: useFull,
           unlockSessionId: sessionId,
+          ...(useFull && crawlOpts
+            ? {
+                maxPages: crawlOpts.maxPages,
+                includePaths: crawlOpts.includePaths,
+                excludePaths: crawlOpts.excludePaths,
+                startPath: crawlOpts.startPath,
+              }
+            : {}),
         }),
       });
 
@@ -216,10 +230,15 @@ function HomeScanApp() {
   }, [searchParams]);
 
   function handleRescan() {
-    if (lastUrl.current) runAudit(lastUrl.current, true);
+    if (lastUrl.current) runAudit(lastUrl.current, true, false, undefined, lastCrawl.current);
+  }
+
+  function handleScanSubmit({ url, crawl }: ScanSubmitPayload) {
+    void runAudit(url, false, false, undefined, crawl);
   }
 
   const isFreePreview = paymentsOn && report && report.tier !== "full" && !unlocked;
+  const showCrawlControls = !paymentsOn || unlocked;
 
   return (
     <main className="min-h-screen pb-16">
@@ -251,8 +270,19 @@ function HomeScanApp() {
           </p>
 
           <div className="animate-rise-delay-2 glass-panel mt-8 max-w-2xl rounded-2xl border border-white/15 p-4 shadow-glow sm:p-5">
-            <UrlInput onSubmit={(url) => runAudit(url)} loading={loading} />
+            <UrlInput
+              onSubmit={handleScanSubmit}
+              loading={loading}
+              showCrawlControls={showCrawlControls}
+            />
           </div>
+          <p className="animate-rise-delay-2 mt-4 max-w-2xl text-xs text-white/55">
+            HTML-only crawl: we fetch public HTML (no headless browser). JS-rendered apps may show
+            fewer on-page signals.{" "}
+            <Link href={routes.sampleReport} className="text-brand-bright underline-offset-2 hover:underline">
+              View sample report
+            </Link>
+          </p>
         </div>
       </section>
 
@@ -343,6 +373,7 @@ function HomeScanApp() {
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <ToolLink href={routes.history} label="History & watchlist" />
+                <ToolLink href={routes.sampleReport} label="Sample report" />
                 <ToolLink href={routes.keywords} label="Keyword research" />
                 <ToolLink href={routes.metaPreview} label="Meta & SERP preview" />
                 <ToolLink href={routes.redirects} label="Redirect chain" />

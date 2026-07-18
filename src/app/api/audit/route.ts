@@ -7,6 +7,7 @@ import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
 import { verifyPaidSession } from "@/lib/stripe-unlock-server";
 import { toFreePreviewReport } from "@/lib/free-preview";
+import { auditOptionsFromBody } from "@/lib/audit-request";
 
 /** Allow longer full-site crawls on platforms that support it (e.g. Vercel Pro). */
 export const maxDuration = 300;
@@ -29,10 +30,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const urlInput = body?.url;
-    const unlockSessionId =
-      typeof body?.unlockSessionId === "string" ? body.unlockSessionId : undefined;
-    const wantFull = body?.siteCrawl !== false;
-    const share = body?.share !== false;
+    const { wantFull, unlockSessionId, share, auditOptions } = auditOptionsFromBody(body);
 
     if (!urlInput || typeof urlInput !== "string") {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
@@ -63,7 +61,10 @@ export async function POST(request: NextRequest) {
 
     await validateUrlSafe(urlInput);
     const normalized = normalizeUrl(urlInput);
-    const report = await runFullAudit(normalized, { siteCrawl });
+    const report = await runFullAudit(normalized, {
+      siteCrawl,
+      ...(siteCrawl ? auditOptions : {}),
+    });
 
     void recordScanTelemetry(report);
 

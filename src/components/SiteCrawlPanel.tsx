@@ -15,11 +15,15 @@ function pageFlags(page: CrawlSummary["pages"][number]): string[] {
   if ((page.robots || "").toLowerCase().includes("noindex")) flags.push("noindex");
   if ((page.wordCount ?? 0) > 0 && (page.wordCount ?? 0) < 100) flags.push("Thin");
   if (page.hasOg === false) flags.push("No OG");
+  if (page.redirected) flags.push("Redirect");
+  if ((page.inboundLinks ?? 0) === 0 && page.pathname !== "/") flags.push("Orphan?");
+  if ((page.depth ?? 0) >= 4) flags.push(`Depth ${page.depth}`);
   return flags;
 }
 
 export function SiteCrawlPanel({ crawl }: SiteCrawlPanelProps) {
   const total = crawl.totalPagesFound ?? crawl.pagesDiscovered;
+  const coverage = crawl.coverage;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-sm">
@@ -30,16 +34,42 @@ export function SiteCrawlPanel({ crawl }: SiteCrawlPanelProps) {
         </h3>
         <p className="mt-2 text-sm text-ink-muted">
           Every page discovered from your sitemap and internal links was checked for title,
-          description, H1, canonical, robots, and word count
+          description, H1, canonical, robots, depth, and word count
           {crawl.hitCap ? " (scan reached the size limit for very large sites)." : "."}
         </p>
+        {crawl.controls ? (
+          <p className="mt-2 text-xs text-ink-muted">
+            Cap {crawl.controls.maxPages}
+            {crawl.controls.startPath ? ` · start ${crawl.controls.startPath}` : ""}
+            {crawl.controls.includePaths.length
+              ? ` · include ${crawl.controls.includePaths.join(", ")}`
+              : ""}
+            {crawl.controls.excludePaths.length
+              ? ` · exclude ${crawl.controls.excludePaths.join(", ")}`
+              : ""}
+          </p>
+        ) : null}
       </div>
 
+      {coverage ? (
+        <div className="grid grid-cols-2 gap-3 border-b border-ink/5 px-5 py-4 sm:grid-cols-4 sm:px-6">
+          <CoverageStat
+            label="Canonicals"
+            value={`${coverage.withCanonical}/${total}`}
+          />
+          <CoverageStat label="Redirects" value={String(coverage.redirected)} />
+          <CoverageStat label="Hreflang" value={String(coverage.withHreflang)} />
+          <CoverageStat label="Orphans" value={String(coverage.orphans)} />
+        </div>
+      ) : null}
+
       <div className="overflow-x-auto px-2 sm:px-4">
-        <table className="w-full min-w-[720px] text-left text-sm">
+        <table className="w-full min-w-[820px] text-left text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-[11px] uppercase tracking-wide text-ink-muted">
               <th className="px-3 py-3 font-medium">Page</th>
+              <th className="px-3 py-3 font-medium">Depth</th>
+              <th className="px-3 py-3 font-medium">In</th>
               <th className="px-3 py-3 font-medium">Title</th>
               <th className="px-3 py-3 font-medium">Words</th>
               <th className="px-3 py-3 font-medium">Signals</th>
@@ -49,10 +79,14 @@ export function SiteCrawlPanel({ crawl }: SiteCrawlPanelProps) {
             {crawl.pages.map((page) => {
               const pathname = page.pathname || "/";
               const flags = pageFlags(page);
-              const bad = page.status >= 400 || flags.length > 0;
+              const bad = page.status >= 400 || flags.some((f) => f.startsWith("HTTP") || f === "Thin");
               return (
                 <tr key={page.url} className="border-b border-ink/5 last:border-0">
                   <td className="px-3 py-2.5 font-mono text-xs text-ink-muted">{pathname}</td>
+                  <td className="px-3 py-2.5 tabular-nums text-ink-muted">{page.depth ?? "—"}</td>
+                  <td className="px-3 py-2.5 tabular-nums text-ink-muted">
+                    {page.inboundLinks ?? "—"}
+                  </td>
                   <td className="max-w-[220px] truncate px-3 py-2.5 text-ink" title={page.title}>
                     {page.title || "—"}
                   </td>
@@ -87,6 +121,15 @@ export function SiteCrawlPanel({ crawl }: SiteCrawlPanelProps) {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function CoverageStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-ink-muted">{label}</p>
+      <p className="font-display text-lg font-semibold text-ink">{value}</p>
     </div>
   );
 }

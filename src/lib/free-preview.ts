@@ -21,6 +21,8 @@ export function toFreePreviewReport(report: AuditReport): AuditReport {
     serpPreview: report.serpPreview,
     issues: teaserIssues,
     checklist: summarizeChecklist(report.checklist),
+    // AI visibility teaser stays visible — key free differentiator
+    aiVisibility: report.aiVisibility,
     crawl: undefined,
     siteOverview: undefined,
     performanceMetrics: undefined,

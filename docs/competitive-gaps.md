@@ -10,18 +10,20 @@ Goal: be the best **browser-first weekly SEO audit** — not a full Ahrefs/Semru
 - Technical tools (redirects, schema, broken links, headers, robots/sitemap)
 - Freemium one-time unlock (Stripe)
 - Shareable reports + exports + optional Resend digests
-- Competitor homepage compare
+- Competitor homepage compare + gap lite (titles, length, top issues)
+- Crawl controls (max pages, include/exclude, start path)
+- Issue grouping by URL template
+- Internal link depth + orphan-ish signals
+- Site-wide redirect / canonical / hreflang coverage
+- Public sample report (`/r/sample`)
+- HTML-only crawl disclaimer in product UI
+- Rank history charts (local on-device)
+- Scores displayed out of 10 (+ AI visibility / GEO panel)
+- $0.99 unlock positioning (Stripe Price ID must match)
 
-## High-value next (realistic)
+## Still optional / env-gated
 
-1. Crawl controls — max pages, include/exclude paths, start path
-2. Issue grouping by URL template
-3. Internal link depth / orphan-ish pages
-4. Site-wide redirect, canonical, hreflang coverage
-5. Competitor gap lite (top issues + title/meta/H1 + content length)
-6. Public sample report
-7. Clearer HTML-only crawl disclaimer in product UI
-8. Rank history charts (local first)
+- DataForSEO keys → richer backlinks, volume, SERP positions
 
 ## Out of scope for now
 
