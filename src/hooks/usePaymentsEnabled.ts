@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { sanitizePriceLabel } from "@/lib/price-label";
 import { FULL_SCAN_PRICE_LABEL, paymentsEnabledClient } from "@/lib/stripe-public";
 
 export function usePaymentsEnabled() {
@@ -16,7 +17,7 @@ export function usePaymentsEnabled() {
         const data = await res.json();
         if (!cancelled && typeof data.enabled === "boolean") {
           setEnabled(Boolean(data.enabled));
-          if (data.priceLabel) setPriceLabel(String(data.priceLabel));
+          if (data.priceLabel) setPriceLabel(sanitizePriceLabel(String(data.priceLabel)));
         }
       } catch {
         /* keep fallback */

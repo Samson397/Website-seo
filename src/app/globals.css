@@ -164,10 +164,10 @@ body {
 .hero-mesh {
   color: var(--ink);
   background:
-    radial-gradient(ellipse 85% 60% at 12% -10%, rgba(20, 184, 166, 0.22), transparent 58%),
-    radial-gradient(ellipse 70% 55% at 92% 0%, rgba(29, 78, 216, 0.16), transparent 52%),
-    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(11, 31, 58, 0.07), transparent 55%),
-    linear-gradient(168deg, #f6fbfc 0%, #eef6f8 45%, #e6f1f4 100%);
+    radial-gradient(ellipse 90% 65% at 8% -8%, rgba(13, 148, 136, 0.28), transparent 58%),
+    radial-gradient(ellipse 75% 55% at 96% 4%, rgba(18, 58, 107, 0.2), transparent 52%),
+    radial-gradient(ellipse 70% 45% at 55% 100%, rgba(11, 31, 58, 0.1), transparent 58%),
+    linear-gradient(168deg, #eaf4f6 0%, #dcebf0 48%, #d3e4ea 100%);
 }
 
 .hero-mesh::before {
@@ -176,8 +176,8 @@ body {
   inset: -10% -5%;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 45% 35% at 30% 25%, rgba(20, 184, 166, 0.14), transparent 70%),
-    radial-gradient(ellipse 40% 30% at 75% 35%, rgba(59, 130, 246, 0.1), transparent 70%);
+    radial-gradient(ellipse 48% 38% at 28% 22%, rgba(20, 184, 166, 0.2), transparent 70%),
+    radial-gradient(ellipse 42% 32% at 78% 30%, rgba(29, 78, 216, 0.14), transparent 70%);
   animation: mist-drift 14s ease-in-out infinite;
 }
 
@@ -186,8 +186,8 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.35;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230b1f3a' fill-opacity='0.035'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.45;
+  background-image: url("data:image/svg+xml,%3Csvg width='72' height='72' viewBox='0 0 72 72' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230b1f3a' fill-opacity='0.045'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
 .glass-panel {
@@ -197,9 +197,34 @@ body {
 }
 
 .scan-shell {
-  border: 1px solid rgba(11, 31, 58, 0.1);
-  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(11, 31, 58, 0.14);
+  background: rgba(255, 255, 255, 0.88);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 24px 48px -28px rgba(11, 31, 58, 0.28);
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 28px 56px -30px rgba(11, 31, 58, 0.38);
+}
+
+/* Soft plate behind dark logo so cutout edges don't flash white haze */
+.logo-plate {
+  position: relative;
+  display: inline-block;
+}
+
+.logo-plate::before {
+  content: "";
+  position: absolute;
+  inset: -8% -6% -4%;
+  border-radius: 28%;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(238, 246, 248, 0.35) 55%,
+    transparent 72%
+  );
+  z-index: 0;
+}
+
+.logo-plate > * {
+  position: relative;
+  z-index: 1;
 }

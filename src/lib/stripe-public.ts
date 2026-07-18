@@ -1,6 +1,9 @@
+import { sanitizePriceLabel } from "@/lib/price-label";
+
 /** Client-safe Stripe display helpers (no secret keys). */
-export const FULL_SCAN_PRICE_LABEL =
-  process.env.NEXT_PUBLIC_STRIPE_PRICE_DISPLAY || "$0.99";
+export const FULL_SCAN_PRICE_LABEL = sanitizePriceLabel(
+  process.env.NEXT_PUBLIC_STRIPE_PRICE_DISPLAY
+);
 
 /**
  * Prefer runtime /api/stripe/status.

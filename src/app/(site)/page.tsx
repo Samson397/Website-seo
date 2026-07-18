@@ -35,15 +35,17 @@ function HomeShell({ children }: { children?: React.ReactNode }) {
     <main className="min-h-screen pb-16">
       <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
         <div className="relative mx-auto max-w-6xl">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.png"
-            alt="SEOHub"
-            width={240}
-            height={268}
-            className="h-28 w-auto sm:h-36"
-          />
-          <h1 className="font-display mt-6 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <div className="logo-plate">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="SEOHub"
+              width={260}
+              height={290}
+              className="h-32 w-auto sm:h-40"
+            />
+          </div>
+          <h1 className="font-display mt-8 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
             The site check you run every week.
           </h1>
         </div>
@@ -251,17 +253,17 @@ function HomeScanApp() {
     <main className="min-h-screen pb-16">
       <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
         <div className="relative mx-auto max-w-6xl">
-          <div className="animate-logo">
+          <div className="logo-plate animate-logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.png"
               alt="SEOHub"
-              width={240}
-              height={268}
-              className="h-28 w-auto sm:h-36"
+              width={260}
+              height={290}
+              className="h-32 w-auto sm:h-40"
             />
           </div>
-          <h1 className="font-display animate-rise-delay-1 mt-7 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
+          <h1 className="font-display animate-rise-delay-1 mt-8 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
             Full-site SEO, without the SaaS tax.
           </h1>
           <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-ink-muted sm:text-lg">

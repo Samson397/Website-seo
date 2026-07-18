@@ -1,8 +1,10 @@
 import Stripe from "stripe";
+import { sanitizePriceLabel } from "@/lib/price-label";
 
 export const FULL_SCAN_PRICE_CENTS = 99;
-export const FULL_SCAN_PRICE_LABEL =
-  process.env.NEXT_PUBLIC_STRIPE_PRICE_DISPLAY || "$0.99";
+export const FULL_SCAN_PRICE_LABEL = sanitizePriceLabel(
+  process.env.NEXT_PUBLIC_STRIPE_PRICE_DISPLAY
+);
 
 let stripeClient: Stripe | null = null;
 
