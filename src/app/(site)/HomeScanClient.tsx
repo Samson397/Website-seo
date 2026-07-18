@@ -23,6 +23,7 @@ import {
   savePreviewStash,
 } from "@/lib/preview-stash";
 import { usePaymentsEnabled } from "@/hooks/usePaymentsEnabled";
+import { HomeLaunchPass } from "@/components/HomeLaunchPass";
 import { routes } from "@/lib/routes";
 import type { CrawlControls } from "@/lib/crawl-options";
 import type { AuditReport, ScanProgressEvent } from "@/lib/types";
@@ -374,6 +375,7 @@ export default function HomeScanClient() {
 
         {!report && !loading && (
           <>
+            <HomeLaunchPass />
             <RouteCards />
             <div className="mt-10">
               <AdSlot />
