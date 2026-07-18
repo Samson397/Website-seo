@@ -34,7 +34,7 @@ export default function Home() {
 function HomeShell({ children }: { children?: React.ReactNode }) {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-24">
         <div className="relative mx-auto max-w-6xl">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -42,9 +42,9 @@ function HomeShell({ children }: { children?: React.ReactNode }) {
             alt="SEOHub"
             width={260}
             height={290}
-            className="h-32 w-auto sm:h-40"
+            className="h-28 w-auto sm:h-36"
           />
-          <h1 className="font-display mt-8 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+          <h1 className="font-display mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
             The site check you run every week.
           </h1>
         </div>
@@ -299,8 +299,8 @@ function HomeScanApp() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
-        <div className="relative mx-auto max-w-6xl">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-24">
+        <div className="relative z-[1] mx-auto max-w-6xl">
           <div className="animate-logo">
             {/* Hero uses slate-baked mark so cutout AA matches the field (no white halo). */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -309,22 +309,22 @@ function HomeScanApp() {
               alt="SEOHub"
               width={260}
               height={290}
-              className="h-32 w-auto sm:h-40"
+              className="h-28 w-auto sm:h-36"
             />
           </div>
-          <h1 className="font-display animate-rise-delay-1 mt-8 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
+          <h1 className="font-display animate-rise-delay-1 mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
             Full-site SEO. No subscription.
           </h1>
-          <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-ink-muted sm:text-lg">
+          <p className="animate-rise-delay-2 mt-3 max-w-xl text-base text-ink-muted sm:text-lg">
             {paymentsOn
               ? `Free homepage scores + AI visibility. Unlock the full crawl and fixes for ${priceLabel}.`
               : "Audit, keywords, rank checks, and tools — free to start, no account."}
           </p>
-          <p className="animate-rise-delay-2 mt-3 text-sm font-medium tracking-wide text-ink/70">
+          <p className="animate-rise-delay-2 mt-2 text-sm font-medium tracking-wide text-ink/70">
             50+ checks · up to 200 pages · no account
           </p>
 
-          <div className="animate-rise-delay-2 scan-shell mt-8 max-w-2xl rounded-2xl p-4 sm:p-5">
+          <div className="animate-rise-delay-2 scan-shell mt-6 max-w-2xl rounded-2xl p-4 sm:p-5">
             <UrlInput
               onSubmit={handleScanSubmit}
               loading={loading}

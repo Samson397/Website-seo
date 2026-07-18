@@ -96,13 +96,13 @@ export function ScanLoadingPanel({ url, events = [], mode = "full" }: ScanLoadin
         : ((stageIndex + 1) / stages.length) * 100;
 
   return (
-    <div className="relative mt-8 overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-glow">
-      <div className="pointer-events-none absolute inset-0 opacity-[0.35]" aria-hidden>
+    <div className="relative mt-6 overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-glow">
+      <div className="scan-sheen absolute inset-x-0 top-0" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.28]" aria-hidden>
         <div className="scan-grid absolute inset-0" />
-        <div className="scan-radar absolute left-1/2 top-8 h-56 w-56 -translate-x-1/2 rounded-full" />
       </div>
 
-      <div className="relative px-5 py-8 sm:px-8 sm:py-10">
+      <div className="relative px-5 py-6 sm:px-8 sm:py-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-md">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal">

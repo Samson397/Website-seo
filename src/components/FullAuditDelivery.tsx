@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { formatUrlDisplay } from "@/lib/url-display";
 import { ScoreGauge } from "@/components/ScoreGauge";
@@ -14,6 +14,7 @@ import { AdSlot } from "@/components/AdSlot";
 import { AiFixPlanPanel } from "@/components/AiFixPlanPanel";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 import { routes } from "@/lib/routes";
+import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
 import type { AuditCategory, AuditReport } from "@/lib/types";
 
 type Tab = "brief" | "issues" | "checklist" | "details";
@@ -36,8 +37,17 @@ export function FullAuditDelivery({
 }: FullAuditDeliveryProps) {
   const [tab, setTab] = useState<Tab>("brief");
   const [issueFilter, setIssueFilter] = useState<AuditCategory | "all">("all");
+  const [aiPlan, setAiPlan] = useState<AiFixPlan | null>(null);
   const overall = overallFromScores(report.scores);
   const shareHref = report.shareId ? `/r/${report.shareId}` : null;
+  const aiIssueHints = useMemo(() => {
+    if (!aiPlan?.issueRewrites?.length) return undefined;
+    const map: Record<string, { plainEnglish: string; action: string }> = {};
+    for (const item of aiPlan.issueRewrites) {
+      if (item.issueId) map[item.issueId] = { plainEnglish: item.plainEnglish, action: item.action };
+    }
+    return map;
+  }, [aiPlan]);
 
   return (
     <div className="space-y-8">
@@ -132,7 +142,7 @@ export function FullAuditDelivery({
 
       {tab === "brief" ? (
         <div className="space-y-8">
-          <AiFixPlanPanel report={report} />
+          <AiFixPlanPanel report={report} auto onPlan={setAiPlan} />
           {report.aiVisibility ? <AiVisibilityPanel ai={report.aiVisibility} /> : null}
           <ProblemsSummary
             report={report}
@@ -175,6 +185,7 @@ export function FullAuditDelivery({
             showProblemsSummary
             categoryFilter={issueFilter}
             onCategoryFilterChange={setIssueFilter}
+            aiIssueHints={aiIssueHints}
           />
         </div>
       ) : null}
@@ -196,6 +207,7 @@ export function FullAuditDelivery({
           showProblemsSummary={false}
           categoryFilter={issueFilter}
           onCategoryFilterChange={setIssueFilter}
+          aiIssueHints={aiIssueHints}
         />
       ) : null}
     </div>

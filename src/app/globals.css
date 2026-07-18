@@ -34,7 +34,7 @@ body {
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -81,7 +81,7 @@ body {
 @keyframes logo-presence {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.97);
+    transform: translateY(4px) scale(0.985);
   }
   to {
     opacity: 1;
@@ -89,20 +89,43 @@ body {
   }
 }
 
+@keyframes hero-sheen {
+  0% {
+    transform: translateX(-40%);
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+@keyframes scan-sheen {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
 .animate-rise {
-  animation: rise-in 0.55s ease-out both;
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .animate-rise-delay-1 {
-  animation: rise-in 0.55s ease-out 0.08s both;
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
 }
 
 .animate-rise-delay-2 {
-  animation: rise-in 0.55s ease-out 0.16s both;
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
 .animate-logo {
-  animation: logo-presence 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: logo-presence 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .scan-pulse::before {
@@ -114,24 +137,10 @@ body {
   animation: pulse-ring 1.6s ease-out infinite;
 }
 
-@keyframes radar-sweep {
-  0% {
-    transform: translate(-50%, 0) scale(0.55);
-    opacity: 0.45;
-  }
-  70% {
-    opacity: 0.12;
-  }
-  100% {
-    transform: translate(-50%, 0) scale(1.35);
-    opacity: 0;
-  }
-}
-
 @keyframes activity-in {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -141,20 +150,29 @@ body {
 
 .scan-grid {
   background-image:
-    linear-gradient(rgba(13, 148, 136, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(29, 78, 216, 0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, black, transparent 75%);
+    linear-gradient(rgba(13, 148, 136, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 78, 216, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 80% 55% at 50% 0%, black, transparent 70%);
 }
 
-.scan-radar {
-  border: 1px solid rgba(13, 148, 136, 0.35);
-  background: radial-gradient(circle, rgba(20, 184, 166, 0.18), transparent 65%);
-  animation: radar-sweep 2.8s ease-out infinite;
+/* Slim premium progress sheen — sits at the top, not a low radar blob */
+.scan-sheen {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(13, 148, 136, 0.15) 25%,
+    rgba(13, 148, 136, 0.85) 50%,
+    rgba(13, 148, 136, 0.15) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: scan-sheen 1.8s ease-in-out infinite;
 }
 
 .scan-activity-line {
-  animation: activity-in 0.35s ease-out both;
+  animation: activity-in 0.3s ease-out both;
 }
 
 /*
@@ -165,14 +183,43 @@ body {
   color: var(--ink);
   /* Flat slate — exact match for public/logo-hero.png so the mark has no box/halo */
   background: #a9c4d0;
+  position: relative;
 }
 
+/* High sheen — premium motion at the top of the hero, not low in the section */
 .hero-mesh::before {
-  content: none;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(11, 31, 58, 0.08) 20%,
+    rgba(13, 148, 136, 0.55) 50%,
+    rgba(11, 31, 58, 0.08) 80%,
+    transparent 100%
+  );
+  opacity: 0.9;
 }
 
 .hero-mesh::after {
-  content: none;
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 120px;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 45%,
+    transparent 70%
+  );
+  animation: hero-sheen 7s ease-in-out infinite;
 }
 
 .glass-panel {

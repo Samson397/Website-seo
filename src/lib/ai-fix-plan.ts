@@ -1,9 +1,19 @@
 import type { AuditReport } from "@/lib/types";
-import type { AiFixPlan, AiPriorityFix } from "@/lib/ai-fix-plan-types";
+import type {
+  AiFixPlan,
+  AiIssueRewrite,
+  AiMetaRewrite,
+  AiPriorityFix,
+} from "@/lib/ai-fix-plan-types";
 import { deepSeekChat } from "@/lib/deepseek";
 import { overallFromScores } from "@/lib/score-display";
 
-export type { AiFixPlan, AiPriorityFix } from "@/lib/ai-fix-plan-types";
+export type {
+  AiFixPlan,
+  AiIssueRewrite,
+  AiMetaRewrite,
+  AiPriorityFix,
+} from "@/lib/ai-fix-plan-types";
 
 function compactReport(report: AuditReport) {
   const issues = [...report.issues]
@@ -11,14 +21,32 @@ function compactReport(report: AuditReport) {
       const rank = { critical: 0, warning: 1, info: 2 };
       return rank[a.severity] - rank[b.severity];
     })
-    .slice(0, 18)
+    .slice(0, 12)
     .map((i) => ({
+      id: i.id,
       severity: i.severity,
       category: i.category,
       title: i.title,
-      recommendation: i.recommendation.slice(0, 180),
+      description: i.description.slice(0, 160),
+      recommendation: i.recommendation.slice(0, 160),
       path: i.pagePath || i.pathTemplate,
     }));
+
+  const pages = (report.crawl?.pages || [])
+    .slice(0, 8)
+    .map((p) => ({
+      path: p.pathname || "/",
+      title: (p.title || "").slice(0, 80),
+      description: (p.description || "").slice(0, 140),
+    }));
+
+  if (pages.length === 0 && report.serpPreview) {
+    pages.push({
+      path: "/",
+      title: report.serpPreview.title.slice(0, 80),
+      description: report.serpPreview.description.slice(0, 140),
+    });
+  }
 
   return {
     url: report.url,
@@ -30,13 +58,13 @@ function compactReport(report: AuditReport) {
       ? {
           score: report.aiVisibility.score,
           botsBlocked: report.aiVisibility.botsBlocked,
-          botsAllowed: report.aiVisibility.botsAllowed,
           fails: report.aiVisibility.signals
             .filter((s) => s.status !== "pass")
             .map((s) => s.label)
             .slice(0, 8),
         }
       : null,
+    pages,
     issues,
   };
 }
@@ -64,6 +92,28 @@ function asFixPlan(data: unknown): AiFixPlan {
     };
   });
 
+  const metaRaw = Array.isArray(obj.metaRewrites) ? obj.metaRewrites : [];
+  const metaRewrites: AiMetaRewrite[] = metaRaw.slice(0, 5).map((item) => {
+    const m = item as Record<string, unknown>;
+    return {
+      path: String(m.path || "/").slice(0, 120),
+      currentTitle: String(m.currentTitle || "").slice(0, 120),
+      suggestedTitle: String(m.suggestedTitle || "").slice(0, 70),
+      currentDescription: String(m.currentDescription || "").slice(0, 200),
+      suggestedDescription: String(m.suggestedDescription || "").slice(0, 160),
+    };
+  });
+
+  const issueRaw = Array.isArray(obj.issueRewrites) ? obj.issueRewrites : [];
+  const issueRewrites: AiIssueRewrite[] = issueRaw.slice(0, 12).map((item) => {
+    const i = item as Record<string, unknown>;
+    return {
+      issueId: String(i.issueId || "").slice(0, 80),
+      plainEnglish: String(i.plainEnglish || "").slice(0, 280),
+      action: String(i.action || "").slice(0, 280),
+    };
+  });
+
   const nextSteps = Array.isArray(obj.nextSteps)
     ? obj.nextSteps.map((s) => String(s).slice(0, 160)).slice(0, 5)
     : [];
@@ -72,6 +122,8 @@ function asFixPlan(data: unknown): AiFixPlan {
     executiveSummary: String(obj.executiveSummary || "").slice(0, 500),
     projectedScoreNote: String(obj.projectedScoreNote || "").slice(0, 220),
     priorityFixes,
+    metaRewrites,
+    issueRewrites,
     llmsTxtDraft: String(obj.llmsTxtDraft || "").slice(0, 1200),
     nextSteps,
   };
@@ -84,7 +136,7 @@ export async function generateAiFixPlan(report: AuditReport): Promise<AiFixPlan>
       {
         role: "system",
         content:
-          "You are an expert SEO and AI-search (GEO) consultant. Reply with JSON only, no markdown prose. Be specific and actionable. Never invent pages that are not in the input.",
+          "You are an expert SEO and AI-search (GEO) consultant. Reply with JSON only. Be specific and actionable. Never invent pages or issue ids that are not in the input.",
       },
       {
         role: "user",
@@ -97,13 +149,27 @@ Return JSON with shape:
   "priorityFixes": [
     { "title": "", "why": "", "action": "", "impact": "high"|"medium"|"low" }
   ],
+  "metaRewrites": [
+    {
+      "path": "/",
+      "currentTitle": "",
+      "suggestedTitle": "max ~60 chars",
+      "currentDescription": "",
+      "suggestedDescription": "max ~155 chars"
+    }
+  ],
+  "issueRewrites": [
+    { "issueId": "exact id from input", "plainEnglish": "", "action": "" }
+  ],
   "llmsTxtDraft": "short draft /llms.txt content for this site",
   "nextSteps": ["up to 5 short bullets"]
 }
 
 Rules:
 - Exactly 3 to 5 priorityFixes, highest impact first
-- Use only issues/signals from the scan
+- Up to 5 metaRewrites for the provided pages (homepage first)
+- issueRewrites for the provided issues only — use exact issueId values
+- plainEnglish must be clear for a non-SEO founder
 - Keep language plain, no fluff
 - llmsTxtDraft should be ready to paste
 
@@ -111,7 +177,7 @@ Scan:
 ${JSON.stringify(payload)}`,
       },
     ],
-    { temperature: 0.25, maxTokens: 1400 }
+    { temperature: 0.25, maxTokens: 2200 }
   );
 
   return asFixPlan(extractJson(content));

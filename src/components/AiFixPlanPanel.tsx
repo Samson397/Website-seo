@@ -1,19 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getUnlock } from "@/lib/unlock";
 import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
 import type { AuditReport } from "@/lib/types";
 
 interface AiFixPlanPanelProps {
   report: AuditReport;
+  /** Auto-generate when DeepSeek is available (default true). */
+  auto?: boolean;
+  onPlan?: (plan: AiFixPlan | null) => void;
 }
 
-export function AiFixPlanPanel({ report }: AiFixPlanPanelProps) {
+export function AiFixPlanPanel({ report, auto = true, onPlan }: AiFixPlanPanelProps) {
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [plan, setPlan] = useState<AiFixPlan | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const startedFor = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,10 +35,13 @@ export function AiFixPlanPanel({ report }: AiFixPlanPanelProps) {
     };
   }, []);
 
-  // Reset when report changes
   useEffect(() => {
     setPlan(null);
+    onPlan?.(null);
     setError(null);
+    startedFor.current = null;
+    // intentionally only reset when the report identity changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report.url, report.scannedAt]);
 
   async function generate() {
@@ -49,7 +56,9 @@ export function AiFixPlanPanel({ report }: AiFixPlanPanelProps) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not generate fix plan");
-      setPlan(data.plan as AiFixPlan);
+      const next = data.plan as AiFixPlan;
+      setPlan(next);
+      onPlan?.(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "AI fix plan failed");
     } finally {
@@ -57,39 +66,53 @@ export function AiFixPlanPanel({ report }: AiFixPlanPanelProps) {
     }
   }
 
+  useEffect(() => {
+    if (!auto || !enabled) return;
+    const key = `${report.url}|${report.scannedAt}`;
+    if (startedFor.current === key) return;
+    startedFor.current = key;
+    void generate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto, enabled, report.url, report.scannedAt]);
+
   if (enabled === false) return null;
   if (enabled === null) {
     return (
-      <section className="rounded-2xl border border-ink/10 bg-white px-5 py-5">
-        <p className="text-sm text-ink-muted">Checking AI fix plan…</p>
+      <section className="animate-rise rounded-2xl border border-ink/10 bg-white px-5 py-5">
+        <p className="text-sm text-ink-muted">Preparing AI brief…</p>
       </section>
     );
   }
 
   return (
-    <section className="rounded-2xl border border-teal/25 bg-gradient-to-br from-white to-teal-soft/30 px-5 py-6 sm:px-7">
+    <section className="animate-rise rounded-2xl border border-teal/25 bg-gradient-to-br from-white to-teal-soft/30 px-5 py-6 sm:px-7">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">AI brief</p>
       <h3 className="font-display mt-1 text-xl font-semibold text-ink sm:text-2xl">
         Priority fix plan
       </h3>
       <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-        DeepSeek turns this scan into an executive summary, ranked fixes, and a draft{" "}
-        <code className="text-xs">llms.txt</code> — included with your paid full scan.
+        Auto-written from this scan: executive summary, ranked fixes, title/meta rewrites, clearer
+        issue actions, and a draft <code className="text-xs">llms.txt</code>.
       </p>
 
-      {!plan ? (
+      {loading && !plan ? (
+        <p className="mt-5 text-sm font-medium text-ink/70">Writing your plan…</p>
+      ) : null}
+
+      {!plan && !loading ? (
         <div className="mt-5">
           <button
             type="button"
             onClick={() => void generate()}
-            disabled={loading}
-            className="rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-ink-soft disabled:opacity-60"
+            className="rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-ink-soft"
           >
-            {loading ? "Writing your plan…" : "Generate AI fix plan"}
+            Generate AI fix plan
           </button>
           {error ? <p className="mt-3 text-sm text-rose-600">{error}</p> : null}
         </div>
-      ) : (
+      ) : null}
+
+      {plan ? (
         <div className="mt-6 space-y-6">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
@@ -135,6 +158,32 @@ export function AiFixPlanPanel({ report }: AiFixPlanPanelProps) {
             </ol>
           </div>
 
+          {plan.metaRewrites.length > 0 ? (
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+                Title & meta rewrites
+              </p>
+              <ul className="mt-3 space-y-3">
+                {plan.metaRewrites.map((meta) => (
+                  <li
+                    key={`${meta.path}-${meta.suggestedTitle}`}
+                    className="rounded-xl border border-ink/10 bg-white px-4 py-3"
+                  >
+                    <p className="font-mono text-xs text-teal">{meta.path}</p>
+                    <p className="mt-2 text-xs text-ink-muted">Title</p>
+                    <p className="text-sm text-ink-muted line-through">{meta.currentTitle || "—"}</p>
+                    <p className="text-sm font-semibold text-ink">{meta.suggestedTitle}</p>
+                    <p className="mt-2 text-xs text-ink-muted">Meta description</p>
+                    <p className="text-sm text-ink-muted line-through">
+                      {meta.currentDescription || "—"}
+                    </p>
+                    <p className="text-sm text-ink">{meta.suggestedDescription}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
           {plan.nextSteps.length > 0 ? (
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
@@ -169,7 +218,7 @@ export function AiFixPlanPanel({ report }: AiFixPlanPanelProps) {
           </button>
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         </div>
-      )}
+      ) : null}
     </section>
   );
 }

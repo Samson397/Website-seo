@@ -25,6 +25,8 @@ interface AuditReportViewProps {
   showProblemsSummary?: boolean;
   categoryFilter?: AuditCategory | "all";
   onCategoryFilterChange?: (category: AuditCategory | "all") => void;
+  /** AI plain-English hints keyed by issue id */
+  aiIssueHints?: Record<string, { plainEnglish: string; action: string }>;
 }
 
 const CATEGORIES: { key: AuditCategory | "all"; label: string }[] = [
@@ -49,6 +51,7 @@ export function AuditReportView({
   showProblemsSummary = true,
   categoryFilter: controlledFilter,
   onCategoryFilterChange,
+  aiIssueHints,
 }: AuditReportViewProps) {
   const [internalFilter, setInternalFilter] = useState<AuditCategory | "all">("all");
   const filter = controlledFilter ?? internalFilter;
@@ -250,6 +253,7 @@ export function AuditReportView({
                 issue={issue}
                 resolved={resolved.has(issue.id)}
                 onToggleResolved={toggleResolved}
+                aiHint={aiIssueHints?.[issue.id]}
               />
             ))}
           </div>
