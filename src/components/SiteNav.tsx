@@ -24,12 +24,10 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <Link
           href={routes.home}
-          className={`flex items-center gap-2.5 font-display text-lg font-semibold tracking-tight ${
-            isHero ? "text-white" : "text-ink"
-          }`}
+          className="flex items-center gap-2.5"
+          aria-label="SEOHub home"
         >
           <LogoMark size="sm" />
-          <span>SEOHub</span>
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">

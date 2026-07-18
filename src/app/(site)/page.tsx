@@ -35,7 +35,14 @@ function HomeShell({ children }: { children?: React.ReactNode }) {
     <main className="min-h-screen pb-16">
       <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-24 sm:pt-32">
         <div className="relative mx-auto max-w-6xl">
-          <p className="font-display text-4xl font-semibold tracking-tight sm:text-6xl">SEOHub</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo.png"
+            alt="SEOHub"
+            width={220}
+            height={246}
+            className="h-28 w-auto drop-shadow-lg sm:h-36"
+          />
           <h1 className="font-display mt-4 max-w-3xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
             The site check you run every week.
           </h1>
@@ -253,12 +260,15 @@ function HomeScanApp() {
         />
 
         <div className="relative mx-auto max-w-6xl">
-          <div className="animate-rise flex items-center gap-3">
+          <div className="animate-rise">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-mark.svg" alt="" width={56} height={56} className="h-14 w-14" />
-            <p className="font-display text-4xl font-semibold tracking-tight text-white sm:text-6xl">
-              SEOHub
-            </p>
+            <img
+              src="/logo.png"
+              alt="SEOHub"
+              width={220}
+              height={246}
+              className="h-28 w-auto drop-shadow-lg sm:h-36"
+            />
           </div>
           <h1 className="font-display animate-rise-delay-1 mt-5 max-w-2xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
             Full-site SEO, without the SaaS tax.
