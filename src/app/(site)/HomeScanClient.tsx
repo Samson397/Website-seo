@@ -318,8 +318,8 @@ export default function HomeScanClient() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
-        <div className="relative z-[1] mx-auto flex max-w-3xl flex-col items-center text-center">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-32 sm:px-6 sm:pb-20 sm:pt-36 lg:px-8">
+        <div className="relative z-[1] mx-auto flex w-full max-w-2xl flex-col items-center text-center">
           <p className="font-display animate-rise text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
             SEOHub
           </p>
@@ -360,7 +360,7 @@ export default function HomeScanClient() {
         />
       )}
 
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {unlockNotice ? (
           <div className="mt-6 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 text-center text-sm text-brand sm:text-left">
             {unlockNotice}
@@ -397,9 +397,9 @@ export default function HomeScanClient() {
 
         {!report && !loading && (
           <>
-            <HomeLaunchPass />
             <RouteCards />
-            <div className="mt-10">
+            <HomeLaunchPass />
+            <div className="mt-14">
               <AdSlot />
             </div>
           </>

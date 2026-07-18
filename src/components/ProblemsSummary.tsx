@@ -94,7 +94,7 @@ export function ProblemsSummary({ report, onJumpToCategory }: ProblemsSummaryPro
               <button
                 type="button"
                 onClick={() => onJumpToCategory("all")}
-                className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+                className="rounded-lg bg-ink px-3 py-2 text-sm font-medium text-white transition hover:bg-ink-soft"
               >
                 View all issues
               </button>

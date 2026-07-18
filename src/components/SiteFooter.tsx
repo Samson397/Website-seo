@@ -15,7 +15,7 @@ const FOOTER_LINKS = [
 export function SiteFooter() {
   return (
     <footer className="border-t border-ink/10 bg-gradient-to-b from-paper to-mist py-12 text-ink-muted">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 sm:px-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <Link href={routes.home} className="flex items-center gap-2.5" aria-label="SEOHub home">
             <LogoMark size="sm" />

@@ -56,7 +56,7 @@ export default async function SharedReportPage({ params }: PageProps) {
         }
         actions={<PrimaryCta href={routes.home}>Run your own free scan</PrimaryCta>}
       />
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <p className="mt-6 text-sm text-ink-muted">
           {isSample ? (
             <>

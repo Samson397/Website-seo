@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { SectionTabs } from "@/components/ui/SectionTabs";
 
 type Tab = "overview" | "scans" | "payments" | "reports" | "promos" | "blog";
 
@@ -484,20 +485,13 @@ export default function AdminPage() {
         </button>
       </div>
 
-      <div className="mt-6 flex flex-wrap gap-2 border-b border-ink/10 pb-2">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-              tab === t.id ? "bg-brand text-white" : "text-ink-muted hover:text-ink"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <SectionTabs
+        className="mt-6"
+        tabs={TABS}
+        value={tab}
+        onChange={setTab}
+        ariaLabel="Admin sections"
+      />
 
       {loadError ? <p className="mt-4 text-sm text-rose-600">{loadError}</p> : null}
       {formMsg ? <p className="mt-4 text-sm text-brand">{formMsg}</p> : null}

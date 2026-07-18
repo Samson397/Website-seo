@@ -16,8 +16,8 @@ export const metadata = pageMetadata({
 function HomeShell() {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
-        <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-32 sm:px-6 sm:pb-20 sm:pt-36 lg:px-8">
+        <div className="relative mx-auto flex max-w-2xl flex-col items-center text-center">
           <p className="font-display text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
             SEOHub
           </p>
@@ -42,7 +42,7 @@ export default function HomePage() {
       </Suspense>
 
       {/* Always in the HTML document for crawlers (outside useSearchParams Suspense). */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SeoPageIntro heading="What SEOHub checks on every scan">
           <p>
             SEOHub is a full-site SEO audit tool for founders and marketers. Paste any public URL

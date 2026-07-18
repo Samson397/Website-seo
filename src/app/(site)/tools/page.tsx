@@ -122,7 +122,7 @@ export default function ToolsPage() {
         </p>
       </SeoPageIntro>
 
-      <div className="mx-auto mt-10 max-w-6xl space-y-14 px-4 sm:px-6">
+      <div className="mx-auto mt-10 max-w-7xl space-y-14 px-4 sm:px-6 lg:px-8">
         {TOOL_GROUPS.map((group) => (
           <section key={group.label}>
             <h2 className="font-display text-xl font-semibold text-ink">{group.label}</h2>

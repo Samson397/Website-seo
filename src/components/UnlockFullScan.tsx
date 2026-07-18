@@ -221,7 +221,7 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
         </Link>
       </div>
       {spotlightOptIn}
-      <div className="mt-5 border-t border-white/10 pt-5">
+      <div className="mt-5 space-y-3 border-t border-white/10 pt-5">
         <PromoCodesBoard compact />
         {promoForm}
       </div>

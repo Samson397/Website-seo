@@ -36,7 +36,7 @@ export function CookieConsent() {
       role="dialog"
       aria-label="Cookie consent"
     >
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-white/75">
           We use cookies for analytics and may show small ads. We don&apos;t collect emails. See
           our{" "}

@@ -46,7 +46,7 @@ export default function HistoryPage() {
         actions={<PrimaryCta href={routes.home}>New scan</PrimaryCta>}
       />
 
-      <div className="mx-auto mt-10 max-w-6xl space-y-12 px-4 sm:px-6">
+      <div className="mx-auto mt-10 max-w-7xl space-y-12 px-4 sm:px-6 lg:px-8">
         {due.length > 0 && (
           <div className="rounded-2xl border border-amber-200 bg-amber-soft/50 px-5 py-4">
             <p className="font-medium text-amber-950">

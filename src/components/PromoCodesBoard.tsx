@@ -18,7 +18,7 @@ type PromoSnapshot = {
   remaining: number;
 };
 
-/** Live board for the launch pass — first N free unlocks, 1 per IP. */
+/** Quiet launch-offer status — not a promo banner or scarcity card. */
 export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
   const [codes, setCodes] = useState<PromoCodeRow[]>([]);
   const [enabled, setEnabled] = useState<boolean | null>(null);
@@ -91,82 +91,35 @@ export function PromoCodesBoard({ compact = false }: { compact?: boolean }) {
   }
 
   if (enabled === null && codes.length === 0) {
-    return (
-      <p className="text-sm text-ink-muted">
-        {compact ? "Loading…" : "Loading free unlock status…"}
-      </p>
-    );
+    return compact ? null : <p className="text-sm text-ink-muted">Checking launch offer…</p>;
   }
 
-  // API only returns codes with remaining uses — hide board when the pool is empty.
   const available = codes.filter((c) => c.remaining > 0);
   if (!available.length) return null;
 
   const primary = available[0];
-  const pct =
-    primary.maxUses > 0 ? Math.min(100, (primary.usedCount / primary.maxUses) * 100) : 100;
+
+  if (compact) {
+    return (
+      <p className="text-sm text-white/70">
+        Launch code{" "}
+        <code className="font-mono font-semibold text-white">{primary.code}</code>
+        {" · "}
+        {primary.remaining} free unlock{primary.remaining === 1 ? "" : "s"} left
+      </p>
+    );
+  }
 
   return (
-    <section className={compact ? "space-y-3" : "space-y-4"}>
-      {!compact ? (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
-            Launch pass
-          </p>
-          <h2 className="font-display mt-2 text-2xl font-semibold text-ink">
-            First {primary.maxUses} full unlocks free
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-            Use code <span className="font-mono font-semibold text-ink">{primary.code}</span> for
-            one full-site scan — no Stripe. One claim per network (IP). Counts update live.
-          </p>
-        </div>
-      ) : (
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-bright/90">
-          Or claim a free launch unlock
-        </p>
-      )}
-
+    <div className="space-y-1">
       {error ? <p className="text-sm text-rose-600">{error}</p> : null}
-
-      <div
-        className={
-          compact
-            ? "rounded-xl border border-white/15 bg-white/5 px-3 py-3"
-            : "max-w-md rounded-2xl border border-ink/10 bg-white px-5 py-5"
-        }
-      >
-        <div className="flex items-baseline justify-between gap-2">
-          <code
-            className={`font-mono text-base font-semibold tracking-wide ${
-              compact ? "text-white" : "text-ink"
-            }`}
-          >
-            {primary.code}
-          </code>
-          <span
-            className={`text-sm font-semibold ${
-              compact ? "text-brand-bright" : "text-brand"
-            }`}
-          >
-            {primary.remaining} left
-          </span>
-        </div>
-        <p className={`mt-1 text-xs ${compact ? "text-white/55" : "text-ink-muted"}`}>
-          {primary.usedCount}/{primary.maxUses} claimed · 1 per IP
-        </p>
-        <div
-          className={`mt-3 h-2 overflow-hidden rounded-full ${compact ? "bg-white/10" : "bg-mist"}`}
-        >
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              compact ? "bg-brand-bright" : "bg-brand"
-            }`}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
-    </section>
+      <p className="text-sm leading-relaxed text-ink-muted">
+        Launch offer: code{" "}
+        <code className="font-mono font-semibold text-ink">{primary.code}</code> unlocks one
+        full-site scan — no Stripe. {primary.remaining} of {primary.maxUses} remaining · one claim
+        per network.
+      </p>
+    </div>
   );
 }
 
