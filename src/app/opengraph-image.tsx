@@ -1,10 +1,15 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
+  const logoData = await readFile(join(process.cwd(), "public/logo.png"));
+  const logoSrc = Uint8Array.from(logoData).buffer;
+
   return new ImageResponse(
     (
       <div
@@ -15,17 +20,24 @@ export default function OpenGraphImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)",
+          background: "linear-gradient(145deg, #0b1f3a 0%, #123a6b 45%, #0d9488 100%)",
           color: "white",
           fontFamily: "system-ui, sans-serif",
           padding: 48,
         }}
       >
-        <div style={{ fontSize: 56, fontWeight: 700, marginBottom: 16 }}>
-          SEOHub
-        </div>
-        <div style={{ fontSize: 28, opacity: 0.9, textAlign: "center", maxWidth: 800 }}>
-          What your site has &amp; what&apos;s missing
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoSrc as unknown as string} width={280} height={312} alt="SEOHub" />
+        <div
+          style={{
+            fontSize: 28,
+            opacity: 0.92,
+            textAlign: "center",
+            maxWidth: 800,
+            marginTop: 28,
+          }}
+        >
+          Full-site SEO audits — free to start, no account
         </div>
       </div>
     ),
