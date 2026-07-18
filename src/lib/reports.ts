@@ -135,6 +135,54 @@ export async function getPreviewReport(id: string): Promise<AuditReport | null> 
   return report;
 }
 
+export type AdminReportRow = {
+  id: string;
+  url: string;
+  hostname: string;
+  overall: number | null;
+  access: string;
+  createdAt: string;
+};
+
+/** Admin: recent shared + preview report rows (no full JSON). */
+export async function listReportsAdmin(limit = 50): Promise<AdminReportRow[]> {
+  if (!canPersistReports()) return [];
+  await ensureReportsSchema();
+  const db = sql();
+  const rows = await db`
+    SELECT id, url, hostname, overall, access, created_at
+    FROM shared_reports
+    ORDER BY created_at DESC
+    LIMIT ${Math.max(1, Math.min(200, limit))}
+  `;
+  return rows.map((r) => ({
+    id: String(r.id),
+    url: String(r.url),
+    hostname: String(r.hostname),
+    overall: r.overall == null ? null : Number(r.overall),
+    access: String(r.access || "shared"),
+    createdAt: new Date(r.created_at as string).toISOString(),
+  }));
+}
+
+export async function deleteReportAdmin(
+  id: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!canPersistReports()) {
+    return { ok: false, error: "DATABASE_URL required." };
+  }
+  if (!/^[a-f0-9]{12}$/i.test(id)) {
+    return { ok: false, error: "Invalid report id." };
+  }
+  await ensureReportsSchema();
+  const db = sql();
+  const rows = await db`
+    DELETE FROM shared_reports WHERE id = ${id} RETURNING id
+  `;
+  if (rows.length === 0) return { ok: false, error: "Report not found." };
+  return { ok: true };
+}
+
 /** Promote a preview stash to a public shareable full report after payment. */
 export async function promotePreviewToShared(
   id: string,
