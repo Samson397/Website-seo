@@ -30,6 +30,7 @@ const PAID = [
   "CSV / JSON / PDF export + shareable report link",
   "AI priority fix plan + draft llms.txt (when DeepSeek is configured)",
   "Email report when Resend is configured",
+  "Opt-in site spotlight on the SEOHub blog (homepage link; needs Neon)",
 ];
 
 export default function PricingPage() {

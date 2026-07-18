@@ -3,6 +3,7 @@ import { runFullAudit } from "@/lib/audit";
 import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
+import { maybeCreateSpotlightFromPaidScan } from "@/lib/blog-spotlights";
 import { canPersistReports, savePreviewReport, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
 import { consumeUnlockSession, verifyUnlockSession } from "@/lib/unlock-access";
@@ -135,6 +136,14 @@ export async function POST(request: NextRequest) {
 
         // One checkout / promo redeem = one full-site scan
         if (tier === "full" && unlockSessionId) {
+          try {
+            await maybeCreateSpotlightFromPaidScan(responseReport, unlockSessionId);
+          } catch (err) {
+            console.error(
+              "[stream] spotlight create failed",
+              err instanceof Error ? err.message : err
+            );
+          }
           try {
             await consumeUnlockSession(unlockSessionId);
           } catch (err) {

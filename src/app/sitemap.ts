@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import { GUIDES } from "@/lib/guides";
 import { listAllBlogPosts } from "@/lib/blog-db";
+import { listSpotlightSlugsForSitemap } from "@/lib/blog-spotlights";
 
 const siteUrl = getSiteUrl();
 
@@ -19,6 +20,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(p.publishedAt),
     changeFrequency: "monthly" as const,
     priority: 0.7,
+  }));
+
+  const spotlights = await listSpotlightSlugsForSitemap();
+  const spotlightEntries = spotlights.map((p) => ({
+    url: `${siteUrl}/blog/${p.slug}`,
+    lastModified: new Date(p.updatedAt),
+    changeFrequency: "monthly" as const,
+    priority: 0.55,
   }));
 
   return [
@@ -138,6 +147,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.85,
     },
     ...blogEntries,
+    ...spotlightEntries,
     {
       url: `${siteUrl}/privacy`,
       lastModified: new Date(),

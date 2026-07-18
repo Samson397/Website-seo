@@ -23,6 +23,7 @@ When Stripe env vars are set:
 
 - **Free** — homepage SEO preview + all toolkit pages
 - **$0.99** — one full-site scan (up to 200 pages), shareable report, deeper site-wide checks
+- **Opt-in blog spotlight** (requires Neon/`DATABASE_URL`) — after a paid full scan, publish a short public post on `/blog` with a homepage link
 
 Paid via Stripe Checkout (one scan per payment). No account.
 

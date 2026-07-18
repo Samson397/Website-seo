@@ -13,11 +13,12 @@ interface UnlockFullScanProps {
 }
 
 export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps) {
-  const { enabled, priceLabel, ready } = usePaymentsEnabled();
+  const { enabled, priceLabel, blogSpotlights, ready } = usePaymentsEnabled();
   const [loading, setLoading] = useState(false);
   const [promoLoading, setPromoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState("");
+  const [spotlight, setSpotlight] = useState(true);
 
   async function checkout() {
     setLoading(true);
@@ -26,7 +27,10 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({
+          url,
+          spotlight: blogSpotlights ? spotlight : false,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Checkout failed");
@@ -81,6 +85,39 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
       setPromoLoading(false);
     }
   }
+
+  const spotlightOptIn =
+    blogSpotlights && ready ? (
+      <label
+        className={
+          variant === "banner"
+            ? "mt-4 flex cursor-pointer items-start gap-2.5 text-left text-sm text-white/75"
+            : "mt-3 flex cursor-pointer items-start gap-2.5 text-left text-sm text-ink-muted"
+        }
+      >
+        <input
+          type="checkbox"
+          checked={spotlight}
+          onChange={(e) => setSpotlight(e.target.checked)}
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-ink/20 text-brand focus:ring-brand"
+        />
+        <span>
+          Feature my site on the{" "}
+          <Link
+            href={routes.blog}
+            className={
+              variant === "banner"
+                ? "font-medium text-brand-bright underline"
+                : "font-medium text-brand underline"
+            }
+            onClick={(e) => e.stopPropagation()}
+          >
+            SEOHub blog
+          </Link>{" "}
+          (includes a link to my homepage).
+        </span>
+      </label>
+    ) : null;
 
   // Checkout-style optional code field — works anytime; launch board above only when pool remains.
   const promoForm = (
@@ -151,6 +188,7 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
             {loading ? "Opening checkout…" : `Unlock report — ${priceLabel}`}
           </button>
         </div>
+        {spotlightOptIn}
         {promoForm}
         {error ? <p className="text-xs text-rose-600">{error}</p> : null}
       </div>
@@ -182,6 +220,7 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
           Compare free vs full
         </Link>
       </div>
+      {spotlightOptIn}
       <div className="mt-5 border-t border-white/10 pt-5">
         <PromoCodesBoard compact />
         {promoForm}

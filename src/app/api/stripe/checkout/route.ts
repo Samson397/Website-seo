@@ -31,9 +31,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Stripe not configured" }, { status: 503 });
     }
 
-    const body = (await req.json().catch(() => ({}))) as { url?: string };
+    const body = (await req.json().catch(() => ({}))) as {
+      url?: string;
+      spotlight?: boolean;
+    };
     const origin = getRequestOrigin(req);
     const targetUrl = typeof body.url === "string" ? body.url.slice(0, 500) : "";
+    const spotlight = Boolean(body.spotlight);
 
     // Stripe replaces {CHECKOUT_SESSION_ID} literally — do not URL-encode the braces.
     const successUrl =
@@ -55,6 +59,7 @@ export async function POST(req: NextRequest) {
         app: "seohub",
         product: "full_seo_scan",
         targetUrl,
+        ...(spotlight ? { spotlight: "1" } : { spotlight: "0" }),
       },
       allow_promotion_codes: true,
     });
