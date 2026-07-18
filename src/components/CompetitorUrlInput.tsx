@@ -43,9 +43,9 @@ export function CompetitorUrlInput({ onSubmit, loading, progress }: CompetitorUr
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-sm text-ink-muted">
-        Enter up to {MAX_COMPETITORS} competitor websites to compare side by side. Each site is
-        audited independently — your site is not included unless you add it.
+      <p className="text-center text-sm text-ink-muted">
+        Enter up to {MAX_COMPETITORS} competitor websites. Each site is audited independently —
+        add your own URL if you want it in the ranking.
       </p>
 
       <div className="space-y-2">
@@ -79,30 +79,34 @@ export function CompetitorUrlInput({ onSubmit, loading, progress }: CompetitorUr
       </div>
 
       {rows < MAX_COMPETITORS && (
-        <button
-          type="button"
-          onClick={addRow}
-          disabled={loading}
-          className="text-sm font-medium text-teal hover:text-teal-bright disabled:opacity-40"
-        >
-          + Add another site
-        </button>
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={addRow}
+            disabled={loading}
+            className="text-sm font-medium text-teal hover:text-teal-bright disabled:opacity-40"
+          >
+            + Add another site
+          </button>
+        </div>
       )}
 
       {progress && (
-        <div className="rounded-xl border border-teal/20 bg-teal-soft/50 px-4 py-3 text-sm text-teal">
+        <div className="rounded-xl border border-teal/20 bg-teal-soft/50 px-4 py-3 text-center text-sm text-teal">
           Auditing {progress.current} of {progress.total}:{" "}
           <span className="font-medium text-ink">{progress.url}</span>
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={loading || values.every((v) => !v.trim())}
-        className="w-full rounded-xl bg-ink px-8 py-3.5 font-semibold text-white transition hover:bg-ink-soft disabled:opacity-60 sm:w-auto"
-      >
-        {loading ? "Auditing competitors…" : "Audit competitors"}
-      </button>
+      <div className="flex justify-center pt-1">
+        <button
+          type="submit"
+          disabled={loading || values.every((v) => !v.trim())}
+          className="w-full rounded-xl bg-ink px-8 py-3.5 font-semibold text-white transition hover:bg-ink-soft disabled:opacity-60 sm:w-auto"
+        >
+          {loading ? "Auditing competitors…" : "Audit competitors"}
+        </button>
+      </div>
     </form>
   );
 }

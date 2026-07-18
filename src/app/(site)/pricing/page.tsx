@@ -70,9 +70,9 @@ export default function PricingPage() {
         <PromoCodesBoard />
       </section>
 
-      <section className="mx-auto mt-16 max-w-3xl px-4 sm:px-6">
+      <section className="mx-auto mt-16 max-w-3xl px-4 text-center sm:px-6">
         <h2 className="font-display text-2xl font-semibold text-ink">What you get after unlock</h2>
-        <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+        <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-ink-muted">
           Each payment covers <span className="font-semibold text-ink">one full-site scan</span> —
           unlock that report’s fixes, run the crawl (up to 200 pages), export, and share. Want
           another site later? Pay again. Free homepage previews stay free.

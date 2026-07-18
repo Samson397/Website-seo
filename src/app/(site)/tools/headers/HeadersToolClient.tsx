@@ -59,7 +59,7 @@ export default function HeadersToolPage() {
         title="Security headers checker"
         description="Quickly see which browser security headers your site returns."
       >
-        <form onSubmit={onSubmit} className="flex max-w-2xl flex-col gap-3 sm:flex-row">
+        <form onSubmit={onSubmit} className="flex w-full max-w-xl flex-col gap-3 sm:flex-row">
           <input
             name="url"
             required

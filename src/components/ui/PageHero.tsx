@@ -18,11 +18,11 @@ export function PageHero({
 }: PageHeroProps) {
   return (
     <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pb-14 sm:pt-24">
-      <div className="relative z-[1] mx-auto max-w-6xl">
+      <div className="relative z-[1] mx-auto flex max-w-3xl flex-col items-center text-center">
         <p className="animate-rise text-xs font-semibold uppercase tracking-[0.22em] text-teal">
           {eyebrow}
         </p>
-        <h1 className="font-display animate-rise-delay-1 mt-2 max-w-3xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
+        <h1 className="font-display animate-rise-delay-1 mt-2 max-w-2xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
           {title}
         </h1>
         {description && (
@@ -30,8 +30,16 @@ export function PageHero({
             {description}
           </p>
         )}
-        {actions && <div className="animate-rise-delay-2 mt-5 flex flex-wrap gap-3">{actions}</div>}
-        {children && <div className="animate-rise-delay-2 mt-6">{children}</div>}
+        {actions && (
+          <div className="animate-rise-delay-2 mt-5 flex flex-wrap items-center justify-center gap-3">
+            {actions}
+          </div>
+        )}
+        {children && (
+          <div className="animate-rise-delay-2 mt-6 flex w-full justify-center text-left">
+            {children}
+          </div>
+        )}
       </div>
     </section>
   );
