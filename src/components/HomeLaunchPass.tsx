@@ -29,7 +29,14 @@ export function HomeLaunchPass() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not redeem code");
       saveUnlock(data.sessionId as string);
-      notifyPromoRedeemed();
+      notifyPromoRedeemed({
+        code: String(data.code || value),
+        usedCount: Number(data.usedCount),
+        maxUses: Number(data.maxUses),
+        remaining: Number(data.remaining),
+      });
+      // Brief pause so the counter can paint the new claimed total before navigation
+      await new Promise((r) => window.setTimeout(r, 450));
       window.location.href = scanUrlFor("", data.sessionId as string);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not redeem code");

@@ -59,7 +59,22 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not redeem code");
       saveUnlock(data.sessionId as string);
-      notifyPromoRedeemed();
+      if (
+        typeof data.usedCount === "number" &&
+        typeof data.remaining === "number" &&
+        typeof data.maxUses === "number"
+      ) {
+        notifyPromoRedeemed({
+          code: String(data.code || code),
+          usedCount: data.usedCount,
+          remaining: data.remaining,
+          maxUses: data.maxUses,
+        });
+      } else {
+        notifyPromoRedeemed();
+      }
+      // Brief pause so the counter can paint before navigation
+      await new Promise((r) => window.setTimeout(r, 450));
       window.location.href = scanUrlFor(url || "", data.sessionId as string);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not redeem code");

@@ -64,10 +64,7 @@ function seedSpecs(): { code: string; maxUses: number; label: string }[] {
 
 function normalizeIp(raw: string | undefined | null): string {
   const ip = (raw || "unknown").trim().toLowerCase();
-  if (!ip || ip === "unknown" || ip === "::1" || ip === "127.0.0.1") {
-    // Still bind localhost in dev so repeat redeems are blocked there too
-    return ip || "unknown";
-  }
+  if (!ip) return "unknown";
   return ip.slice(0, 64);
 }
 
@@ -102,7 +99,6 @@ async function ensurePromoSchema() {
         ALTER TABLE promo_unlocks
         ADD COLUMN IF NOT EXISTS client_ip TEXT
       `;
-      // One free unlock per IP across the whole launch pass
       await db`
         CREATE TABLE IF NOT EXISTS promo_ip_claims (
           client_ip TEXT PRIMARY KEY,
@@ -112,23 +108,36 @@ async function ensurePromoSchema() {
         )
       `;
 
+      // Seed only — never overwrite used_count on existing rows
       for (const spec of seedSpecs()) {
         await db`
           INSERT INTO promo_codes (code, label, max_uses, used_count, active)
           VALUES (${spec.code}, ${spec.label}, ${spec.maxUses}, 0, TRUE)
-          ON CONFLICT (code) DO UPDATE SET
-            label = EXCLUDED.label,
-            max_uses = EXCLUDED.max_uses,
-            active = TRUE
+          ON CONFLICT (code) DO NOTHING
+        `;
+        // Keep label/max/active in sync without touching used_count
+        await db`
+          UPDATE promo_codes
+          SET label = ${spec.label},
+              max_uses = ${spec.maxUses},
+              active = TRUE
+          WHERE code = ${spec.code}
         `;
       }
 
-      // Retire older multi-code seeds so only the launch pass shows
       for (const legacy of LEGACY_CODES) {
         await db`
           UPDATE promo_codes SET active = FALSE WHERE code = ${legacy}
         `;
       }
+
+      // Heal used_count from real unlock rows (source of truth), including zeros
+      await db`
+        UPDATE promo_codes AS c
+        SET used_count = (
+          SELECT COUNT(*)::int FROM promo_unlocks u WHERE u.code = c.code
+        )
+      `;
     })().catch((err) => {
       schemaReady = null;
       throw err;
@@ -145,11 +154,22 @@ export async function listPublicPromoCodes(): Promise<PublicPromoCode[]> {
   if (!canUsePromoCodes()) return [];
   await ensurePromoSchema();
   const db = sql();
+  // Count unlocks directly so the public board can't drift / get cached wrong from used_count
   const rows = await db`
-    SELECT code, label, max_uses, used_count, active
-    FROM promo_codes
-    WHERE active = TRUE
-    ORDER BY created_at ASC
+    SELECT
+      c.code,
+      c.label,
+      c.max_uses,
+      c.active,
+      COALESCE(u.cnt, 0)::int AS used_count
+    FROM promo_codes c
+    LEFT JOIN (
+      SELECT code, COUNT(*)::int AS cnt
+      FROM promo_unlocks
+      GROUP BY code
+    ) u ON u.code = c.code
+    WHERE c.active = TRUE
+    ORDER BY c.created_at ASC
   `;
   return rows.map((row) => {
     const maxUses = Number(row.max_uses);
@@ -190,7 +210,6 @@ export async function redeemPromoCode(
   await ensurePromoSchema();
   const db = sql();
 
-  // Reserve this IP first (unique) so one network can't burn the pool
   const claimed = await db`
     INSERT INTO promo_ip_claims (client_ip, code)
     VALUES (${clientIp}, ${code})
@@ -205,7 +224,6 @@ export async function redeemPromoCode(
     };
   }
 
-  // Atomic pool increment
   const updated = await db`
     UPDATE promo_codes
     SET used_count = used_count + 1
@@ -216,7 +234,6 @@ export async function redeemPromoCode(
   `;
 
   if (updated.length === 0) {
-    // Release IP reservation — pool empty or bad code
     await db`DELETE FROM promo_ip_claims WHERE client_ip = ${clientIp} AND unlock_id IS NULL`;
 
     const existing = await db`
@@ -247,8 +264,12 @@ export async function redeemPromoCode(
     WHERE client_ip = ${clientIp}
   `;
 
+  // Prefer real unlock count for the response (matches public board)
+  const counted = await db`
+    SELECT COUNT(*)::int AS cnt FROM promo_unlocks WHERE code = ${String(row.code)}
+  `;
   const maxUses = Number(row.max_uses);
-  const usedCount = Number(row.used_count);
+  const usedCount = Number(counted[0]?.cnt ?? row.used_count);
   return {
     ok: true,
     sessionId,
@@ -270,7 +291,6 @@ export async function verifyPromoSession(sessionId: string): Promise<boolean> {
   return rows.length > 0;
 }
 
-/** True if session exists (consumed OK — for AI plan after the scan). */
 export async function promoSessionExists(sessionId: string): Promise<boolean> {
   if (!isPromoSessionId(sessionId) || !canUsePromoCodes()) return false;
   await ensurePromoSchema();
