@@ -34,6 +34,13 @@ export default function GuidesPage() {
             <p className="mt-2 text-sm text-ink-muted">{guide.summary}</p>
           </Link>
         ))}
+        <p className="border-t border-ink/10 pt-6 text-sm text-ink-muted">
+          Looking for longer SEO articles?{" "}
+          <Link href={routes.blog} className="font-medium text-teal hover:underline">
+            Read the blog
+          </Link>
+          .
+        </p>
       </div>
     </main>
   );

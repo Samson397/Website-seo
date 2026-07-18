@@ -15,6 +15,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
     pathname === "/pricing" ||
     pathname === "/tracker" ||
     pathname === "/guides" ||
+    pathname === "/blog" ||
     pathname === "/about" ||
     pathname.startsWith("/unlock");
 

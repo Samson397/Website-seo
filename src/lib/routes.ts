@@ -18,6 +18,7 @@ export const routes = {
   sitemapGenerator: "/tools/sitemap-generator",
   robotsGenerator: "/tools/robots-generator",
   guides: "/guides",
+  blog: "/blog",
   pricing: "/pricing",
   about: "/about",
   privacy: "/privacy",

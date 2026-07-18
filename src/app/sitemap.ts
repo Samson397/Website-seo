@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import { GUIDES } from "@/lib/guides";
+import { BLOG_POSTS } from "@/lib/blog";
 
 const siteUrl = getSiteUrl();
 
@@ -10,6 +11,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
+  }));
+
+  const blogEntries = BLOG_POSTS.map((p) => ({
+    url: `${siteUrl}/blog/${p.slug}`,
+    lastModified: new Date(p.publishedAt),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
   }));
 
   return [
@@ -122,6 +130,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     ...guideEntries,
+    {
+      url: `${siteUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    ...blogEntries,
     {
       url: `${siteUrl}/privacy`,
       lastModified: new Date(),

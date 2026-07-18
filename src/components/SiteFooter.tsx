@@ -5,6 +5,7 @@ import { routes } from "@/lib/routes";
 const FOOTER_LINKS = [
   { href: routes.pricing, label: "Pricing" },
   { href: routes.tools, label: "Tools" },
+  { href: routes.blog, label: "Blog" },
   { href: routes.guides, label: "Guides" },
   { href: routes.about, label: "About" },
   { href: routes.privacy, label: "Privacy" },
