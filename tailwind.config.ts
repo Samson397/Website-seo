@@ -36,7 +36,7 @@ const config: Config = {
         body: ["var(--font-body)", "Segoe UI", "sans-serif"],
       },
       boxShadow: {
-        glow: "0 20px 50px -20px rgba(29, 78, 216, 0.35)",
+        glow: "0 22px 48px -22px rgba(11, 31, 58, 0.35)",
       },
     },
   },

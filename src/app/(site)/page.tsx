@@ -33,17 +33,19 @@ export default function Home() {
 function HomeShell({ children }: { children?: React.ReactNode }) {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-24 sm:pt-32">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
         <div className="relative mx-auto max-w-6xl">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.png"
-            alt="SEOHub"
-            width={200}
-            height={223}
-            className="h-24 w-auto sm:h-32"
-          />
-          <h1 className="font-display mt-4 max-w-3xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
+          <div className="logo-plate">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="SEOHub"
+              width={260}
+              height={290}
+              className="h-32 w-auto sm:h-40"
+            />
+          </div>
+          <h1 className="font-display mt-8 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
             The site check you run every week.
           </h1>
         </div>
@@ -249,47 +251,38 @@ function HomeScanApp() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 text-white sm:px-6 sm:pb-24 sm:pt-32">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-40"
-          aria-hidden
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-          }}
-        />
-
+      <section className="hero-mesh relative overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pb-24 sm:pt-32">
         <div className="relative mx-auto max-w-6xl">
-          <div className="animate-rise">
+          <div className="logo-plate animate-logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.png"
               alt="SEOHub"
-              width={200}
-              height={223}
-              className="h-24 w-auto sm:h-32"
+              width={260}
+              height={290}
+              className="h-32 w-auto sm:h-40"
             />
           </div>
-          <h1 className="font-display animate-rise-delay-1 mt-5 max-w-2xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
+          <h1 className="font-display animate-rise-delay-1 mt-8 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
             Full-site SEO, without the SaaS tax.
           </h1>
-          <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-white/75 sm:text-lg">
+          <p className="animate-rise-delay-2 mt-4 max-w-xl text-base text-ink-muted sm:text-lg">
             {paymentsOn
               ? `Free homepage preview. Unlock the full crawl for ${priceLabel} — no account.`
               : "Audit, keywords, rank checks, and tools — free to start, no account."}
           </p>
 
-          <div className="animate-rise-delay-2 glass-panel mt-8 max-w-2xl rounded-2xl border border-white/15 p-4 shadow-glow sm:p-5">
+          <div className="animate-rise-delay-2 scan-shell mt-9 max-w-2xl rounded-2xl p-4 sm:p-5">
             <UrlInput
               onSubmit={handleScanSubmit}
               loading={loading}
               showCrawlControls={showCrawlControls}
             />
           </div>
-          <p className="animate-rise-delay-2 mt-4 max-w-2xl text-xs text-white/55">
+          <p className="animate-rise-delay-2 mt-4 max-w-2xl text-xs text-ink-muted/80">
             HTML-only crawl: we fetch public HTML (no headless browser). JS-rendered apps may show
             fewer on-page signals.{" "}
-            <Link href={routes.sampleReport} className="text-brand-bright underline-offset-2 hover:underline">
+            <Link href={routes.sampleReport} className="font-medium text-teal underline-offset-2 hover:underline">
               View sample report
             </Link>
           </p>

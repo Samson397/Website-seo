@@ -1,9 +1,9 @@
 import Image from "next/image";
 
 const heights = {
-  sm: 36,
-  md: 44,
-  lg: 56,
+  sm: 40,
+  md: 48,
+  lg: 64,
 } as const;
 
 /** Full SEOHub logo (transparent PNG from brand artwork). */
