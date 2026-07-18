@@ -70,7 +70,7 @@ export default function CompetitorsPageClient() {
         title="Compare competitors"
         description="Audit up to 10 public websites side by side. Each site gets the same 50+ homepage checks so you can rank gaps quickly."
       >
-        <div className="max-w-3xl rounded-2xl border border-white/20 bg-white p-5 text-ink shadow-glow sm:p-6">
+        <div className="scan-shell max-w-3xl rounded-2xl p-5 sm:p-6">
           <CompetitorUrlInput onSubmit={auditCompetitors} loading={loading} progress={progress} />
         </div>
       </PageHero>

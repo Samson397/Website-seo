@@ -58,12 +58,12 @@ export default function RobotsToolPage() {
             name="url"
             required
             placeholder="example.com"
-            className="flex-1 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder:text-white/45 outline-none focus:border-teal-bright focus:ring-2 focus:ring-teal-bright/30"
+            className="flex-1 rounded-xl border border-ink/12 bg-white px-4 py-3 text-ink placeholder:text-ink-muted/55 outline-none focus:border-teal focus:ring-2 focus:ring-teal/25"
           />
           <button
             type="submit"
             disabled={loading}
-            className="rounded-xl bg-teal-bright px-6 py-3 font-semibold text-ink hover:bg-teal disabled:opacity-60"
+            className="rounded-xl bg-ink px-6 py-3 font-semibold text-white hover:bg-ink-soft disabled:opacity-60"
           >
             {loading ? "Checking…" : "Inspect"}
           </button>

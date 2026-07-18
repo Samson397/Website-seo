@@ -41,11 +41,9 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
                 href={href}
                 className={`rounded-lg px-2.5 py-2 text-sm font-medium transition ${
                   active
-                    ? isHero
-                      ? "bg-white/15 text-white"
-                      : "bg-brand-soft text-brand"
+                    ? "bg-ink/8 text-ink"
                     : isHero
-                      ? "text-white/70 hover:bg-white/10 hover:text-white"
+                      ? "text-ink/65 hover:bg-ink/5 hover:text-ink"
                       : "text-ink-muted hover:bg-mist hover:text-ink"
                 }`}
               >
@@ -73,11 +71,9 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
               href={item.href}
               className={`shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium ${
                 active
-                  ? isHero
-                    ? "bg-white text-ink"
-                    : "bg-brand text-white"
+                  ? "bg-ink text-white"
                   : isHero
-                    ? "bg-white/10 text-white"
+                    ? "bg-white/55 text-ink/75 ring-1 ring-ink/8"
                     : "bg-mist text-ink-muted"
               }`}
             >

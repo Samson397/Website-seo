@@ -63,34 +63,34 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
           disabled={loading}
           autoComplete="url"
           inputMode="url"
-          className="flex-1 rounded-xl border border-ink/10 bg-white/90 px-4 py-3.5 text-ink shadow-inner placeholder:text-ink-muted/60 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/25 disabled:opacity-60"
+          className="flex-1 rounded-xl border border-ink/12 bg-white px-4 py-3.5 text-ink shadow-inner placeholder:text-ink-muted/55 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/25 disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-teal px-8 py-3.5 font-semibold text-white shadow-glow transition hover:bg-teal-bright focus:outline-none focus:ring-2 focus:ring-teal/40 disabled:opacity-60 sm:w-auto"
+          className="w-full rounded-xl bg-ink px-8 py-3.5 font-semibold text-white shadow-glow transition hover:bg-ink-soft focus:outline-none focus:ring-2 focus:ring-teal/35 disabled:opacity-60 sm:w-auto"
         >
           {loading ? "Scanning site…" : "Scan site"}
         </button>
       </div>
 
-      <p className="text-center text-xs text-white/70 sm:text-left">
+      <p className="text-center text-xs text-ink-muted sm:text-left">
         Free preview scores the homepage. Unlock for a full-site crawl and detailed fixes.
         Scans fetch public HTML (not a full browser render).
       </p>
 
       {showCrawlControls ? (
-        <div className="rounded-xl border border-white/15 bg-white/5 p-3">
+        <div className="rounded-xl border border-ink/10 bg-white/60 p-3">
           <button
             type="button"
             onClick={() => setAdvancedOpen((o) => !o)}
-            className="text-xs font-semibold text-white/90 hover:text-white"
+            className="text-xs font-semibold text-ink/80 hover:text-ink"
           >
             {advancedOpen ? "Hide" : "Show"} crawl controls
           </button>
           {advancedOpen ? (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <label className="block text-xs text-white/80">
+              <label className="block text-xs text-ink-muted">
                 Max pages (1–{HARD_MAX_PAGES})
                 <input
                   type="number"
@@ -99,10 +99,10 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
                   value={maxPages}
                   onChange={(e) => setMaxPages(e.target.value)}
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-sm text-ink"
+                  className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm text-ink"
                 />
               </label>
-              <label className="block text-xs text-white/80">
+              <label className="block text-xs text-ink-muted">
                 Start path
                 <input
                   type="text"
@@ -110,10 +110,10 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
                   onChange={(e) => setStartPath(e.target.value)}
                   placeholder="/blog"
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-sm text-ink"
+                  className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm text-ink"
                 />
               </label>
-              <label className="block text-xs text-white/80 sm:col-span-1">
+              <label className="block text-xs text-ink-muted sm:col-span-1">
                 Include paths (comma or newline)
                 <textarea
                   value={includePaths}
@@ -121,10 +121,10 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
                   placeholder="/blog, /products/*"
                   rows={2}
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-sm text-ink"
+                  className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm text-ink"
                 />
               </label>
-              <label className="block text-xs text-white/80 sm:col-span-1">
+              <label className="block text-xs text-ink-muted sm:col-span-1">
                 Exclude paths
                 <textarea
                   value={excludePaths}
@@ -132,7 +132,7 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
                   placeholder="/cart, /account/*"
                   rows={2}
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-sm text-ink"
+                  className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm text-ink"
                 />
               </label>
             </div>
