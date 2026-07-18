@@ -7,6 +7,7 @@ import { FULL_SCAN_PRICE_LABEL, paymentsEnabledClient } from "@/lib/stripe-publi
 export function usePaymentsEnabled() {
   const [enabled, setEnabled] = useState(paymentsEnabledClient());
   const [priceLabel, setPriceLabel] = useState(FULL_SCAN_PRICE_LABEL);
+  const [blogSpotlights, setBlogSpotlights] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -18,6 +19,7 @@ export function usePaymentsEnabled() {
         if (!cancelled && typeof data.enabled === "boolean") {
           setEnabled(Boolean(data.enabled));
           if (data.priceLabel) setPriceLabel(sanitizePriceLabel(String(data.priceLabel)));
+          setBlogSpotlights(Boolean(data.blogSpotlights));
         }
       } catch {
         /* keep fallback */
@@ -30,5 +32,5 @@ export function usePaymentsEnabled() {
     };
   }, []);
 
-  return { enabled, priceLabel, ready };
+  return { enabled, priceLabel, blogSpotlights, ready };
 }

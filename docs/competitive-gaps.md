@@ -24,6 +24,7 @@ Goal: be the best **browser-first weekly SEO audit** — not a full Ahrefs/Semru
 ## Still optional / env-gated
 
 - DataForSEO keys → richer backlinks, volume, SERP positions
+- Neon/`DATABASE_URL` → opt-in site spotlights on `/blog` after paid unlock (homepage backlink; high-level scores + issue titles only)
 
 ## Out of scope for now
 

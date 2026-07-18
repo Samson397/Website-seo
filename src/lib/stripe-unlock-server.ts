@@ -7,6 +7,8 @@ export interface PaidSessionResult {
   amountTotal?: number | null;
   currency?: string | null;
   consumed?: boolean;
+  /** Opt-in: publish a site spotlight on the SEOHub blog after the full scan. */
+  spotlight?: boolean;
   error?: string;
 }
 
@@ -65,6 +67,7 @@ export async function verifyPaidCheckoutSession(
     }
 
     const consumed = session.metadata?.consumed === "1";
+    const spotlight = session.metadata?.spotlight === "1";
 
     return {
       paid: true,
@@ -73,6 +76,7 @@ export async function verifyPaidCheckoutSession(
       amountTotal: session.amount_total,
       currency: session.currency,
       consumed,
+      spotlight,
     };
   } catch (err) {
     return {
