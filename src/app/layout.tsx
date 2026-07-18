@@ -64,33 +64,35 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const jsonLd = [
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: "SEOHub",
-      url: siteUrl,
-      logo: `${siteUrl}/logo.png`,
-      description,
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "SEOHub",
-      url: siteUrl,
-      description,
-      publisher: { "@type": "Organization", name: "SEOHub", url: siteUrl },
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      name: "SEOHub",
-      description,
-      url: siteUrl,
-      applicationCategory: "BusinessApplication",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
-    },
-  ];
+  // Single root object with @graph — Safari throws on a bare JSON-LD array
+  // (TypeError: r["@context"].toLowerCase).
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "SEOHub",
+        url: siteUrl,
+        logo: `${siteUrl}/logo.png`,
+        description,
+      },
+      {
+        "@type": "WebSite",
+        name: "SEOHub",
+        url: siteUrl,
+        description,
+        publisher: { "@type": "Organization", name: "SEOHub", url: siteUrl },
+      },
+      {
+        "@type": "WebApplication",
+        name: "SEOHub",
+        description,
+        url: siteUrl,
+        applicationCategory: "BusinessApplication",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
+      },
+    ],
+  };
 
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
