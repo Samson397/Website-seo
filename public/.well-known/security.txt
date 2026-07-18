@@ -1,0 +1,5 @@
+Contact: mailto:security@seohub.online
+Preferred-Languages: en
+Canonical: https://www.seohub.online/.well-known/security.txt
+Policy: https://www.seohub.online/privacy
+Expires: 2027-07-18T00:00:00.000Z

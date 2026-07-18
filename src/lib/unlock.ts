@@ -37,6 +37,13 @@ export function hasFullUnlock(): boolean {
   return Boolean(record?.sessionId && !record.used);
 }
 
+/** Session id for a not-yet-used paid full scan; null if spent or missing. */
+export function getUsableUnlockSessionId(): string | null {
+  const record = read();
+  if (!record?.sessionId || record.used) return null;
+  return record.sessionId;
+}
+
 export function saveUnlock(sessionId: string, hostname?: string): UnlockRecord {
   const record: UnlockRecord = {
     sessionId,

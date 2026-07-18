@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
+import { SeoPageIntro } from "@/components/SeoPageIntro";
+import { pageMetadata } from "@/lib/page-seo";
 import { routes } from "@/lib/routes";
+
+export const metadata = pageMetadata({
+  title: "Free SEO tools — SEOHub",
+  description:
+    "Free SEO toolkit: keyword research, meta preview, robots and sitemap inspectors, security headers, redirects, schema, broken links, and generators. No account required.",
+  path: "/tools",
+});
 
 const TOOL_GROUPS = [
   {
@@ -103,6 +112,15 @@ export default function ToolsPage() {
         title="Audit, research, optimize, generate."
         description="Free tools with no account — built to sit next to your weekly site scan."
       />
+
+      <SeoPageIntro heading="A free toolkit next to your weekly audit">
+        <p>
+          Every SEOHub tool is built to answer a specific question from a full-site scan: Are titles
+          and descriptions click-worthy? Is robots.txt blocking the wrong paths? Do security headers
+          and redirects look clean? Use these utilities without a login, then run a homepage preview
+          or paid crawl when you need the complete picture.
+        </p>
+      </SeoPageIntro>
 
       <div className="mx-auto mt-10 max-w-6xl space-y-14 px-4 sm:px-6">
         {TOOL_GROUPS.map((group) => (

@@ -4,7 +4,9 @@ import { routes } from "@/lib/routes";
 
 export const metadata = {
   title: "Terms of Service — SEOHub",
-  description: "Terms of service for SEOHub.",
+  description:
+    "Terms of service for using SEOHub audits, free tools, and paid full-site scans. Please read before purchasing an unlock.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {
