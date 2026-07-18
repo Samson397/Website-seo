@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { UrlInput, type ScanSubmitPayload } from "@/components/UrlInput";
 import { RouteCards } from "@/components/RouteCards";
 import { ScanHistoryPanel } from "@/components/ScanHistoryPanel";
@@ -12,6 +12,7 @@ import { FreePreviewReport } from "@/components/FreePreviewReport";
 import { FullAuditDelivery } from "@/components/FullAuditDelivery";
 import { saveScanToHistory } from "@/lib/local-history";
 import {
+  getUnlock,
   getUsableUnlockSessionId,
   hasFullUnlock,
   markUnlockUsed,
@@ -28,8 +29,21 @@ import { routes } from "@/lib/routes";
 import type { CrawlControls } from "@/lib/crawl-options";
 import type { AuditReport, ScanProgressEvent } from "@/lib/types";
 
+/** Drop unlock_session from the address bar so refresh/revisit doesn't re-fire unlock UI. */
+function stripUnlockSessionParam(
+  router: ReturnType<typeof useRouter>,
+  searchParams: URLSearchParams
+) {
+  if (!searchParams.has("unlock_session")) return;
+  const next = new URLSearchParams(searchParams.toString());
+  next.delete("unlock_session");
+  const q = next.toString();
+  router.replace(q ? `/?${q}` : "/", { scroll: false });
+}
+
 export default function HomeScanClient() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { enabled: paymentsOn, priceLabel } = usePaymentsEnabled();
   const [unlocked, setUnlocked] = useState(false);
   const [report, setReport] = useState<AuditReport | null>(null);
@@ -59,6 +73,13 @@ export default function HomeScanClient() {
     unlockHandled.current = sessionId;
     const isPromo = sessionId.startsWith("promo_");
 
+    // Already spent this unlock — clean the URL and skip the banner / re-scan.
+    const existing = getUnlock();
+    if (existing?.sessionId === sessionId && existing.used) {
+      stripUnlockSessionParam(router, searchParams);
+      return;
+    }
+
     void (async () => {
       try {
         if (!isPromo) {
@@ -70,6 +91,7 @@ export default function HomeScanClient() {
           const data = await res.json();
           if (!res.ok || !data.paid) {
             setError(data.error || "Payment could not be verified.");
+            stripUnlockSessionParam(router, searchParams);
             return;
           }
         }
@@ -80,6 +102,13 @@ export default function HomeScanClient() {
         const url = searchParams.get("url")?.trim() || stash?.url || lastUrl.current;
         const previewId = stash?.previewId;
         const unlockLabel = isPromo ? "promo code" : priceLabel;
+
+        // Mark URL as handled before stripping unlock_session so the auto-start
+        // effect doesn't kick off a second (free) scan when the query updates.
+        if (url) autoStarted.current = url;
+
+        // Prevent sticky ?unlock_session=… from replaying this banner on every visit.
+        stripUnlockSessionParam(router, searchParams);
 
         if (previewId) {
           const unlockRes = await fetch("/api/audit/unlock", {
@@ -101,17 +130,24 @@ export default function HomeScanClient() {
               resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
             });
             if (url) {
-              autoStarted.current = null;
               void runAudit(url, true, true, sessionId, undefined, true);
+            } else {
+              setUnlockNotice(
+                `Full SEO unlocked with ${unlockLabel}. Paste a URL above to run your full-site scan.`
+              );
             }
             return;
           }
         }
 
-        setUnlockNotice(`Full SEO unlocked with ${unlockLabel}. Running full site scan…`);
         if (url) {
-          autoStarted.current = null;
+          setUnlockNotice(`Full SEO unlocked with ${unlockLabel}. Running full site scan…`);
           void runAudit(url, false, true, sessionId);
+        } else {
+          // Claimed unlock with no target URL — don't imply a scan is running.
+          setUnlockNotice(
+            `Full SEO unlocked with ${unlockLabel}. Paste a URL above to run your full-site scan.`
+          );
         }
       } catch {
         setError(
@@ -119,6 +155,7 @@ export default function HomeScanClient() {
             ? "Could not apply promo code. Try again or pay with Stripe."
             : "Could not verify payment. Contact support if you were charged."
         );
+        stripUnlockSessionParam(router, searchParams);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
