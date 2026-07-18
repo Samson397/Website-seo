@@ -82,32 +82,44 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
     }
   }
 
+  // Checkout-style optional code field — works anytime; launch board above only when pool remains.
   const promoForm = (
-    <form onSubmit={(e) => void redeemPromo(e)} className="mt-4 flex flex-wrap gap-2">
-      <input
-        value={promoCode}
-        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-        placeholder="WELCOME"
-        autoComplete="off"
-        spellCheck={false}
+    <div className="mt-4 space-y-2">
+      <p
         className={
           variant === "banner"
-            ? "min-w-[10rem] flex-1 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 font-mono text-sm uppercase tracking-wide text-white placeholder:text-white/40 focus:border-brand-bright focus:outline-none"
-            : "min-w-[10rem] flex-1 rounded-xl border border-ink/15 bg-white px-3 py-2 font-mono text-sm uppercase tracking-wide text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
-        }
-      />
-      <button
-        type="submit"
-        disabled={promoLoading}
-        className={
-          variant === "banner"
-            ? "rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-60"
-            : "rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-brand/40 disabled:opacity-60"
+            ? "text-xs text-white/55"
+            : "text-xs text-ink-muted"
         }
       >
-        {promoLoading ? "Applying…" : "Apply code"}
-      </button>
-    </form>
+        Have a promo code?
+      </p>
+      <form onSubmit={(e) => void redeemPromo(e)} className="flex flex-wrap gap-2">
+        <input
+          value={promoCode}
+          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+          placeholder="Promo code"
+          autoComplete="off"
+          spellCheck={false}
+          className={
+            variant === "banner"
+              ? "min-w-[10rem] flex-1 rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 font-mono text-sm uppercase tracking-wide text-white placeholder:text-white/40 focus:border-brand-bright focus:outline-none"
+              : "min-w-[10rem] flex-1 rounded-xl border border-ink/15 bg-white px-3 py-2 font-mono text-sm uppercase tracking-wide text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none"
+          }
+        />
+        <button
+          type="submit"
+          disabled={promoLoading}
+          className={
+            variant === "banner"
+              ? "rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-60"
+              : "rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-brand/40 disabled:opacity-60"
+          }
+        >
+          {promoLoading ? "Applying…" : "Apply code"}
+        </button>
+      </form>
+    </div>
   );
 
   if (ready && !enabled) {
@@ -170,9 +182,9 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
           Compare free vs full
         </Link>
       </div>
-      {promoForm}
       <div className="mt-5 border-t border-white/10 pt-5">
         <PromoCodesBoard compact />
+        {promoForm}
       </div>
       {error ? <p className="mt-3 text-sm text-rose-300">{error}</p> : null}
     </div>

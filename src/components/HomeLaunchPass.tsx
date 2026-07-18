@@ -1,15 +1,51 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { saveUnlock } from "@/lib/unlock";
 import { scanUrlFor } from "@/lib/routes";
-import { PromoCodesBoard, notifyPromoRedeemed } from "@/components/PromoCodesBoard";
+import {
+  PromoCodesBoard,
+  notifyPromoRedeemed,
+  type PromoCodeRow,
+} from "@/components/PromoCodesBoard";
 
-/** Homepage launch pass: WELCOME code + live first-100 counter. */
+/** Homepage launch pass — only while a free code still has remaining uses. */
 export function HomeLaunchPass() {
-  const [code, setCode] = useState("WELCOME");
+  const [codes, setCodes] = useState<PromoCodeRow[] | null>(null);
+  const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/promo?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { Pragma: "no-cache" },
+      });
+      const data = await res.json();
+      const list = Array.isArray(data.codes) ? (data.codes as PromoCodeRow[]) : [];
+      const available = list.filter((c) => c.active && c.remaining > 0);
+      setCodes(available);
+    } catch {
+      setCodes([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+    const onRedeemed = () => void load();
+    window.addEventListener("seohub:promo-redeemed", onRedeemed);
+    return () => window.removeEventListener("seohub:promo-redeemed", onRedeemed);
+  }, [load]);
+
+  useEffect(() => {
+    if (codes?.[0] && !code) setCode(codes[0].code);
+  }, [codes, code]);
+
+  // Still loading — avoid flashing a depleted WELCOME section.
+  if (codes === null) return null;
+  // Pool empty (or no DB) — remove launch pass entirely. New codes via PROMO_CODES env reappear here.
+  if (codes.length === 0) return null;
 
   async function redeem(e?: FormEvent) {
     e?.preventDefault();
@@ -35,12 +71,12 @@ export function HomeLaunchPass() {
         maxUses: Number(data.maxUses),
         remaining: Number(data.remaining),
       });
-      // Brief pause so the counter can paint the new claimed total before navigation
       await new Promise((r) => window.setTimeout(r, 450));
       window.location.href = scanUrlFor("", data.sessionId as string);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not redeem code");
       setLoading(false);
+      void load();
     }
   }
 
@@ -54,7 +90,7 @@ export function HomeLaunchPass() {
         <input
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="WELCOME"
+          placeholder={codes[0]?.code || "CODE"}
           autoComplete="off"
           spellCheck={false}
           className="min-w-[10rem] flex-1 rounded-xl border border-ink/15 bg-white px-3 py-2.5 font-mono text-sm uppercase tracking-wide text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
