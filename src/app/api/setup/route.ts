@@ -33,6 +33,15 @@ function checks(): Check[] {
       required: false,
     },
     {
+      key: "ADMIN_SECRET",
+      label: "Admin console (/admin) — or reuse INSIGHTS_SECRET",
+      ok: Boolean(
+        (process.env.ADMIN_SECRET && process.env.ADMIN_SECRET.length >= 8) ||
+          (process.env.INSIGHTS_SECRET && process.env.INSIGHTS_SECRET.length >= 8)
+      ),
+      required: false,
+    },
+    {
       key: "PAGESPEED_API_KEY",
       label: "Google PageSpeed scores",
       ok: Boolean(process.env.PAGESPEED_API_KEY),

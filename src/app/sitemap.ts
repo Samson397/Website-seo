@@ -1,15 +1,24 @@
 import { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import { GUIDES } from "@/lib/guides";
+import { listAllBlogPosts } from "@/lib/blog-db";
 
 const siteUrl = getSiteUrl();
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const guideEntries = GUIDES.map((g) => ({
     url: `${siteUrl}/guides/${g.slug}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
+  }));
+
+  const posts = await listAllBlogPosts();
+  const blogEntries = posts.map((p) => ({
+    url: `${siteUrl}/blog/${p.slug}`,
+    lastModified: new Date(p.publishedAt),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
   }));
 
   return [
@@ -122,6 +131,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     ...guideEntries,
+    {
+      url: `${siteUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    ...blogEntries,
     {
       url: `${siteUrl}/privacy`,
       lastModified: new Date(),

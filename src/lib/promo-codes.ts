@@ -311,3 +311,103 @@ export async function consumePromoSession(sessionId: string): Promise<void> {
     WHERE id = ${sessionId} AND consumed = FALSE
   `;
 }
+
+/** Admin: all codes including inactive / exhausted. */
+export async function listAllPromoCodesAdmin(): Promise<PublicPromoCode[]> {
+  if (!canUsePromoCodes()) return [];
+  await ensurePromoSchema();
+  const db = sql();
+  const rows = await db`
+    SELECT
+      c.code,
+      c.label,
+      c.max_uses,
+      c.active,
+      COALESCE(u.cnt, 0)::int AS used_count
+    FROM promo_codes c
+    LEFT JOIN (
+      SELECT code, COUNT(*)::int AS cnt
+      FROM promo_unlocks
+      GROUP BY code
+    ) u ON u.code = c.code
+    ORDER BY c.created_at DESC
+  `;
+  return rows.map((row) => {
+    const maxUses = Number(row.max_uses);
+    const usedCount = Number(row.used_count);
+    return {
+      code: String(row.code),
+      label: String(row.label),
+      maxUses,
+      usedCount,
+      remaining: Math.max(0, maxUses - usedCount),
+      active: Boolean(row.active),
+    };
+  });
+}
+
+export async function createPromoCodeAdmin(input: {
+  code: string;
+  maxUses: number;
+  label?: string;
+}): Promise<{ ok: true; code: PublicPromoCode } | { ok: false; error: string }> {
+  if (!canUsePromoCodes()) {
+    return { ok: false, error: "DATABASE_URL required for promo codes." };
+  }
+  const code = input.code.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+  if (code.length < 3 || code.length > 32) {
+    return { ok: false, error: "Code must be 3–32 characters (A–Z, 0–9, _ or -)." };
+  }
+  const maxUses = Math.max(1, Math.min(100_000, Math.floor(Number(input.maxUses) || 0)));
+  if (!maxUses) return { ok: false, error: "maxUses must be at least 1." };
+  const label = (input.label || "Promo unlock").trim().slice(0, 80) || "Promo unlock";
+
+  await ensurePromoSchema();
+  const db = sql();
+  try {
+    await db`
+      INSERT INTO promo_codes (code, label, max_uses, used_count, active)
+      VALUES (${code}, ${label}, ${maxUses}, 0, TRUE)
+    `;
+  } catch {
+    return { ok: false, error: "That code already exists. Activate it or pick another name." };
+  }
+
+  const rows = await listAllPromoCodesAdmin();
+  const created = rows.find((r) => r.code === code);
+  if (!created) return { ok: false, error: "Created but could not reload code." };
+  return { ok: true, code: created };
+}
+
+export async function updatePromoCodeAdmin(input: {
+  code: string;
+  active?: boolean;
+  maxUses?: number;
+  label?: string;
+}): Promise<{ ok: true; code: PublicPromoCode } | { ok: false; error: string }> {
+  if (!canUsePromoCodes()) {
+    return { ok: false, error: "DATABASE_URL required for promo codes." };
+  }
+  const code = input.code.trim().toUpperCase();
+  await ensurePromoSchema();
+  const db = sql();
+
+  const existing = await db`SELECT code FROM promo_codes WHERE code = ${code}`;
+  if (existing.length === 0) return { ok: false, error: "Code not found." };
+
+  if (typeof input.active === "boolean") {
+    await db`UPDATE promo_codes SET active = ${input.active} WHERE code = ${code}`;
+  }
+  if (typeof input.maxUses === "number" && Number.isFinite(input.maxUses)) {
+    const maxUses = Math.max(1, Math.min(100_000, Math.floor(input.maxUses)));
+    await db`UPDATE promo_codes SET max_uses = ${maxUses} WHERE code = ${code}`;
+  }
+  if (typeof input.label === "string" && input.label.trim()) {
+    await db`UPDATE promo_codes SET label = ${input.label.trim().slice(0, 80)} WHERE code = ${code}`;
+  }
+
+  const rows = await listAllPromoCodesAdmin();
+  const updated = rows.find((r) => r.code === code);
+  if (!updated) return { ok: false, error: "Updated but could not reload code." };
+  return { ok: true, code: updated };
+}
