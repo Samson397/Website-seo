@@ -21,6 +21,12 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
           : "border-b border-ink/10 bg-white/90 backdrop-blur-md"
       }
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-ink focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <Link
           href={routes.home}

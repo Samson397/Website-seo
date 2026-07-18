@@ -4,7 +4,9 @@ import { routes } from "@/lib/routes";
 
 export const metadata = {
   title: "About — SEOHub",
-  description: "Why SEOHub: full-site SEO audits, free tools, and a one-time unlock — no account.",
+  description:
+    "Why SEOHub exists: full-site SEO audits, free tools, and a pay-per-scan unlock — built for founders who want clear fixes without another SaaS login.",
+  alternates: { canonical: "/about" },
 };
 
 const GAPS_SHIPPED = [

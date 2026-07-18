@@ -5,7 +5,9 @@ import { GUIDES } from "@/lib/guides";
 
 export const metadata = {
   title: "SEO fix guides — SEOHub",
-  description: "Short, practical guides for the most common SEOHub check failures.",
+  description:
+    "Short, practical guides for the most common SEOHub check failures — titles, meta descriptions, canonicals, security headers, and structured data.",
+  alternates: { canonical: "/guides" },
 };
 
 export default function GuidesPage() {

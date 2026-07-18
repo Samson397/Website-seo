@@ -11,9 +11,14 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { slug: string } }) {
   const guide = getGuide(params.slug);
   if (!guide) return { title: "Guide — SEOHub" };
+  const description =
+    guide.summary.length >= 120
+      ? guide.summary
+      : `${guide.summary} Practical SEOHub fix guide — free to read, no account.`;
   return {
     title: `${guide.title} — SEOHub`,
-    description: guide.summary,
+    description,
+    alternates: { canonical: `/guides/${guide.slug}` },
   };
 }
 

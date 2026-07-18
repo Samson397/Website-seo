@@ -5,7 +5,8 @@ import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 
 export const metadata = {
   title: "Pricing — SEOHub",
-  description: `Free SEO score preview. Unlock the full report and site crawl for ${FULL_SCAN_PRICE_LABEL}.`,
+  description: `Free SEO score preview with AI visibility. Unlock one full-site crawl and complete fixes for ${FULL_SCAN_PRICE_LABEL} — no subscription and no account required.`,
+  alternates: { canonical: "/pricing" },
 };
 
 const FREE = [

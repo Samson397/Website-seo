@@ -4,7 +4,9 @@ import { routes } from "@/lib/routes";
 
 export const metadata = {
   title: "Privacy Policy — SEOHub",
-  description: "Privacy policy for SEOHub.",
+  description:
+    "How SEOHub handles scan data, on-device history, cookies, and optional email reports. Read the privacy policy before you run an audit.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

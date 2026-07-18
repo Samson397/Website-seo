@@ -21,15 +21,14 @@ const body = Source_Sans_3({
 
 const siteUrl = getSiteUrl();
 
-const title = "SEOHub — Free full-site SEO audit you run every week";
+const title = "Full-site SEO. No subscription. | SEOHub";
 const description =
-  "Crawl every page, run 50+ checks, and track a watchlist on your device. Free, no login.";
+  "Run a free homepage SEO audit with scores out of 10, then unlock a full-site crawl of up to 200 pages with fixes, checklist, and exports. No account required.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description,
-  alternates: { canonical: "/" },
   openGraph: {
     title,
     description,
@@ -46,7 +45,10 @@ export const metadata: Metadata = {
     images: ["/logo.png"],
   },
   icons: {
-    icon: [{ url: "/logo-icon.png", type: "image/png" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo-icon.png", sizes: "256x256", type: "image/png" },
+    ],
     apple: [{ url: "/logo-icon.png", type: "image/png" }],
   },
   robots: { index: true, follow: true },
@@ -61,15 +63,33 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "SEOHub",
-    description,
-    url: siteUrl,
-    applicationCategory: "BusinessApplication",
-    offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
-  };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "SEOHub",
+      url: siteUrl,
+      logo: `${siteUrl}/logo.png`,
+      description,
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "SEOHub",
+      url: siteUrl,
+      description,
+      publisher: { "@type": "Organization", name: "SEOHub", url: siteUrl },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "SEOHub",
+      description,
+      url: siteUrl,
+      applicationCategory: "BusinessApplication",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
+    },
+  ];
 
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
