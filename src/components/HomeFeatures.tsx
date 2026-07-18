@@ -16,7 +16,7 @@ const FEATURES = [
   },
   {
     title: "Pay per full scan",
-    text: "Free shows /10 scores and AI visibility. $0.99 unlocks one full-site crawl with fixes, checklist, and exports.",
+    text: "Free shows /10 scores and AI visibility. $0.99 unlocks one full-site crawl with fixes, checklist, exports, and an AI priority plan.",
   },
 ];
 

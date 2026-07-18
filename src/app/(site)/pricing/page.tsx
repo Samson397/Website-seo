@@ -26,6 +26,7 @@ const PAID = [
   "Site-wide duplicate / thin / canonical / hreflang issues",
   "Domain, DNS, SSL & tech overview",
   "CSV / JSON / PDF export + shareable report link",
+  "AI priority fix plan + draft llms.txt (when DeepSeek is configured)",
   "Email report when Resend is configured",
 ];
 

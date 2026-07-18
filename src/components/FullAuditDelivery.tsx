@@ -11,6 +11,7 @@ import { AuditReportView } from "@/components/AuditReport";
 import { BenchmarkCompare } from "@/components/BenchmarkCompare";
 import { WatchToggle } from "@/components/WatchToggle";
 import { AdSlot } from "@/components/AdSlot";
+import { AiFixPlanPanel } from "@/components/AiFixPlanPanel";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 import { routes } from "@/lib/routes";
 import type { AuditCategory, AuditReport } from "@/lib/types";
@@ -131,6 +132,7 @@ export function FullAuditDelivery({
 
       {tab === "brief" ? (
         <div className="space-y-8">
+          <AiFixPlanPanel report={report} />
           {report.aiVisibility ? <AiVisibilityPanel ai={report.aiVisibility} /> : null}
           <ProblemsSummary
             report={report}

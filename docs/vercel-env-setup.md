@@ -33,6 +33,8 @@ Notes:
 | `RESEND_API_KEY` | `re_…` |
 | `RESEND_FROM_EMAIL` | `SEOHub <reports@yourdomain.com>` |
 | `CRON_SECRET` | `openssl rand -hex 32` |
+| `DEEPSEEK_API_KEY` | DeepSeek key for paid AI fix plans (Brief tab) |
+| `DEEPSEEK_MODEL` | Optional; default `deepseek-chat` (or `deepseek-v4-flash`) |
 
 ## Verify
 
