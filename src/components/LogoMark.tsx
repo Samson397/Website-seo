@@ -1,20 +1,20 @@
 import Image from "next/image";
 
 const heights = {
-  sm: 28,
-  md: 36,
-  lg: 48,
+  sm: 36,
+  md: 44,
+  lg: 56,
 } as const;
 
-/** Transparent SEOHub mark from the real brand logo (background removed). */
+/** Full SEOHub logo (transparent PNG from brand artwork). */
 export function LogoMark({ size = "md" }: { size?: keyof typeof heights }) {
   const height = heights[size];
-  // Source mark is ~577×374
-  const width = Math.round(height * (577 / 374));
+  // Source logo ~720×803
+  const width = Math.round(height * (720 / 803));
 
   return (
     <Image
-      src="/logo-mark.png"
+      src="/logo.png"
       alt="SEOHub"
       width={width}
       height={height}

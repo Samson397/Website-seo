@@ -39,9 +39,9 @@ function HomeShell({ children }: { children?: React.ReactNode }) {
           <img
             src="/logo.png"
             alt="SEOHub"
-            width={220}
-            height={246}
-            className="h-28 w-auto drop-shadow-lg sm:h-36"
+            width={200}
+            height={223}
+            className="h-24 w-auto sm:h-32"
           />
           <h1 className="font-display mt-4 max-w-3xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
             The site check you run every week.
@@ -265,9 +265,9 @@ function HomeScanApp() {
             <img
               src="/logo.png"
               alt="SEOHub"
-              width={220}
-              height={246}
-              className="h-28 w-auto drop-shadow-lg sm:h-36"
+              width={200}
+              height={223}
+              className="h-24 w-auto sm:h-32"
             />
           </div>
           <h1 className="font-display animate-rise-delay-1 mt-5 max-w-2xl text-2xl font-semibold tracking-tight text-brand-bright sm:text-4xl">
