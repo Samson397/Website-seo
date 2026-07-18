@@ -318,39 +318,31 @@ export default function HomeScanClient() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-24">
-        <div className="relative z-[1] mx-auto max-w-6xl">
-          <div className="animate-logo">
-            {/* Hero uses slate-baked mark so cutout AA matches the field (no white halo). */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-hero.png"
-              alt="SEOHub"
-              width={260}
-              height={290}
-              className="h-28 w-auto sm:h-36"
-            />
-          </div>
-          <h1 className="font-display animate-rise-delay-1 mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
+        <div className="relative z-[1] mx-auto flex max-w-3xl flex-col items-center text-center">
+          <p className="font-display animate-rise text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
+            SEOHub
+          </p>
+          <h1 className="font-display animate-rise-delay-1 mt-4 max-w-xl text-xl font-semibold tracking-tight text-ink-soft sm:text-2xl">
             Full-site SEO. No subscription.
           </h1>
-          <p className="animate-rise-delay-2 mt-3 max-w-xl text-base text-ink-muted sm:text-lg">
+          <p className="animate-rise-delay-2 mt-3 max-w-lg text-base text-ink-muted sm:text-lg">
             {paymentsOn
               ? `Free homepage scores + AI visibility. Unlock the full crawl and fixes for ${priceLabel}.`
               : "Audit, keywords, rank checks, and tools — free to start, no account."}
           </p>
-          <p className="animate-rise-delay-2 mt-2 text-sm font-medium tracking-wide text-ink/70">
+          <p className="animate-rise-delay-2 mt-2 text-sm font-medium tracking-wide text-ink/65">
             50+ checks · up to 200 pages · no account
           </p>
 
-          <div className="animate-rise-delay-2 scan-shell mt-6 max-w-2xl rounded-2xl p-4 sm:p-5">
+          <div className="animate-rise-delay-2 scan-shell mt-8 w-full max-w-xl rounded-2xl p-4 sm:p-5">
             <UrlInput
               onSubmit={handleScanSubmit}
               loading={loading}
               showCrawlControls={showCrawlControls}
             />
           </div>
-          <p className="animate-rise-delay-2 mt-4 max-w-2xl text-xs text-ink-muted/80">
+          <p className="animate-rise-delay-2 mt-4 max-w-lg text-xs text-ink-muted/80">
             HTML-only crawl: we fetch public HTML (no headless browser). JS-rendered apps may show
             fewer on-page signals.{" "}
             <Link href={routes.sampleReport} className="font-medium text-teal underline-offset-2 hover:underline">
@@ -360,22 +352,22 @@ export default function HomeScanClient() {
         </div>
       </section>
 
+      {(loading || expandingCrawl) && (
+        <ScanLoadingPanel
+          url={scanningUrl || lastUrl.current}
+          events={progressEvents}
+          mode={expandingCrawl ? "full" : scanMode}
+        />
+      )}
+
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {unlockNotice ? (
-          <div className="mt-6 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 text-sm text-brand">
+          <div className="mt-6 rounded-xl border border-brand/30 bg-brand-soft px-4 py-3 text-center text-sm text-brand sm:text-left">
             {unlockNotice}
           </div>
         ) : null}
 
         {!report && !loading && <ScanHistoryPanel refreshToken={historyTick} />}
-
-        {loading && (
-          <ScanLoadingPanel
-            url={scanningUrl || lastUrl.current}
-            events={progressEvents}
-            mode={scanMode}
-          />
-        )}
 
         {error && (
           <div className="mt-8 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
@@ -385,13 +377,6 @@ export default function HomeScanClient() {
 
         {report && (!loading || expandingCrawl) && (
           <div ref={resultsRef} className="mt-10 space-y-8 pb-12">
-            {expandingCrawl ? (
-              <ScanLoadingPanel
-                url={scanningUrl || lastUrl.current}
-                events={progressEvents}
-                mode="full"
-              />
-            ) : null}
             {isFreePreview ? (
               <FreePreviewReport
                 report={report}

@@ -175,13 +175,98 @@ body {
   animation: activity-in 0.3s ease-out both;
 }
 
-/*
-  Premium cool slate hero — even teal/ink atmosphere.
-  No white blooms, plates, or washed center behind the logo.
-*/
+@keyframes scan-modal-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scan-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scan-orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scan-orbit-pulse {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.scan-modal-backdrop {
+  animation: scan-modal-in 0.28s ease-out both;
+}
+
+.scan-modal-card {
+  animation: scan-card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.scan-orbit {
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.scan-orbit-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  border-top-color: rgba(13, 148, 136, 0.85);
+  border-right-color: rgba(13, 148, 136, 0.25);
+  animation: scan-orbit-spin 1.1s linear infinite;
+}
+
+.scan-orbit-ring-delay {
+  inset: 8px;
+  border-top-color: rgba(11, 31, 58, 0.35);
+  border-right-color: transparent;
+  animation-duration: 1.7s;
+  animation-direction: reverse;
+}
+
+.scan-orbit-core {
+  position: absolute;
+  inset: 22px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #5eead4, #0d9488 55%, #0b1f3a);
+  animation: scan-orbit-pulse 1.8s ease-in-out infinite;
+}
+
+.scan-progress-fill {
+  background-image: linear-gradient(
+    90deg,
+    #0f766e,
+    #14b8a6,
+    #0d9488
+  );
+  background-size: 200% 100%;
+  animation: scan-sheen 1.6s ease-in-out infinite;
+}
+
+/* Cool slate hero field — centered scan composition. */
 .hero-mesh {
   color: var(--ink);
-  /* Flat slate — exact match for public/logo-hero.png so the mark has no box/halo */
   background: #a9c4d0;
   position: relative;
 }

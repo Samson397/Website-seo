@@ -74,9 +74,8 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
         </button>
       </div>
 
-      <p className="text-center text-xs text-ink-muted sm:text-left">
+      <p className="text-center text-xs text-ink-muted">
         Free preview scores the homepage. Unlock for a full-site crawl and detailed fixes.
-        Scans fetch public HTML (not a full browser render).
       </p>
 
       {showCrawlControls ? (

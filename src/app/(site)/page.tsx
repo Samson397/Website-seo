@@ -16,20 +16,15 @@ export const metadata = pageMetadata({
 function HomeShell() {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pb-16 sm:pt-24">
-        <div className="relative mx-auto max-w-6xl">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo-hero.png"
-            alt="SEOHub"
-            width={260}
-            height={290}
-            className="h-28 w-auto sm:h-36"
-          />
-          <h1 className="font-display mt-5 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
+        <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
+          <p className="font-display text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
+            SEOHub
+          </p>
+          <h1 className="font-display mt-4 max-w-xl text-xl font-semibold tracking-tight text-ink-soft sm:text-2xl">
             Full-site SEO. No subscription.
           </h1>
-          <p className="mt-3 max-w-xl text-base text-ink-muted sm:text-lg">
+          <p className="mt-3 max-w-lg text-base text-ink-muted sm:text-lg">
             Free homepage scores and AI visibility. Unlock a full crawl with fixes when you need
             the complete report.
           </p>
