@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { PageHero, PrimaryCta, SecondaryCta } from "@/components/ui/PageHero";
 import { routes } from "@/lib/routes";
+import { pageMeta } from "@/lib/page-meta";
 
-export const metadata = {
-  title: "About — SEOHub",
-  description: "Why SEOHub: full-site SEO audits, free tools, and a one-time unlock — no account.",
-};
+export const metadata = pageMeta({
+  title: "About SEOHub — Free weekly full-site SEO audits",
+  description:
+    "Why SEOHub exists: full-site SEO audits, free keyword and technical tools, and a one-time unlock — no account required.",
+  path: "/about",
+});
 
 const GAPS_SHIPPED = [
   "Full-site crawl up to 200 pages from sitemap + internal links",

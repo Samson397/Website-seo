@@ -2,11 +2,13 @@ import Link from "next/link";
 import { PageHero, PrimaryCta, SecondaryCta } from "@/components/ui/PageHero";
 import { routes } from "@/lib/routes";
 import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
+import { pageMeta } from "@/lib/page-meta";
 
-export const metadata = {
-  title: "Pricing — SEOHub",
-  description: `Free SEO score preview. Unlock the full report and site crawl for ${FULL_SCAN_PRICE_LABEL}.`,
-};
+export const metadata = pageMeta({
+  title: "Pricing — Free preview & full-site unlock | SEOHub",
+  description: `Free SEO score preview with AI visibility. Unlock the full report, checklist, and site crawl for ${FULL_SCAN_PRICE_LABEL} — no account or subscription.`,
+  path: "/pricing",
+});
 
 const FREE = [
   "Homepage scores out of 10 (SEO, speed, a11y, security, AI)",

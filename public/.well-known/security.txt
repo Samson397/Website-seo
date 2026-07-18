@@ -1,0 +1,3 @@
+Contact: https://www.seohub.online/about
+Preferred-Languages: en
+Canonical: https://www.seohub.online/.well-known/security.txt

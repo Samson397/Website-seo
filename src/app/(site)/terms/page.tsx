@@ -2,10 +2,14 @@ import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
 import { routes } from "@/lib/routes";
 
-export const metadata = {
+import { pageMeta } from "@/lib/page-meta";
+
+export const metadata = pageMeta({
   title: "Terms of Service — SEOHub",
-  description: "Terms of service for SEOHub.",
-};
+  description:
+    "Terms of service for using SEOHub website audits and free tools. Scan only sites you own or have permission to test.",
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (

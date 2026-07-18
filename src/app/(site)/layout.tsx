@@ -20,8 +20,11 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <SiteNav variant={useHeroNav ? "hero" : "default"} />
-      {children}
+      <div id="main-content">{children}</div>
       <SiteFooter />
     </>
   );

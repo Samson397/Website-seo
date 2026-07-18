@@ -6,6 +6,7 @@ import "./globals.css";
 
 import { ADSENSE_SCRIPT_SRC } from "@/lib/adsense";
 import { getSiteUrl } from "@/lib/site-url";
+import { HOME_SEO } from "@/lib/page-seo";
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -20,16 +21,16 @@ const body = Source_Sans_3({
 });
 
 const siteUrl = getSiteUrl();
-
-const title = "SEOHub — Free full-site SEO audit you run every week";
-const description =
-  "Crawl every page, run 50+ checks, and track a watchlist on your device. Free, no login.";
+const title = HOME_SEO.title;
+const description = HOME_SEO.description;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title,
+  title: {
+    default: title,
+    template: "%s",
+  },
   description,
-  alternates: { canonical: "/" },
   openGraph: {
     title,
     description,
@@ -57,12 +58,36 @@ export default function RootLayout({
 }) {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "SEOHub",
-    description,
-    url: siteUrl,
-    applicationCategory: "BusinessApplication",
-    offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        name: "SEOHub",
+        url: siteUrl,
+        logo: `${siteUrl}/logo-mark.svg`,
+        description,
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        name: "SEOHub",
+        url: siteUrl,
+        description,
+        publisher: { "@id": `${siteUrl}/#organization` },
+        inLanguage: "en-GB",
+      },
+      {
+        "@type": "WebApplication",
+        "@id": `${siteUrl}/#app`,
+        name: "SEOHub",
+        description,
+        url: siteUrl,
+        applicationCategory: "BusinessApplication",
+        operatingSystem: "Any",
+        offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
+        publisher: { "@id": `${siteUrl}/#organization` },
+      },
+    ],
   };
 
   return (

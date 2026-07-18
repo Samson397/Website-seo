@@ -2,10 +2,14 @@ import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
 import { routes } from "@/lib/routes";
 
-export const metadata = {
+import { pageMeta } from "@/lib/page-meta";
+
+export const metadata = pageMeta({
   title: "Privacy Policy — SEOHub",
-  description: "Privacy policy for SEOHub.",
-};
+  description:
+    "How SEOHub handles public-site scans, on-device history, shared reports, analytics, and advertising. Clear privacy details — no account required to scan.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (

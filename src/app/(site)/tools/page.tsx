@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
+import { PageSeoCopy } from "@/components/PageSeoCopy";
 import { routes } from "@/lib/routes";
+import { PAGE_SEO } from "@/lib/page-seo";
+import { pageMeta } from "@/lib/page-meta";
+
+export const metadata = pageMeta(PAGE_SEO.tools);
 
 const TOOL_GROUPS = [
   {
@@ -124,6 +129,13 @@ export default function ToolsPage() {
             </div>
           </section>
         ))}
+      </div>
+
+      <div className="mt-16">
+        <PageSeoCopy
+          heading={PAGE_SEO.tools.heading}
+          paragraphs={[...PAGE_SEO.tools.paragraphs]}
+        />
       </div>
     </main>
   );

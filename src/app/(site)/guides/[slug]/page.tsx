@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PageHero, PrimaryCta, SecondaryCta } from "@/components/ui/PageHero";
 import { getGuide, GUIDES } from "@/lib/guides";
 import { routes } from "@/lib/routes";
+import { pageMeta } from "@/lib/page-meta";
 
 export function generateStaticParams() {
   return GUIDES.map((g) => ({ slug: g.slug }));
@@ -10,11 +11,12 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { slug: string } }) {
   const guide = getGuide(params.slug);
-  if (!guide) return { title: "Guide — SEOHub" };
-  return {
+  if (!guide) return pageMeta({ title: "Guide — SEOHub", description: "SEOHub fix guide.", path: "/guides" });
+  return pageMeta({
     title: `${guide.title} — SEOHub`,
-    description: guide.summary,
-  };
+    description: guide.summary.length >= 120 ? guide.summary : `${guide.summary} Practical steps from SEOHub’s free SEO audit toolkit.`,
+    path: `/guides/${guide.slug}`,
+  });
 }
 
 export default function GuideArticlePage({ params }: { params: { slug: string } }) {

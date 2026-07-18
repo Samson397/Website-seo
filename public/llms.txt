@@ -1,11 +1,20 @@
 # SEOHub
 
-> Free tool that scans any public website and reports what you have and what's missing for SEO, performance, security, and accessibility.
+> Free full-site SEO audit you run every week. Crawl public HTML, run 50+ checks, and use free keyword and technical tools — no account required.
 
 ## Docs
 
 - [Homepage](/): Run a website audit
-- [Competitor audit](/competitors): Compare up to 10 external websites side by side
+- [Tools](/tools): Free SEO toolkit index
+- [Competitor audit](/competitors): Compare up to 10 websites side by side
+- [Guides](/guides): Fix titles, canonicals, headers, and more
+- [Pricing](/pricing): Free preview and one-time full-site unlock
+- [Sample report](/r/sample): Public example of a full audit
+- [About](/about): Why SEOHub exists
 - [Privacy Policy](/privacy): How we handle data
 - [Terms of Service](/terms): Terms of use
-- [About](/about): About SEOHub
+
+## Optional
+
+- [Keyword tracker](/tracker): On-device keyword tracking
+- [Scan history](/history): Local history and watchlist

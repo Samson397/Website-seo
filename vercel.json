@@ -1,5 +1,13 @@
 {
   "buildCommand": "npm run vercel-build",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "seohub.online" }],
+      "destination": "https://www.seohub.online/:path*",
+      "permanent": true
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/weekly-digest",

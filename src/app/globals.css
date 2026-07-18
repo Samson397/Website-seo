@@ -21,6 +21,26 @@ html {
   scroll-behavior: smooth;
 }
 
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -100%;
+  z-index: 100;
+  border-radius: 0.75rem;
+  background: var(--ink);
+  color: #fff;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid var(--brand-bright);
+  outline-offset: 2px;
+}
+
 body {
   font-family: var(--font-body), "Segoe UI", sans-serif;
   color: var(--ink);

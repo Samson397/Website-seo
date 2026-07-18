@@ -2,11 +2,14 @@ import Link from "next/link";
 import { PageHero, PrimaryCta } from "@/components/ui/PageHero";
 import { routes } from "@/lib/routes";
 import { GUIDES } from "@/lib/guides";
+import { pageMeta } from "@/lib/page-meta";
 
-export const metadata = {
-  title: "SEO fix guides — SEOHub",
-  description: "Short, practical guides for the most common SEOHub check failures.",
-};
+export const metadata = pageMeta({
+  title: "SEO fix guides — Titles, canonicals, headers & more | SEOHub",
+  description:
+    "Short, practical guides for the most common SEOHub check failures: title tags, meta descriptions, canonicals, security headers, broken links, and structured data.",
+  path: "/guides",
+});
 
 export default function GuidesPage() {
   return (

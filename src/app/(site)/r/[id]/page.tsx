@@ -32,8 +32,9 @@ export async function generateMetadata({ params }: PageProps) {
   return {
     title: isSample ? "Sample SEO report — SEOHub" : `SEOHub report — ${host}`,
     description: isSample
-      ? "Public sample of an SEOHub full-site audit with crawl coverage and fix recommendations."
+      ? "Public sample of an SEOHub full-site audit with crawl coverage, checklist results, and fix recommendations you can try on your own site."
       : `Shared SEOHub audit for ${host}`,
+    alternates: { canonical: isSample ? "/r/sample" : `/r/${params.id}` },
     robots: isSample ? { index: true, follow: true } : { index: false, follow: false },
   };
 }

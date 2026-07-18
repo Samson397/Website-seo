@@ -91,6 +91,10 @@ const securityHeaders = [
     key: "Referrer-Policy",
     value: "strict-origin-when-cross-origin",
   },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=()",
+  },
 ];
 
 const nextConfig = {
@@ -99,6 +103,16 @@ const nextConfig = {
       {
         source: "/(.*)",
         headers: securityHeaders,
+      },
+    ];
+  },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "seohub.online" }],
+        destination: "https://www.seohub.online/:path*",
+        permanent: true,
       },
     ];
   },
