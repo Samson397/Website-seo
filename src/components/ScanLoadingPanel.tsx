@@ -4,17 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import type { ScanProgressEvent } from "@/lib/types";
 
 const FULL_STAGES = [
-  { id: "fetch", label: "Fetching page", detail: "Loading the starting URL" },
-  { id: "sitemap", label: "Reading sitemap", detail: "Discovering URLs from sitemap.xml" },
-  { id: "crawl", label: "Crawling links", detail: "Following internal links across the site" },
-  { id: "checks", label: "Running checks", detail: "SEO, security, speed & accessibility" },
-  { id: "score", label: "Scoring results", detail: "Building your full scan report" },
+  { id: "fetch", label: "Fetching page" },
+  { id: "sitemap", label: "Reading sitemap" },
+  { id: "crawl", label: "Crawling links" },
+  { id: "checks", label: "Running checks" },
+  { id: "score", label: "Scoring results" },
 ] as const;
 
 const FREE_STAGES = [
-  { id: "fetch", label: "Fetching page", detail: "Loading the homepage" },
-  { id: "checks", label: "Running checks", detail: "Scores, AI visibility & top issues" },
-  { id: "score", label: "Building preview", detail: "Preparing your free brief" },
+  { id: "fetch", label: "Fetching page" },
+  { id: "checks", label: "Running checks" },
+  { id: "score", label: "Building preview" },
 ] as const;
 
 function stageIndexFromId(stage: string, stages: readonly { id: string }[]): number {
@@ -26,12 +26,11 @@ function stageIndexFromId(stage: string, stages: readonly { id: string }[]): num
 
 interface ScanLoadingPanelProps {
   url?: string;
-  /** Live events from /api/audit/stream */
   events?: ScanProgressEvent[];
-  /** Free homepage preview vs full-site crawl */
   mode?: "free" | "full";
 }
 
+/** Centered popup overlay while a scan runs. */
 export function ScanLoadingPanel({ url, events = [], mode = "full" }: ScanLoadingPanelProps) {
   const [elapsed, setElapsed] = useState(0);
   const stages = mode === "free" ? FREE_STAGES : FULL_STAGES;
@@ -54,6 +53,14 @@ export function ScanLoadingPanel({ url, events = [], mode = "full" }: ScanLoadin
     }, 1000);
     return () => window.clearInterval(tick);
   }, [url]);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
 
   const stageEvent = [...events].reverse().find((e) => e.type === "stage");
   const crawlEvent = [...events].reverse().find((e) => e.type === "crawl");
@@ -85,7 +92,7 @@ export function ScanLoadingPanel({ url, events = [], mode = "full" }: ScanLoadin
       mode === "free" ? "Starting homepage preview…" : "Starting full-site scan…"
     );
   }
-  const visibleActivity = activityLines.slice(-3);
+  const latest = activityLines[activityLines.length - 1];
 
   const crawlScanned = crawlEvent && crawlEvent.type === "crawl" ? crawlEvent.scanned : 0;
   const progress =
@@ -96,102 +103,88 @@ export function ScanLoadingPanel({ url, events = [], mode = "full" }: ScanLoadin
         : ((stageIndex + 1) / stages.length) * 100;
 
   return (
-    <div className="relative mt-6 overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-glow">
-      <div className="scan-sheen absolute inset-x-0 top-0" aria-hidden />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.28]" aria-hidden>
-        <div className="scan-grid absolute inset-0" />
-      </div>
+    <div
+      className="scan-modal-root fixed inset-0 z-[80] flex items-center justify-center px-4 py-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="scan-modal-title"
+      aria-busy="true"
+    >
+      <div className="scan-modal-backdrop absolute inset-0 bg-ink/45 backdrop-blur-md" aria-hidden />
 
-      <div className="relative px-5 py-6 sm:px-8 sm:py-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-md">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal">
-              {mode === "free" ? "Free preview" : "Full site scan"}
-            </p>
-            <h2 className="font-display mt-2 text-2xl font-semibold text-ink sm:text-3xl">
-              Scanning {host}
-            </h2>
-            <p className="mt-2 text-sm text-ink-muted">
-              {mode === "free"
-                ? "Homepage scores, AI visibility, and top issues — usually under 30 seconds."
-                : "Discovering pages, then checking each one. Large sites may take up to a minute."}
-            </p>
-            <p className="mt-3 font-mono text-xs text-ink-muted/80">
-              {elapsed}s elapsed
-              {crawlScanned > 0 ? ` · ${crawlScanned} pages so far` : ""}
-            </p>
+      <div className="scan-modal-card relative w-full max-w-md overflow-hidden rounded-3xl border border-white/20 bg-paper shadow-glow">
+        <div className="scan-sheen absolute inset-x-0 top-0" aria-hidden />
+        <div className="pointer-events-none absolute inset-0 opacity-20" aria-hidden>
+          <div className="scan-grid absolute inset-0" />
+        </div>
+
+        <div className="relative px-6 py-8 text-center sm:px-8">
+          <div className="scan-orbit mx-auto mb-5" aria-hidden>
+            <span className="scan-orbit-ring" />
+            <span className="scan-orbit-ring scan-orbit-ring-delay" />
+            <span className="scan-orbit-core" />
           </div>
 
-          <div className="w-full max-w-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+            {mode === "free" ? "Free preview" : "Full site scan"}
+          </p>
+          <h2
+            id="scan-modal-title"
+            className="font-display mt-2 text-2xl font-semibold tracking-tight text-ink sm:text-3xl"
+          >
+            Scanning {host}
+          </h2>
+          <p className="mt-2 text-sm text-ink-muted">
+            {mode === "free"
+              ? "Homepage scores & AI visibility — usually under 30 seconds."
+              : "Crawling pages and running checks. Large sites can take up to a minute."}
+          </p>
+
+          <div className="mx-auto mt-6 max-w-sm text-left">
             <div className="mb-2 flex items-center justify-between text-xs text-ink-muted">
               <span>{stages[stageIndex]?.label}</span>
               <span>{Math.round(Math.min(progress, 98))}%</span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-mist">
+            <div className="h-2 overflow-hidden rounded-full bg-mist">
               <div
-                className="h-full rounded-full bg-teal transition-[width] duration-500 ease-out"
+                className="scan-progress-fill h-full rounded-full bg-teal transition-[width] duration-500 ease-out"
                 style={{ width: `${Math.min(progress, 98)}%` }}
               />
             </div>
+            <p className="mt-3 font-mono text-xs text-ink-muted/80">
+              {elapsed}s elapsed
+              {crawlScanned > 0 ? ` · ${crawlScanned} pages` : ""}
+            </p>
           </div>
-        </div>
 
-        <ol
-          className={`mt-8 grid gap-2 ${mode === "free" ? "sm:grid-cols-3" : "sm:grid-cols-5"}`}
-        >
-          {stages.map((stage, i) => {
-            const done = i < stageIndex;
-            const active = i === stageIndex;
-            return (
-              <li
-                key={stage.id}
-                className={`rounded-xl px-3 py-3 ring-1 transition ${
-                  active
-                    ? "bg-teal-soft/60 ring-teal/40"
-                    : done
-                      ? "bg-paper ring-ink/5"
-                      : "bg-white ring-ink/5 opacity-55"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                      active
-                        ? "scan-pulse relative bg-teal text-white"
-                        : done
-                          ? "bg-teal text-white"
-                          : "bg-mist text-ink-muted"
-                    }`}
-                  >
-                    {done ? "✓" : i + 1}
-                  </span>
-                  <span className={`text-xs font-semibold ${active ? "text-teal" : "text-ink"}`}>
-                    {stage.label}
-                  </span>
-                </div>
-                <p className="mt-1.5 pl-7 text-[11px] leading-snug text-ink-muted">{stage.detail}</p>
-              </li>
-            );
-          })}
-        </ol>
-
-        <div className="mt-8 rounded-xl border border-ink/5 bg-ink/[0.02] px-4 py-3">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
-            Live activity
-          </p>
-          <ul className="mt-2 space-y-1.5 font-mono text-xs sm:text-sm">
-            {visibleActivity.map((line, idx) => {
-              const newest = idx === visibleActivity.length - 1;
+          <ol className="mx-auto mt-6 flex max-w-sm flex-wrap justify-center gap-2">
+            {stages.map((stage, i) => {
+              const done = i < stageIndex;
+              const active = i === stageIndex;
               return (
                 <li
-                  key={`${line}-${idx}-${activityLines.length}`}
-                  className={`scan-activity-line ${newest ? "text-ink" : "text-ink-muted/55"}`}
+                  key={stage.id}
+                  className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
+                    active
+                      ? "bg-teal text-white shadow-glow"
+                      : done
+                        ? "bg-teal-soft text-teal"
+                        : "bg-mist text-ink-muted"
+                  }`}
                 >
-                  <span className={newest ? "text-teal" : "text-ink-muted/40"}>›</span> {line}
+                  {done ? "✓ " : ""}
+                  {stage.label}
                 </li>
               );
             })}
-          </ul>
+          </ol>
+
+          <p
+            key={`${latest}-${activityLines.length}`}
+            className="scan-activity-line mx-auto mt-6 max-w-sm truncate font-mono text-xs text-ink-muted"
+          >
+            <span className="text-teal">›</span> {latest}
+          </p>
         </div>
       </div>
     </div>
