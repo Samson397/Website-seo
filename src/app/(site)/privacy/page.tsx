@@ -31,10 +31,12 @@ export default function PrivacyPage() {
           <h2 className="font-display text-xl font-semibold text-ink">Anonymized scan insights</h2>
           <p className="mt-2 leading-relaxed">
             We may store aggregated facts about public websites that are scanned — for example
-            hostname, TLD, category scores, and issue counts — in private infrastructure (Neon /
-            Vercel Postgres, or optionally KV/Firebase). This data is not published on a public
-            leaderboard. We may use it internally or license <em>aggregated market insights</em>{" "}
-            derived from public-website scans. This is not personal profile data.
+            hostname, TLD, category scores, issue counts, common failed checks, detected
+            technologies, AI-visibility score, Core Web Vitals snippets, and scan tier — in private
+            infrastructure (Neon / Vercel Postgres, or optionally KV/Firebase). This data is not
+            published on a public leaderboard. We may use it internally or license{" "}
+            <em>aggregated market insights</em> derived from public-website scans. This is not
+            personal profile data.
           </p>
         </section>
 
@@ -86,8 +88,11 @@ export default function PrivacyPage() {
           <h2 className="font-display text-xl font-semibold text-ink">Email (optional)</h2>
           <p className="mt-2 leading-relaxed">
             If you use “Email report” or weekly watchlist digests, we send mail via Resend to the
-            address you provide. Digest subscribers are stored so we can send reminders; every digest
-            includes an unsubscribe link. We do not require email to use the free scanner or tools.
+            address you provide and may store that address with the related public site URL so we can
+            deliver the message and operate the product. Digest signups and optional “SEO tips /
+            product updates” checkboxes are used for first-party reminders and product improvement —
+            unsubscribe anytime. We do not require email to use the free scanner or tools, and we do
+            not sell your email address.
           </p>
         </section>
 
@@ -104,8 +109,8 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-display text-xl font-semibold text-ink">Accounts</h2>
           <p className="mt-2 leading-relaxed">
-            SEOHub does not require an account. There is no login, email signup, or user profile
-            database.
+            SEOHub does not require an account or login. Optional emails for reports and digests may
+            be stored as described above — there is no full user-profile system.
           </p>
         </section>
 

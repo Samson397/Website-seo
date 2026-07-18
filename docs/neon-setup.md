@@ -36,7 +36,17 @@ CREATE TABLE IF NOT EXISTS scan_events (
   critical_issues SMALLINT,
   warning_issues SMALLINT,
   scanned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  technologies JSONB DEFAULT '[]'::jsonb,
+  top_fail_ids JSONB DEFAULT '[]'::jsonb,
+  ai_score SMALLINT,
+  lcp TEXT,
+  cls TEXT,
+  inp TEXT,
+  tier TEXT,
+  has_spf BOOLEAN,
+  has_dmarc BOOLEAN,
+  has_ssl BOOLEAN
 );
 
 CREATE INDEX IF NOT EXISTS scan_events_scanned_at_idx ON scan_events (scanned_at DESC);
@@ -69,7 +79,24 @@ CREATE TABLE IF NOT EXISTS digest_subscriptions (
 
 CREATE UNIQUE INDEX IF NOT EXISTS digest_subscriptions_email_idx
 ON digest_subscriptions (email);
+
+-- Optional: email report / digest contacts (first-party)
+CREATE TABLE IF NOT EXISTS email_contacts (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  hostname TEXT,
+  url TEXT,
+  source TEXT NOT NULL DEFAULT 'report',
+  marketing_ok BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS email_contacts_email_idx ON email_contacts (email);
+CREATE INDEX IF NOT EXISTS email_contacts_created_at_idx ON email_contacts (created_at DESC);
 ```
+
+If `scan_events` already exists, the app adds new columns automatically on the next scan (`ALTER TABLE … ADD COLUMN IF NOT EXISTS`).
 
 ## 3. Redeploy SEOHub
 
@@ -85,13 +112,25 @@ After one successful scan, rows appear in `scan_events`.
 In Neon SQL Editor:
 
 ```sql
-SELECT hostname, overall, seo, security, pages_scanned, scanned_at
+-- Rich scan telemetry
+SELECT hostname, overall, technologies, top_fail_ids, ai_score, tier, lcp, scanned_at
 FROM scan_events
 ORDER BY scanned_at DESC
 LIMIT 50;
+
+-- Emails that opted into tips / digests
+SELECT email, hostname, source, marketing_ok, created_at
+FROM email_contacts
+WHERE marketing_ok = TRUE
+ORDER BY created_at DESC;
+
+-- Weekly digest watchlists
+SELECT email, sites, active, created_at
+FROM digest_subscriptions
+ORDER BY created_at DESC;
 ```
 
-Optional private API:
+Optional private API (JSON export of stats + recent rows):
 
 1. Add env var `INSIGHTS_SECRET` (random long string)
 2. Redeploy
@@ -101,6 +140,7 @@ Optional private API:
 curl -H "Authorization: Bearer YOUR_SECRET" https://YOUR-PRODUCTION-DOMAIN/api/insights
 ```
 
+Response includes `stats`, `recentEvents`, `contacts`, and `recentContacts`.  
 No public page shows this data.
 
 ## Local testing (optional)

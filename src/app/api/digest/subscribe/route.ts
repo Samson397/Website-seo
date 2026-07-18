@@ -6,9 +6,11 @@ import {
   upsertDigestSubscription,
   type DigestSite,
 } from "@/lib/digest";
+import { recordEmailContact } from "@/lib/email-contacts";
 import { isResendConfigured, sendEmail } from "@/lib/resend";
 import { getSiteUrl } from "@/lib/site-url";
 import { APP_NAME } from "@/lib/brand";
+import { forwardWebhook } from "@/lib/store";
 
 export const runtime = "nodejs";
 
@@ -43,14 +45,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { unsubToken } = await upsertDigestSubscription(
-      email,
-      sites.map((s) => ({
-        url: s.url,
-        hostname: s.hostname,
-        lastOverall: s.lastOverall,
-      }))
-    );
+    const normalizedSites = sites.map((s) => ({
+      url: s.url,
+      hostname: s.hostname,
+      lastOverall: s.lastOverall,
+    }));
+
+    const { unsubToken } = await upsertDigestSubscription(email, normalizedSites);
+
+    try {
+      const primary = normalizedSites[0];
+      const contact = await recordEmailContact({
+        email,
+        hostname: primary?.hostname || null,
+        url: primary?.url || null,
+        source: "digest",
+        marketingOk: true,
+      });
+      await forwardWebhook({
+        type: "email_contact",
+        email,
+        hostname: primary?.hostname || null,
+        url: primary?.url || null,
+        source: "digest",
+        marketingOk: true,
+        stored: contact.stored,
+      });
+    } catch (err) {
+      console.error("[digest/subscribe] contact save failed", err);
+    }
 
     const siteUrl = getSiteUrl();
     const unsubUrl = `${siteUrl}/api/digest/unsubscribe?token=${unsubToken}`;
