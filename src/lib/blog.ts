@@ -1,6 +1,7 @@
 /**
- * SEO blog posts — add a new entry here, redeploy, and it appears on /blog + sitemap.
- * Keep slug unique (kebab-case). Prefer 800+ words of useful body copy for ranking.
+ * Seed SEO blog posts (shipped in code).
+ * Prefer posting from /admin (Neon) so new articles go live without redeploy.
+ * Keep slug unique (kebab-case). Prefer substantial body copy for ranking.
  */
 export type BlogPost = {
   slug: string;

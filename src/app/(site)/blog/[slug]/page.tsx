@@ -1,21 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHero, PrimaryCta, SecondaryCta } from "@/components/ui/PageHero";
-import {
-  BLOG_POSTS,
-  formatBlogDate,
-  getBlogPost,
-  listBlogPosts,
-} from "@/lib/blog";
+import { BLOG_POSTS, formatBlogDate } from "@/lib/blog";
+import { getBlogPostBySlug, listAllBlogPosts } from "@/lib/blog-db";
 import { getSiteUrl } from "@/lib/site-url";
 import { routes } from "@/lib/routes";
+
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return BLOG_POSTS.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const post = getBlogPost(params.slug);
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  const post = await getBlogPostBySlug(params.slug);
   if (!post) return { title: "Blog — SEOHub" };
   const description =
     post.summary.length >= 120
@@ -35,14 +34,12 @@ export function generateMetadata({ params }: { params: { slug: string } }) {
   };
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = getBlogPost(params.slug);
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+  const post = await getBlogPostBySlug(params.slug);
   if (!post) notFound();
 
   const siteUrl = getSiteUrl();
-  const related = listBlogPosts()
-    .filter((p) => p.slug !== post.slug)
-    .slice(0, 3);
+  const related = (await listAllBlogPosts()).filter((p) => p.slug !== post.slug).slice(0, 3);
 
   const jsonLd = {
     "@context": "https://schema.org",

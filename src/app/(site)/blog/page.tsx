@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { PageHero, PrimaryCta } from "@/components/ui/PageHero";
 import { pageMetadata } from "@/lib/page-seo";
-import { formatBlogDate, listBlogPosts } from "@/lib/blog";
+import { formatBlogDate } from "@/lib/blog";
+import { listAllBlogPosts } from "@/lib/blog-db";
 import { routes } from "@/lib/routes";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "SEO blog — SEOHub",
@@ -11,8 +14,8 @@ export const metadata = pageMetadata({
   path: routes.blog,
 });
 
-export default function BlogIndexPage() {
-  const posts = listBlogPosts();
+export default async function BlogIndexPage() {
+  const posts = await listAllBlogPosts();
 
   return (
     <main className="min-h-screen pb-16">
@@ -34,10 +37,7 @@ export default function BlogIndexPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal">
                 {post.category}
               </p>
-              <time
-                dateTime={post.publishedAt}
-                className="text-xs text-ink-muted"
-              >
+              <time dateTime={post.publishedAt} className="text-xs text-ink-muted">
                 {formatBlogDate(post.publishedAt)}
               </time>
             </div>
