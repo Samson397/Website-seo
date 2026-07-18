@@ -2,6 +2,12 @@ const KEYWORDS_KEY = "seohub-keywords-v1";
 const KEYWORDS_KEY_LEGACY = "seoscan-keywords-v1";
 const MAX_KEYWORDS = 50;
 
+export interface KeywordHistoryPoint {
+  at: string;
+  score: number;
+  serpPosition?: number | null;
+}
+
 export interface KeywordTrackItem {
   keyword: string;
   url: string;
@@ -10,12 +16,17 @@ export interface KeywordTrackItem {
   lastCheckedAt?: string;
   /** On-page score 0–100 from rank checker */
   lastScore?: number;
+  lastSerpPosition?: number | null;
   inTitle?: boolean;
   inH1?: boolean;
   inMeta?: boolean;
   inUrl?: boolean;
   bodyCount?: number;
+  /** Local score history for sparkline charts (newest last). */
+  history?: KeywordHistoryPoint[];
 }
+
+const MAX_HISTORY = 30;
 
 function hostnameFromUrl(url: string): string {
   try {
@@ -89,9 +100,21 @@ export function updateTrackedKeyword(
   patch: Partial<KeywordTrackItem>
 ): KeywordTrackItem[] {
   const host = hostnameFromUrl(url);
-  const next = loadKeywords().map((k) =>
-    k.keyword === keyword && k.hostname === host ? { ...k, ...patch } : k
-  );
+  const next = loadKeywords().map((k) => {
+    if (!(k.keyword === keyword && k.hostname === host)) return k;
+    const merged: KeywordTrackItem = { ...k, ...patch };
+    if (patch.lastScore != null) {
+      const point: KeywordHistoryPoint = {
+        at: patch.lastCheckedAt || new Date().toISOString(),
+        score: patch.lastScore,
+        serpPosition:
+          patch.lastSerpPosition !== undefined ? patch.lastSerpPosition : k.lastSerpPosition,
+      };
+      const history = [...(k.history || []), point].slice(-MAX_HISTORY);
+      merged.history = history;
+    }
+    return merged;
+  });
   writeJson(KEYWORDS_KEY, next);
   return next;
 }

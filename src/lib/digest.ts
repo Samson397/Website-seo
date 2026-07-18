@@ -54,6 +54,8 @@ export type DigestSite = {
   url: string;
   hostname: string;
   lastOverall?: number;
+  /** Score from the previous digest cycle (for delta in email). */
+  previousOverall?: number;
 };
 
 export type DigestSubscription = {
@@ -147,5 +149,16 @@ export async function markDigestSent(id: string): Promise<void> {
   const db = sql();
   await db`
     UPDATE digest_subscriptions SET last_sent_at = NOW(), updated_at = NOW() WHERE id = ${id}
+  `;
+}
+
+export async function updateDigestSites(id: string, sites: DigestSite[]): Promise<void> {
+  await ensureDigestSchema();
+  const db = sql();
+  const sitesJson = JSON.parse(JSON.stringify(sites.slice(0, 20)));
+  await db`
+    UPDATE digest_subscriptions
+    SET sites = ${sitesJson}, updated_at = NOW()
+    WHERE id = ${id}
   `;
 }

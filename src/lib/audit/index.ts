@@ -8,7 +8,14 @@ import { runContentAudit, extractPageMeta } from "@/lib/audit/content";
 import { runImageAudit } from "@/lib/audit/images";
 import { runMobileSocialAudit } from "@/lib/audit/mobile-social";
 import { crawlSitePages } from "@/lib/audit/crawl";
-import { runDuplicateMetaAudit, runInternalLinkAudit } from "@/lib/audit/site-wide";
+import {
+  buildCrawlCoverage,
+  runCoverageAudit,
+  runDuplicateMetaAudit,
+  runInternalLinkAudit,
+  runLinkDepthAudit,
+} from "@/lib/audit/site-wide";
+import { pathToTemplate } from "@/lib/issue-groups";
 import { runTrustAudit, runModernWebAudit, runWwwConsistencyAudit } from "@/lib/audit/trust";
 import {
   fetchDomainInfo,
@@ -108,7 +115,18 @@ export async function runFullAudit(
 
   if (siteCrawl && fetchResult.html) {
     onProgress?.({ type: "stage", stage: "sitemap", message: "Reading sitemap & discovering pages…" });
-    const { pages: crawledPages, totalFound, hitCap } = await crawlSitePages(
+    const crawlControls = {
+      maxPages: options.maxPages,
+      includePaths: options.includePaths,
+      excludePaths: options.excludePaths,
+      startPath: options.startPath,
+    };
+    const {
+      pages: crawledPages,
+      totalFound,
+      hitCap,
+      controlsApplied,
+    } = await crawlSitePages(
       fetchResult.finalUrl,
       fetchResult.html,
       (p) =>
@@ -117,7 +135,8 @@ export async function runFullAudit(
           scanned: p.scanned,
           queued: p.queued,
           lastPath: p.lastPath,
-        })
+        }),
+      crawlControls
     );
     onProgress?.({
       type: "stage",
@@ -132,6 +151,8 @@ export async function runFullAudit(
         fetchResult.finalUrl,
         crawledPages.map((p) => p.url)
       ),
+      ...runLinkDepthAudit(crawledPages, fetchResult.finalUrl),
+      ...runCoverageAudit(crawledPages),
     ];
 
     if (hitCap) {
@@ -231,6 +252,13 @@ export async function runFullAudit(
       pagesDiscovered: totalFound,
       hitCap,
       allPagePaths,
+      controls: {
+        maxPages: controlsApplied.maxPages,
+        includePaths: controlsApplied.includePaths || [],
+        excludePaths: controlsApplied.excludePaths || [],
+        startPath: controlsApplied.startPath,
+      },
+      coverage: buildCrawlCoverage(crawledPages, fetchResult.finalUrl),
       pages: crawledPages.map((p) => ({
         url: p.url,
         pathname: (() => {
@@ -249,6 +277,11 @@ export async function runFullAudit(
         hasOg: p.hasOg,
         wordCount: p.wordCount,
         h1Count: p.h1Count,
+        depth: p.depth,
+        inboundLinks: p.inboundLinks,
+        redirected: p.redirected,
+        finalUrl: p.finalUrl,
+        hreflangCount: p.hreflang?.length ?? 0,
       })),
     };
   }
@@ -306,6 +339,13 @@ export async function runFullAudit(
     ...siteWideIssues,
     ...perfResult.issues,
   ];
+
+  // Enrich issues with path templates when a page path is present
+  for (const issue of allIssues) {
+    if (issue.pagePath && !issue.pathTemplate) {
+      issue.pathTemplate = pathToTemplate(issue.pagePath);
+    }
+  }
 
   allIssues.sort(
     (a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]

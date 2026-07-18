@@ -1,17 +1,51 @@
 "use client";
 
+import { useState } from "react";
+import type { CrawlControls } from "@/lib/crawl-options";
+import { HARD_MAX_PAGES } from "@/lib/crawl-options";
+
+export type ScanSubmitPayload = {
+  url: string;
+  crawl?: CrawlControls;
+};
+
 interface UrlInputProps {
-  onSubmit: (url: string) => void;
+  onSubmit: (payload: ScanSubmitPayload) => void;
   loading: boolean;
+  /** Show advanced crawl controls (full unlock / payments off). */
+  showCrawlControls?: boolean;
 }
 
-export function UrlInput({ onSubmit, loading }: UrlInputProps) {
+export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlInputProps) {
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [maxPages, setMaxPages] = useState(String(HARD_MAX_PAGES));
+  const [startPath, setStartPath] = useState("");
+  const [includePaths, setIncludePaths] = useState("");
+  const [excludePaths, setExcludePaths] = useState("");
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const input = form.elements.namedItem("url") as HTMLInputElement;
     const url = input.value.trim();
-    if (url) onSubmit(url);
+    if (!url) return;
+
+    const crawl: CrawlControls | undefined = showCrawlControls
+      ? {
+          maxPages: Math.max(1, Math.min(HARD_MAX_PAGES, Number(maxPages) || HARD_MAX_PAGES)),
+          startPath: startPath.trim() || undefined,
+          includePaths: includePaths
+            .split(/[\n,]+/)
+            .map((s) => s.trim())
+            .filter(Boolean),
+          excludePaths: excludePaths
+            .split(/[\n,]+/)
+            .map((s) => s.trim())
+            .filter(Boolean),
+        }
+      : undefined;
+
+    onSubmit({ url, crawl });
   }
 
   return (
@@ -39,9 +73,72 @@ export function UrlInput({ onSubmit, loading }: UrlInputProps) {
           {loading ? "Scanning site…" : "Scan site"}
         </button>
       </div>
-      <p className="text-center text-xs text-ink-muted sm:text-left">
+
+      <p className="text-center text-xs text-white/70 sm:text-left">
         Free preview scores the homepage. Unlock for a full-site crawl and detailed fixes.
+        Scans fetch public HTML (not a full browser render).
       </p>
+
+      {showCrawlControls ? (
+        <div className="rounded-xl border border-white/15 bg-white/5 p-3">
+          <button
+            type="button"
+            onClick={() => setAdvancedOpen((o) => !o)}
+            className="text-xs font-semibold text-white/90 hover:text-white"
+          >
+            {advancedOpen ? "Hide" : "Show"} crawl controls
+          </button>
+          {advancedOpen ? (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <label className="block text-xs text-white/80">
+                Max pages (1–{HARD_MAX_PAGES})
+                <input
+                  type="number"
+                  min={1}
+                  max={HARD_MAX_PAGES}
+                  value={maxPages}
+                  onChange={(e) => setMaxPages(e.target.value)}
+                  disabled={loading}
+                  className="mt-1 w-full rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-sm text-ink"
+                />
+              </label>
+              <label className="block text-xs text-white/80">
+                Start path
+                <input
+                  type="text"
+                  value={startPath}
+                  onChange={(e) => setStartPath(e.target.value)}
+                  placeholder="/blog"
+                  disabled={loading}
+                  className="mt-1 w-full rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-sm text-ink"
+                />
+              </label>
+              <label className="block text-xs text-white/80 sm:col-span-1">
+                Include paths (comma or newline)
+                <textarea
+                  value={includePaths}
+                  onChange={(e) => setIncludePaths(e.target.value)}
+                  placeholder="/blog, /products/*"
+                  rows={2}
+                  disabled={loading}
+                  className="mt-1 w-full rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-sm text-ink"
+                />
+              </label>
+              <label className="block text-xs text-white/80 sm:col-span-1">
+                Exclude paths
+                <textarea
+                  value={excludePaths}
+                  onChange={(e) => setExcludePaths(e.target.value)}
+                  placeholder="/cart, /account/*"
+                  rows={2}
+                  disabled={loading}
+                  className="mt-1 w-full rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-sm text-ink"
+                />
+              </label>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </form>
   );
 }

@@ -7,7 +7,8 @@ import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
 import { verifyPaidSession } from "@/lib/stripe-unlock-server";
 import { toFreePreviewReport } from "@/lib/free-preview";
-import type { ScanProgressEvent } from "@/lib/types";
+import { auditOptionsFromBody } from "@/lib/audit-request";
+import type { AuditOptions, ScanProgressEvent } from "@/lib/types";
 
 export const maxDuration = 300;
 export const runtime = "nodejs";
@@ -37,12 +38,14 @@ export async function POST(request: NextRequest) {
   let urlInput: string | undefined;
   let wantFull = true;
   let unlockSessionId: string | undefined;
+  let crawlOptions: Omit<AuditOptions, "onProgress" | "siteCrawl"> = {};
   try {
     const body = await request.json();
     urlInput = body?.url;
-    wantFull = body?.siteCrawl !== false;
-    unlockSessionId =
-      typeof body?.unlockSessionId === "string" ? body.unlockSessionId : undefined;
+    const parsed = auditOptionsFromBody(body);
+    wantFull = parsed.wantFull;
+    unlockSessionId = parsed.unlockSessionId;
+    crawlOptions = parsed.auditOptions;
   } catch {
     return new Response(JSON.stringify({ type: "error", error: "Invalid JSON" }) + "\n", {
       status: 400,
@@ -101,6 +104,7 @@ export async function POST(request: NextRequest) {
         const normalized = normalizeUrl(urlInput!);
         const report = await runFullAudit(normalized, {
           siteCrawl,
+          ...(siteCrawl ? crawlOptions : {}),
           onProgress: (event) => send(event),
         });
 

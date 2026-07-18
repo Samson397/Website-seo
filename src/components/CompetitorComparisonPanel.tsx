@@ -6,6 +6,7 @@ import { checklistPassRate, overallScore, rankCompetitorResults } from "@/lib/co
 import { formatUrlDisplay } from "@/lib/url-display";
 import { AuditReportView } from "@/components/AuditReport";
 import { ChecksPanel } from "@/components/ChecksPanel";
+import { CompetitorGapPanel } from "@/components/CompetitorGapPanel";
 
 interface CompetitorComparisonPanelProps {
   results: CompetitorAuditResult[];
@@ -26,6 +27,8 @@ export function CompetitorComparisonPanel({ results }: CompetitorComparisonPanel
 
   return (
     <div className="space-y-8">
+      <CompetitorGapPanel results={results} />
+
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-bold text-slate-900">Competitor comparison</h2>
         <p className="mt-1 text-sm text-slate-500">

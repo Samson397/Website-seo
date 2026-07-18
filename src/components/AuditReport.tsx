@@ -13,6 +13,7 @@ import { EmailReportButton } from "@/components/EmailReportButton";
 import { ShareReportButton } from "@/components/ShareReportButton";
 import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
+import { IssueGroupsPanel } from "@/components/IssueGroupsPanel";
 
 interface AuditReportViewProps {
   report: AuditReport;
@@ -177,6 +178,8 @@ export function AuditReportView({
       {report.siteOverview && <SiteOverviewPanel overview={report.siteOverview} />}
 
       {report.crawl?.enabled && <SiteCrawlPanel crawl={report.crawl} />}
+
+      {report.issues.length > 0 && <IssueGroupsPanel issues={report.issues} />}
 
       <div id="audit-issues">
         <div className="mb-2">

@@ -1,5 +1,12 @@
 import * as cheerio from "cheerio";
 import { safeFetch, safeFetchText } from "@/lib/fetcher";
+import {
+  HARD_MAX_PAGES,
+  isPathAllowed,
+  resolveMaxPages,
+  resolveStartUrl,
+  type CrawlControls,
+} from "@/lib/crawl-options";
 
 export interface CrawledPageMeta {
   url: string;
@@ -7,19 +14,24 @@ export interface CrawledPageMeta {
   description: string;
   h1: string;
   status: number;
-  /** Deeper per-page signals */
   canonical?: string;
   robots?: string;
   hasOg?: boolean;
   wordCount?: number;
   h1Count?: number;
+  depth?: number;
+  inboundLinks?: number;
+  redirected?: boolean;
+  requestedUrl?: string;
+  finalUrl?: string;
+  hreflang?: string[];
 }
 
 /**
  * Hard cap on unique URLs we discover AND deep-scan.
  * Every discovered page is scanned — we do not list pages without scanning them.
  */
-export const MAX_PAGES = 200;
+export const MAX_PAGES = HARD_MAX_PAGES;
 
 export interface DiscoverResult {
   urlsToScan: string[];
@@ -95,7 +107,6 @@ function extractInternalLinks(html: string, baseUrl: string, origin: string): st
     try {
       const resolved = new URL(href, baseUrl);
       if (resolved.origin === origin && resolved.protocol.startsWith("http")) {
-        // Skip obvious non-HTML assets
         if (/\.(pdf|jpg|jpeg|png|gif|webp|svg|css|js|zip|mp4|mp3|ico)(\?|$)/i.test(resolved.pathname)) {
           return;
         }
@@ -133,24 +144,47 @@ function prioritizeUrls(entryUrl: string, urls: string[]): string[] {
   return entry ? [entry, ...rest] : rest;
 }
 
-export async function discoverPages(entryUrl: string, html: string): Promise<DiscoverResult> {
+function pathnameOf(url: string): string {
+  try {
+    return new URL(url).pathname || "/";
+  } catch {
+    return "/";
+  }
+}
+
+function urlAllowed(url: string, controls: CrawlControls): boolean {
+  return isPathAllowed(
+    pathnameOf(url),
+    controls.includePaths || [],
+    controls.excludePaths || []
+  );
+}
+
+export async function discoverPages(
+  entryUrl: string,
+  html: string,
+  controls: CrawlControls = {}
+): Promise<DiscoverResult> {
+  const cap = resolveMaxPages(controls.maxPages);
   const origin = new URL(entryUrl).origin;
   const discovered = new Set<string>();
   discovered.add(normalizeUrl(entryUrl));
 
-  for (const url of await collectSitemapUrls(entryUrl, MAX_PAGES)) {
+  for (const url of await collectSitemapUrls(entryUrl, cap)) {
+    if (!urlAllowed(url, controls)) continue;
     discovered.add(normalizeUrl(url));
-    if (discovered.size >= MAX_PAGES) break;
+    if (discovered.size >= cap) break;
   }
 
   for (const link of extractInternalLinks(html, entryUrl, origin)) {
+    if (!urlAllowed(link, controls)) continue;
     discovered.add(normalizeUrl(link));
-    if (discovered.size >= MAX_PAGES) break;
+    if (discovered.size >= cap) break;
   }
 
   const allDiscovered = prioritizeUrls(entryUrl, normalizeUrls(Array.from(discovered)));
   const totalFound = allDiscovered.length;
-  const hitCap = totalFound >= MAX_PAGES;
+  const hitCap = totalFound >= cap;
 
   return {
     urlsToScan: allDiscovered,
@@ -167,6 +201,12 @@ export function extractMetaFromHtml(url: string, html: string, status: number): 
   const wordCount = text.split(/\s+/).filter((w) => w.length > 0).length;
   const h1Count = $("h1").length;
 
+  const hreflang: string[] = [];
+  $('link[rel="alternate"][hreflang]').each((_, el) => {
+    const lang = $(el).attr("hreflang")?.trim();
+    if (lang) hreflang.push(lang);
+  });
+
   return {
     url,
     title: $("title").first().text().trim() || "(no title)",
@@ -178,15 +218,18 @@ export function extractMetaFromHtml(url: string, html: string, status: number): 
     hasOg: Boolean($('meta[property="og:title"]').attr("content")),
     wordCount,
     h1Count,
+    hreflang,
   };
 }
 
 export async function fetchPageMeta(url: string): Promise<{
   meta: CrawledPageMeta;
   html?: string;
+  internalLinks?: string[];
 } | null> {
   try {
     const result = await safeFetch(url);
+    const redirected = normalizeUrl(result.finalUrl) !== normalizeUrl(url);
     if (!result.html) {
       return {
         meta: {
@@ -200,12 +243,22 @@ export async function fetchPageMeta(url: string): Promise<{
           hasOg: false,
           wordCount: 0,
           h1Count: 0,
+          redirected,
+          requestedUrl: url,
+          finalUrl: result.finalUrl,
+          hreflang: [],
         },
       };
     }
+    const meta = extractMetaFromHtml(result.finalUrl, result.html, result.status);
+    meta.redirected = redirected;
+    meta.requestedUrl = url;
+    meta.finalUrl = result.finalUrl;
+    const origin = new URL(result.finalUrl).origin;
     return {
-      meta: extractMetaFromHtml(result.finalUrl, result.html, result.status),
+      meta,
       html: result.html,
+      internalLinks: extractInternalLinks(result.html, result.finalUrl, origin),
     };
   } catch {
     return null;
@@ -225,26 +278,65 @@ export type CrawlProgress = {
 export async function crawlSitePages(
   entryUrl: string,
   entryHtml: string,
-  onProgress?: (p: CrawlProgress) => void
+  onProgress?: (p: CrawlProgress) => void,
+  controls: CrawlControls = {}
 ): Promise<{
   pages: CrawledPageMeta[];
   urlsToScan: string[];
   allDiscovered: string[];
   totalFound: number;
   hitCap: boolean;
+  controlsApplied: Required<Pick<CrawlControls, "maxPages">> & CrawlControls;
 }> {
-  const origin = new URL(entryUrl).origin;
-  const { urlsToScan: seedUrls, hitCap: seedHitCap } = await discoverPages(entryUrl, entryHtml);
+  const cap = resolveMaxPages(controls.maxPages);
+  const includePaths = controls.includePaths || [];
+  const excludePaths = controls.excludePaths || [];
+  const startUrl = resolveStartUrl(entryUrl, controls.startPath);
 
-  const queued = prioritizeUrls(entryUrl, seedUrls);
+  let seedHtml = entryHtml;
+  let crawlEntry = entryUrl;
+
+  if (normalizeUrl(startUrl) !== normalizeUrl(entryUrl)) {
+    crawlEntry = startUrl;
+    try {
+      const startFetch = await safeFetch(startUrl);
+      if (startFetch.html) {
+        seedHtml = startFetch.html;
+        crawlEntry = startFetch.finalUrl;
+      }
+    } catch {
+      // fall back to original entry
+      crawlEntry = entryUrl;
+      seedHtml = entryHtml;
+    }
+  }
+
+  const origin = new URL(crawlEntry).origin;
+  const applied: CrawlControls & { maxPages: number } = {
+    maxPages: cap,
+    includePaths,
+    excludePaths,
+    startPath: controls.startPath,
+  };
+
+  const { urlsToScan: seedUrls, hitCap: seedHitCap } = await discoverPages(
+    crawlEntry,
+    seedHtml,
+    applied
+  );
+
+  const queued = prioritizeUrls(crawlEntry, seedUrls);
   const seen = new Set(queued.map(normalizeUrl));
   const results: CrawledPageMeta[] = [];
   const scanned = new Set<string>();
+  const depthMap = new Map<string, number>();
+  const inboundMap = new Map<string, number>();
+  depthMap.set(normalizeUrl(crawlEntry), 0);
 
   let cursor = 0;
   const batchSize = 10;
 
-  while (cursor < queued.length && results.length < MAX_PAGES) {
+  while (cursor < queued.length && results.length < cap) {
     const batch = queued.slice(cursor, cursor + batchSize);
     cursor += batch.length;
 
@@ -258,6 +350,10 @@ export async function crawlSitePages(
       const key = normalizeUrl(item.meta.url || sourceUrl);
       if (scanned.has(key)) continue;
       scanned.add(key);
+
+      const depth = depthMap.get(normalizeUrl(sourceUrl)) ?? depthMap.get(key) ?? 0;
+      item.meta.depth = depth;
+      item.meta.inboundLinks = inboundMap.get(key) || 0;
       results.push(item.meta);
 
       try {
@@ -267,12 +363,25 @@ export async function crawlSitePages(
         onProgress?.({ scanned: results.length, queued: queued.length });
       }
 
-      // BFS: pull more internal links from scanned HTML while under cap
-      if (item.html && seen.size < MAX_PAGES) {
-        for (const link of extractInternalLinks(item.html, item.meta.url, origin)) {
+      if (item.internalLinks && seen.size < cap) {
+        for (const link of item.internalLinks) {
+          if (!urlAllowed(link, applied)) continue;
           const n = normalizeUrl(link);
-          if (!seen.has(n) && seen.size < MAX_PAGES) {
+          inboundMap.set(n, (inboundMap.get(n) || 0) + 1);
+          if (!seen.has(n) && seen.size < cap) {
             seen.add(n);
+            depthMap.set(n, depth + 1);
+            queued.push(n);
+          }
+        }
+      } else if (item.html && seen.size < cap) {
+        for (const link of extractInternalLinks(item.html, item.meta.url, origin)) {
+          if (!urlAllowed(link, applied)) continue;
+          const n = normalizeUrl(link);
+          inboundMap.set(n, (inboundMap.get(n) || 0) + 1);
+          if (!seen.has(n) && seen.size < cap) {
+            seen.add(n);
+            depthMap.set(n, depth + 1);
             queued.push(n);
           }
         }
@@ -280,8 +389,14 @@ export async function crawlSitePages(
     }
   }
 
-  const allDiscovered = prioritizeUrls(entryUrl, Array.from(seen));
-  const hitCap = seedHitCap || allDiscovered.length >= MAX_PAGES;
+  // Refresh inbound counts on results (links discovered after a page was scanned)
+  for (const page of results) {
+    const key = normalizeUrl(page.url);
+    page.inboundLinks = inboundMap.get(key) || page.inboundLinks || 0;
+  }
+
+  const allDiscovered = prioritizeUrls(crawlEntry, Array.from(seen));
+  const hitCap = seedHitCap || allDiscovered.length >= cap || results.length >= cap;
 
   return {
     pages: results,
@@ -289,5 +404,6 @@ export async function crawlSitePages(
     allDiscovered,
     totalFound: results.length,
     hitCap,
+    controlsApplied: applied,
   };
 }

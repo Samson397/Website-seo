@@ -4,6 +4,7 @@ export const routes = {
   history: "/history",
   tracker: "/tracker",
   competitors: "/competitors",
+  sampleReport: "/r/sample",
   tools: "/tools",
   metaPreview: "/tools/meta-preview",
   robotsInspector: "/tools/robots",

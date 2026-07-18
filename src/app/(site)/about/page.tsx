@@ -9,20 +9,20 @@ export const metadata = {
 
 const GAPS_SHIPPED = [
   "Full-site crawl up to 200 pages from sitemap + internal links",
+  "Crawl controls: max pages, include/exclude paths, start path",
   "50+ Pass / Fail / Review checks on SEO, security, a11y, and speed signals",
-  "Keyword research, rank checker, content optimizer, local tracker",
+  "Issue grouping by URL template (/blog/:slug)",
+  "Internal link depth + orphan-ish page signals",
+  "Site-wide redirect, canonical, and hreflang coverage",
+  "Keyword research, rank checker, content optimizer, local tracker with history charts",
   "Redirects, schema, broken links, headers, robots/sitemap tools",
   "Shareable reports, exports, optional email digests",
-  "Competitor homepage compare",
+  "Competitor compare + gap lite (titles, length, top issues)",
+  "Public sample report at /r/sample",
 ];
 
 const NEXT_UP = [
-  "Crawl controls (max pages, include/exclude paths)",
-  "Issue grouping by URL template (/blog/*, /products/*)",
-  "Internal link depth + orphan-page signals",
-  "Site-wide redirect / canonical / hreflang coverage",
-  "Richer competitor gap (titles, content length, top issues)",
-  "Public sample report for demos",
+  "DataForSEO enrichment when API keys are configured (backlinks, volume, SERP)",
 ];
 
 export default function AboutPage() {
@@ -90,6 +90,7 @@ export default function AboutPage() {
           <h2 className="font-display text-xl font-semibold text-ink">Also free</h2>
           <ul className="mt-3 space-y-2">
             {[
+              { href: routes.sampleReport, label: "Sample full report" },
               { href: routes.competitors, label: "Competitor compare" },
               { href: routes.metaPreview, label: "Meta & SERP preview" },
               { href: routes.redirects, label: "Redirect chain checker" },

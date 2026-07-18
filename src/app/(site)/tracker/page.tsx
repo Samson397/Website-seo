@@ -11,6 +11,7 @@ import {
   updateTrackedKeyword,
   type KeywordTrackItem,
 } from "@/lib/local-keywords";
+import { RankHistoryChart } from "@/components/RankHistoryChart";
 import { routes } from "@/lib/routes";
 
 export default function TrackerPage() {
@@ -34,10 +35,15 @@ export default function TrackerPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      const serpPos =
+        data.serp?.available && typeof data.serp.position === "number"
+          ? data.serp.position
+          : null;
       setItems(
         updateTrackedKeyword(item.keyword, item.url, {
           lastCheckedAt: new Date().toISOString(),
           lastScore: data.onPage.score,
+          lastSerpPosition: serpPos,
           inTitle: data.onPage.inTitle,
           inH1: data.onPage.inH1,
           inMeta: data.onPage.inMeta,
@@ -122,10 +128,14 @@ export default function TrackerPage() {
                           {item.lastCheckedAt
                             ? ` · ${new Date(item.lastCheckedAt).toLocaleDateString()}`
                             : ""}
+                          {item.lastSerpPosition != null
+                            ? ` · SERP #${item.lastSerpPosition}`
+                            : ""}
                         </p>
                       ) : (
                         <p className="mt-1 text-xs text-ink-muted">Not checked yet</p>
                       )}
+                      <RankHistoryChart history={item.history} />
                     </div>
                     <div className="flex gap-2">
                       <button
