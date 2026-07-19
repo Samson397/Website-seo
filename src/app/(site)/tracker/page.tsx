@@ -1,13 +1,17 @@
+import type { Metadata } from "next";
 import TrackerPageClient from "./TrackerPageClient";
 import { SeoPageIntro } from "@/components/SeoPageIntro";
 import { pageMetadata } from "@/lib/page-seo";
 
-export const metadata = pageMetadata({
-  title: "Keyword tracker — SEOHub",
-  description:
-    "Save target keywords on this device and re-check on-page rank signals anytime. Free keyword tracking without a login wall.",
-  path: "/tracker",
-});
+export const metadata: Metadata = {
+  ...pageMetadata({
+    title: "Keyword tracker — SEOHub",
+    description:
+      "Save target keywords on this device and re-check on-page rank signals anytime. Free keyword tracking without a login wall.",
+    path: "/tracker",
+  }),
+  robots: { index: false, follow: false },
+};
 
 export default function TrackerPage() {
   return (

@@ -1,13 +1,17 @@
+import type { Metadata } from "next";
 import HistoryPageClient from "./HistoryPageClient";
 import { SeoPageIntro } from "@/components/SeoPageIntro";
 import { pageMetadata } from "@/lib/page-seo";
 
-export const metadata = pageMetadata({
-  title: "Scan history & watchlist — SEOHub",
-  description:
-    "Review past SEOHub audits and manage an on-device watchlist of sites to re-scan. History stays in your browser — free, no account required.",
-  path: "/history",
-});
+export const metadata: Metadata = {
+  ...pageMetadata({
+    title: "Scan history & watchlist — SEOHub",
+    description:
+      "Review past SEOHub audits and manage an on-device watchlist of sites to re-scan. History stays in your browser — free, no account required.",
+    path: "/history",
+  }),
+  robots: { index: false, follow: false },
+};
 
 export default function HistoryPage() {
   return (

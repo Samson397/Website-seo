@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 
+const OG_IMAGE = {
+  url: "/opengraph-image",
+  width: 1200,
+  height: 630,
+  alt: "SEOHub — full-site SEO audits",
+} as const;
+
 /** Build per-route metadata with a self-canonical (never inherit `/`). */
 export function pageMetadata(opts: {
   title: string;
   description: string;
   path: string;
+  robots?: Metadata["robots"];
 }): Metadata {
   const path = opts.path.startsWith("/") ? opts.path : `/${opts.path}`;
   const description =
@@ -16,14 +24,20 @@ export function pageMetadata(opts: {
     title: opts.title,
     description,
     alternates: { canonical: path },
+    ...(opts.robots ? { robots: opts.robots } : {}),
     openGraph: {
       title: opts.title,
       description,
       url: path,
+      images: [OG_IMAGE],
     },
     twitter: {
+      card: "summary_large_image",
       title: opts.title,
       description,
+      images: [OG_IMAGE.url],
     },
   };
 }
+
+export { OG_IMAGE };
