@@ -10,7 +10,6 @@ import { ChecksPanel } from "@/components/ChecksPanel";
 import { AuditReportView } from "@/components/AuditReport";
 import { BenchmarkCompare } from "@/components/BenchmarkCompare";
 import { WatchToggle } from "@/components/WatchToggle";
-import { AdSlot } from "@/components/AdSlot";
 import { AiFixPlanPanel } from "@/components/AiFixPlanPanel";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 import { routes } from "@/lib/routes";
@@ -171,7 +170,6 @@ export function FullAuditDelivery({
               </Link>
             </section>
           ) : null}
-          <AdSlot className="max-w-3xl" />
         </div>
       ) : null}
 

@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { UrlInput, type ScanSubmitPayload } from "@/components/UrlInput";
 import { RouteCards } from "@/components/RouteCards";
 import { ScanHistoryPanel } from "@/components/ScanHistoryPanel";
-import { AdSlot } from "@/components/AdSlot";
 import { ScanLoadingPanel } from "@/components/ScanLoadingPanel";
 import { FreePreviewReport } from "@/components/FreePreviewReport";
 import { FullAuditDelivery } from "@/components/FullAuditDelivery";
@@ -399,9 +398,6 @@ export default function HomeScanClient() {
           <>
             <HomeLaunchPass />
             <RouteCards />
-            <div className="mt-10">
-              <AdSlot />
-            </div>
           </>
         )}
       </div>

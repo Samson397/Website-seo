@@ -2,8 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import { PageHero } from "@/components/ui/PageHero";
-import { AdSlot } from "@/components/AdSlot";
-
 type ContentResult = {
   score: number;
   keyword: string;
@@ -116,9 +114,6 @@ export default function ContentOptimizerPage() {
           </div>
         ) : null}
 
-        <div className="mt-10">
-          <AdSlot />
-        </div>
       </div>
     </main>
   );

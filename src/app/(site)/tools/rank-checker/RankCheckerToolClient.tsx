@@ -2,8 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import { PageHero } from "@/components/ui/PageHero";
-import { AdSlot } from "@/components/AdSlot";
-
 type RankResult = {
   url: string;
   keyword: string;
@@ -121,9 +119,6 @@ export default function RankCheckerPage() {
           </div>
         ) : null}
 
-        <div className="mt-10">
-          <AdSlot />
-        </div>
       </div>
     </main>
   );
