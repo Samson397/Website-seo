@@ -103,10 +103,6 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
-  async rewrites() {
-    // Prefer the brand logo over the legacy gear-only favicon.ico.
-    return [{ source: "/favicon.ico", destination: "/logo.png" }];
-  },
   async headers() {
     return [
       {

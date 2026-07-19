@@ -42,8 +42,12 @@ export const metadata: Metadata = {
     description,
   },
   icons: {
-    icon: [{ url: "/logo.png", type: "image/png" }],
-    apple: [{ url: "/logo.png", type: "image/png" }],
+    icon: [
+      { url: "/favicon.ico?v=5", sizes: "any" },
+      { url: "/favicon-32.png?v=5", sizes: "32x32", type: "image/png" },
+      { url: "/logo-icon.png?v=5", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png?v=5", sizes: "180x180", type: "image/png" }],
   },
   robots: { index: true, follow: true },
   // AdSense site verification — exact tag from AdSense dashboard
