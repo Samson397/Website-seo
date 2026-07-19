@@ -45,7 +45,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
         <Link
           href={routes.home}
-          className="flex items-center gap-2.5"
+          className="flex min-h-11 min-w-11 items-center gap-2.5 py-1"
           aria-label="SEOHub home"
         >
           <LogoMark size="sm" />
