@@ -109,6 +109,12 @@ async function ensurePromoSchema() {
         ALTER TABLE promo_unlocks
         ADD COLUMN IF NOT EXISTS preview_unlocked BOOLEAN NOT NULL DEFAULT FALSE
       `;
+      // Short-lived lease so only one full-scan request can run at a time.
+      // Expired leases are reclaimable if the prior request died mid-crawl.
+      await db`
+        ALTER TABLE promo_unlocks
+        ADD COLUMN IF NOT EXISTS scan_claimed_at TIMESTAMPTZ
+      `;
       await db`
         CREATE TABLE IF NOT EXISTS promo_ip_claims (
           client_ip TEXT PRIMARY KEY,
@@ -281,15 +287,34 @@ export async function redeemPromoCode(
 
   const row = updated[0];
   const sessionId = `promo_${randomBytes(16).toString("hex")}`;
-  await db`
-    INSERT INTO promo_unlocks (id, code, client_ip, consumed)
-    VALUES (${sessionId}, ${String(row.code)}, ${clientIp}, FALSE)
-  `;
-  await db`
-    UPDATE promo_ip_claims
-    SET unlock_id = ${sessionId}, code = ${String(row.code)}
-    WHERE client_ip = ${clientIp}
-  `;
+  try {
+    await db`
+      INSERT INTO promo_unlocks (id, code, client_ip, consumed)
+      VALUES (${sessionId}, ${String(row.code)}, ${clientIp}, FALSE)
+    `;
+    await db`
+      UPDATE promo_ip_claims
+      SET unlock_id = ${sessionId}, code = ${String(row.code)}
+      WHERE client_ip = ${clientIp}
+    `;
+  } catch (err) {
+    // Roll back pool + IP claim so a failed insert doesn't burn the redeem.
+    await db`
+      UPDATE promo_codes
+      SET used_count = GREATEST(used_count - 1, 0), active = TRUE
+      WHERE code = ${String(row.code)}
+    `;
+    await db`DELETE FROM promo_ip_claims WHERE client_ip = ${clientIp}`;
+    console.error(
+      "[promo] unlock insert failed",
+      err instanceof Error ? err.message : err
+    );
+    return {
+      ok: false,
+      error: "Could not create your promo unlock. Try again in a moment.",
+      status: 500,
+    };
+  }
 
   // Prefer real unlock count for the response (matches public board)
   const counted = await db`
@@ -316,15 +341,31 @@ export async function redeemPromoCode(
   };
 }
 
-export async function verifyPromoSession(sessionId: string): Promise<boolean> {
-  if (!isPromoSessionId(sessionId) || !canUsePromoCodes()) return false;
+/** Lease length for an in-flight full scan (covers long crawls + retries). */
+const SCAN_CLAIM_TTL_MS = 15 * 60 * 1000;
+
+export type UnlockInspectResult =
+  | { status: "valid" }
+  | { status: "spent" }
+  | { status: "missing" }
+  | { status: "unavailable" };
+
+export async function inspectPromoSession(sessionId: string): Promise<UnlockInspectResult> {
+  if (!isPromoSessionId(sessionId)) return { status: "missing" };
+  if (!canUsePromoCodes()) return { status: "unavailable" };
   await ensurePromoSchema();
   const db = sql();
   const rows = await db`
-    SELECT id FROM promo_unlocks
-    WHERE id = ${sessionId} AND consumed = FALSE
+    SELECT consumed, scan_claimed_at FROM promo_unlocks WHERE id = ${sessionId}
   `;
-  return rows.length > 0;
+  if (rows.length === 0) return { status: "missing" };
+  if (rows[0].consumed) return { status: "spent" };
+  return { status: "valid" };
+}
+
+export async function verifyPromoSession(sessionId: string): Promise<boolean> {
+  const result = await inspectPromoSession(sessionId);
+  return result.status === "valid";
 }
 
 export async function promoSessionExists(sessionId: string): Promise<boolean> {
@@ -337,13 +378,48 @@ export async function promoSessionExists(sessionId: string): Promise<boolean> {
   return rows.length > 0;
 }
 
+/**
+ * Atomically claim a promo unlock for one full-site scan.
+ * Prevents two concurrent requests from both verifying then racing to consume.
+ */
+export async function claimPromoSession(sessionId: string): Promise<boolean> {
+  if (!isPromoSessionId(sessionId) || !canUsePromoCodes()) return false;
+  await ensurePromoSchema();
+  const db = sql();
+  const claimCutoff = new Date(Date.now() - SCAN_CLAIM_TTL_MS).toISOString();
+  const rows = await db`
+    UPDATE promo_unlocks
+    SET scan_claimed_at = NOW()
+    WHERE id = ${sessionId}
+      AND consumed = FALSE
+      AND (
+        scan_claimed_at IS NULL
+        OR scan_claimed_at < ${claimCutoff}::timestamptz
+      )
+    RETURNING id
+  `;
+  return rows.length > 0;
+}
+
+/** Release a scan lease after a failed crawl so the unlock can be retried. */
+export async function releasePromoSessionClaim(sessionId: string): Promise<void> {
+  if (!isPromoSessionId(sessionId) || !canUsePromoCodes()) return;
+  await ensurePromoSchema();
+  const db = sql();
+  await db`
+    UPDATE promo_unlocks
+    SET scan_claimed_at = NULL
+    WHERE id = ${sessionId} AND consumed = FALSE
+  `;
+}
+
 export async function consumePromoSession(sessionId: string): Promise<void> {
   if (!isPromoSessionId(sessionId) || !canUsePromoCodes()) return;
   await ensurePromoSchema();
   const db = sql();
   await db`
     UPDATE promo_unlocks
-    SET consumed = TRUE, consumed_at = NOW()
+    SET consumed = TRUE, consumed_at = NOW(), scan_claimed_at = NULL
     WHERE id = ${sessionId} AND consumed = FALSE
   `;
 }

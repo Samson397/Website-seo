@@ -8,12 +8,18 @@ import { isStripeConfigured } from "@/lib/stripe";
 import { isPromoSessionId } from "@/lib/promo-codes";
 import { toFreePreviewReport, toCompetitorCompareReport } from "@/lib/free-preview";
 import { auditOptionsFromBody } from "@/lib/audit-request";
-import { consumeUnlockSession, verifyUnlockSession } from "@/lib/unlock-access";
+import {
+  claimUnlockSession,
+  consumeUnlockSession,
+  releaseUnlockSessionClaim,
+} from "@/lib/unlock-access";
 
 /** Allow longer full-site crawls on platforms that support it (e.g. Vercel Pro). */
 export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
+  let claimedSessionId: string | undefined;
+  let finalized = false;
   try {
     const limited = rateLimit(`audit:${clientKeyFromRequest(request)}`, {
       limit: 12,
@@ -50,16 +56,17 @@ export async function POST(request: NextRequest) {
       isStripeConfigured() || Boolean(unlockSessionId && isPromoSessionId(unlockSessionId));
     if (gated && !compareMode) {
       if (wantFull && unlockSessionId) {
-        const unlocked = await verifyUnlockSession(unlockSessionId);
-        if (!unlocked) {
+        const claimed = await claimUnlockSession(unlockSessionId);
+        if (claimed.status !== "valid") {
           return NextResponse.json(
             {
-              error:
-                "Payment or promo could not be verified for a full crawl. Pay again, redeem a code, or run a free homepage preview.",
+              error: claimed.error,
+              code: claimed.status === "spent" ? "unlock_spent" : "unlock_invalid",
             },
             { status: 402 }
           );
         }
+        claimedSessionId = unlockSessionId;
         siteCrawl = true;
         tier = "full";
       } else {
@@ -98,9 +105,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (tier === "full" && unlockSessionId) {
+    if (tier === "full" && claimedSessionId) {
       try {
-        await consumeUnlockSession(unlockSessionId);
+        await consumeUnlockSession(claimedSessionId);
+        finalized = true;
       } catch (err) {
         console.error(
           "[audit] consume session failed",
@@ -119,5 +127,16 @@ export async function POST(request: NextRequest) {
     const message = err instanceof Error ? err.message : "Audit failed";
     const status = message.includes("not allowed") || message.includes("resolve") ? 400 : 500;
     return NextResponse.json({ error: message }, { status });
+  } finally {
+    if (claimedSessionId && !finalized) {
+      try {
+        await releaseUnlockSessionClaim(claimedSessionId);
+      } catch (err) {
+        console.error(
+          "[audit] release claim failed",
+          err instanceof Error ? err.message : err
+        );
+      }
+    }
   }
 }

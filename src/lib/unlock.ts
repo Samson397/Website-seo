@@ -1,6 +1,7 @@
 /** Browser-side unlock for a single paid full scan */
 
 const UNLOCK_KEY = "seohub-full-unlock-v2";
+const UNLOCK_HANDLED_KEY = "seohub-unlock-handled-v1";
 
 export interface UnlockRecord {
   sessionId: string;
@@ -8,6 +9,25 @@ export interface UnlockRecord {
   unlockedAt: string;
   /** True after the paid full scan has completed */
   used: boolean;
+}
+
+/** Survive React remounts so the same ?unlock_session=… is not processed twice. */
+export function hasHandledUnlockSession(sessionId: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return sessionStorage.getItem(UNLOCK_HANDLED_KEY) === sessionId;
+  } catch {
+    return false;
+  }
+}
+
+export function markUnlockSessionHandled(sessionId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem(UNLOCK_HANDLED_KEY, sessionId);
+  } catch {
+    /* ignore */
+  }
 }
 
 function read(): UnlockRecord | null {
