@@ -4,7 +4,6 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
-import { ADSENSE_SCRIPT_SRC } from "@/lib/adsense";
 import { getSiteUrl } from "@/lib/site-url";
 
 const display = Fraunces({
@@ -103,8 +102,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* Raw head script so AdSense crawlers see it in initial HTML */}
-        <script async src={ADSENSE_SCRIPT_SRC} crossOrigin="anonymous" />
+        {/* Google AdSense — Auto ads (site-wide) */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4587075434685102"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="font-body antialiased">
         {children}

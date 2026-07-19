@@ -2,8 +2,6 @@
 
 import { FormEvent, ReactNode, useState } from "react";
 import { PageHero } from "@/components/ui/PageHero";
-import { AdSlot } from "@/components/AdSlot";
-
 type Props = {
   eyebrow: string;
   title: string;
@@ -77,9 +75,6 @@ export function ToolShell({
           </div>
         ) : null}
         {data ? <div className="animate-rise mt-8">{children(data)}</div> : null}
-        <div className="mt-10">
-          <AdSlot />
-        </div>
       </div>
     </div>
   );
