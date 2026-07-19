@@ -33,7 +33,7 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-bright">
                 Free preview
               </p>
-              <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              <h2 className="font-display mt-2 break-all text-2xl font-semibold tracking-tight sm:text-3xl">
                 {formatUrlDisplay(report.url)}
               </h2>
               <p className="mt-2 text-sm text-white/65">
@@ -44,7 +44,7 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
                 Overall /10
               </p>
-              <p className="font-display text-5xl font-semibold leading-none tabular-nums">
+              <p className="font-display text-4xl font-semibold leading-none tabular-nums sm:text-5xl">
                 {formatTenLabel(overall)}
               </p>
             </div>
@@ -61,7 +61,7 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-6 px-6 py-7 sm:grid-cols-3 lg:grid-cols-5 sm:px-8">
+        <div className="grid grid-cols-2 gap-4 px-4 py-6 sm:grid-cols-3 sm:gap-6 sm:px-8 sm:py-7 lg:grid-cols-5">
           <ScoreGauge label="SEO" score={report.scores.seo} />
           <ScoreGauge label="Performance" score={report.scores.performance} />
           <ScoreGauge label="Accessibility" score={report.scores.accessibility} />

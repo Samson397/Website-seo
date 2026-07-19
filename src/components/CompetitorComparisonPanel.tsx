@@ -37,6 +37,7 @@ export function CompetitorComparisonPanel({ results }: CompetitorComparisonPanel
         </p>
 
         <div className="mt-6 overflow-x-auto">
+          <p className="pb-2 text-xs text-slate-500 md:hidden">Swipe sideways to see all columns</p>
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">

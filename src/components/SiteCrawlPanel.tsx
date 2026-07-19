@@ -64,6 +64,7 @@ export function SiteCrawlPanel({ crawl }: SiteCrawlPanelProps) {
       ) : null}
 
       <div className="overflow-x-auto px-2 sm:px-4">
+        <p className="px-3 pb-2 text-xs text-ink-muted md:hidden">Swipe sideways to see all columns</p>
         <table className="w-full min-w-[820px] text-left text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-[11px] uppercase tracking-wide text-ink-muted">

@@ -234,8 +234,8 @@ function InfoRow({ label, value }: { label: string; value?: string }) {
   if (!value) return null;
   return (
     <div className="flex justify-between gap-4 text-sm">
-      <span className="text-slate-500">{label}</span>
-      <span className="text-right font-medium text-slate-800">{value}</span>
+      <span className="shrink-0 text-slate-500">{label}</span>
+      <span className="min-w-0 break-all text-right font-medium text-slate-800">{value}</span>
     </div>
   );
 }

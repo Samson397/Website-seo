@@ -80,7 +80,7 @@ export function IssueCard({ issue, resolved, onToggleResolved, aiHint }: IssueCa
       {issue.currentValue && (
         <div className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm">
           <span className="font-medium text-slate-700">Current: </span>
-          <span className="text-slate-600">{issue.currentValue}</span>
+          <span className="break-all text-slate-600">{issue.currentValue}</span>
         </div>
       )}
 

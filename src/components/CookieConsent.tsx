@@ -5,22 +5,42 @@ import Link from "next/link";
 
 const STORAGE_KEY = "seohub-cookie-accepted";
 const STORAGE_KEY_LEGACY = "seoscan-cookie-accepted";
+const STORAGE_KEY_CHOICE = "seohub-cookie-choice";
+
+type Choice = "accepted" | "essential";
 
 export function CookieConsent() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     try {
-      if (!localStorage.getItem(STORAGE_KEY) && !localStorage.getItem(STORAGE_KEY_LEGACY))
+      if (
+        !localStorage.getItem(STORAGE_KEY) &&
+        !localStorage.getItem(STORAGE_KEY_LEGACY) &&
+        !localStorage.getItem(STORAGE_KEY_CHOICE)
+      ) {
         setVisible(true);
+      }
     } catch {
       setVisible(true);
     }
   }, []);
 
-  function accept() {
+  useEffect(() => {
+    if (!visible) {
+      document.documentElement.style.removeProperty("--cookie-banner-space");
+      return;
+    }
+    document.documentElement.style.setProperty("--cookie-banner-space", "7.5rem");
+    return () => {
+      document.documentElement.style.removeProperty("--cookie-banner-space");
+    };
+  }, [visible]);
+
+  function choose(choice: Choice) {
     try {
-      localStorage.setItem(STORAGE_KEY, "1");
+      localStorage.setItem(STORAGE_KEY_CHOICE, choice);
+      if (choice === "accepted") localStorage.setItem(STORAGE_KEY, "1");
     } catch {
       // ignore
     }
@@ -45,13 +65,22 @@ export function CookieConsent() {
           </Link>
           .
         </p>
-        <button
-          type="button"
-          onClick={accept}
-          className="shrink-0 rounded-lg bg-teal-bright px-4 py-2 text-sm font-semibold text-ink hover:bg-teal"
-        >
-          Accept
-        </button>
+        <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => choose("essential")}
+            className="rounded-lg border border-white/25 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10"
+          >
+            Essential only
+          </button>
+          <button
+            type="button"
+            onClick={() => choose("accepted")}
+            className="rounded-lg bg-teal-bright px-4 py-2 text-sm font-semibold text-ink hover:bg-teal"
+          >
+            Accept
+          </button>
+        </div>
       </div>
     </div>
   );

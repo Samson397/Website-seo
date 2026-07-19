@@ -28,8 +28,8 @@ export function ScoreGauge({ label, score, skipped }: ScoreGaugeProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative h-24 w-24">
-        <svg className="h-24 w-24 -rotate-90" viewBox="0 0 80 80" aria-hidden>
+      <div className="relative h-20 w-20 sm:h-24 sm:w-24">
+        <svg className="h-20 w-20 -rotate-90 sm:h-24 sm:w-24" viewBox="0 0 80 80" aria-hidden>
           <circle cx="40" cy="40" r="36" fill="none" stroke="#e2e8f0" strokeWidth="6" />
           {!skipped && (
             <circle
@@ -54,7 +54,9 @@ export function ScoreGauge({ label, score, skipped }: ScoreGaugeProps) {
             <span className="text-xl font-bold">—</span>
           ) : (
             <>
-              <span className="font-display text-2xl font-semibold tabular-nums">{ten}</span>
+              <span className="font-display text-xl font-semibold tabular-nums sm:text-2xl">
+                {ten}
+              </span>
               <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70">
                 /10
               </span>
@@ -62,7 +64,7 @@ export function ScoreGauge({ label, score, skipped }: ScoreGaugeProps) {
           )}
         </span>
       </div>
-      <span className="mt-2 text-sm font-medium text-ink-muted">{label}</span>
+      <span className="mt-2 text-center text-xs font-medium text-ink-muted sm:text-sm">{label}</span>
       {!skipped ? (
         <span className="sr-only">
           {label} score {toTen(score)} out of 10
