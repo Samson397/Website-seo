@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { USER_AGENT_BOT } from "@/lib/brand";
 import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
       const res = await fetch(current.toString(), {
         method: "GET",
         redirect: "manual",
-        headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)" },
+        headers: { "User-Agent": USER_AGENT_BOT },
         signal: AbortSignal.timeout(12000),
       });
       const location = res.headers.get("location");

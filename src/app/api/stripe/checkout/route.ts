@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: cancelUrl,
+      automatic_tax: { enabled: process.env.STRIPE_AUTOMATIC_TAX === "1" },
       metadata: {
         app: "seohub",
         product: "full_seo_scan",

@@ -1,5 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import Link from "next/link";
+import { routes } from "@/lib/routes";
+
 export default function GlobalError({
   error,
   reset,
@@ -7,22 +11,46 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // Lightweight ops visibility — wire Sentry/etc. via ERROR_WEBHOOK_URL later if needed.
+    console.error("[app-error]", error.digest || error.message, error);
+    const hook = process.env.NEXT_PUBLIC_ERROR_WEBHOOK_URL;
+    if (hook) {
+      void fetch(hook, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "client_error",
+          message: error.message,
+          digest: error.digest,
+          href: typeof window !== "undefined" ? window.location.href : undefined,
+        }),
+      }).catch(() => {});
+    }
+  }, [error]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-paper px-4 text-center">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal">SEOHub</p>
-      <h1 className="font-display mt-3 text-3xl font-semibold text-ink sm:text-4xl">
-        Something went wrong
-      </h1>
-      <p className="mt-3 max-w-md text-sm text-ink-muted">
-        {error.message || "An unexpected error occurred. Try again in a moment."}
+    <main className="mx-auto flex min-h-[50vh] max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal">Something went wrong</p>
+      <h1 className="font-display mt-3 text-3xl font-semibold text-ink">We hit a snag</h1>
+      <p className="mt-3 text-sm text-ink-muted">
+        Try again, or head back to the free homepage scan.
       </p>
-      <button
-        type="button"
-        onClick={reset}
-        className="mt-8 rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-ink-soft"
-      >
-        Try again
-      </button>
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <button
+          type="button"
+          onClick={reset}
+          className="rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white"
+        >
+          Try again
+        </button>
+        <Link
+          href={routes.home}
+          className="rounded-xl border border-ink/15 px-5 py-2.5 text-sm font-semibold text-ink"
+        >
+          Home
+        </Link>
+      </div>
     </main>
   );
 }

@@ -17,11 +17,11 @@ export function AiVisibilityPanel({ ai }: AiVisibilityPanelProps) {
         <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h3 className="font-display text-xl font-semibold sm:text-2xl">
-              Will AI promote this site?
+              GEO readiness for AI search
             </h3>
             <p className="mt-2 max-w-xl text-sm text-white/70">
-              Checks whether ChatGPT, Perplexity, Claude, and Google AI systems can discover and
-              cite your brand (GEO readiness).
+              Checks crawler access, structure, and brand signals that help ChatGPT, Perplexity,
+              Claude, and Google AI discover and cite your site — not a live citation check.
             </p>
           </div>
           <p className="font-display text-4xl font-semibold tabular-nums">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as cheerio from "cheerio";
+import { USER_AGENT_BOT } from "@/lib/brand";
 import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 
@@ -12,14 +13,14 @@ async function checkLink(href: string): Promise<{ url: string; status: number; o
     let res = await fetch(href, {
       method: "HEAD",
       redirect: "follow",
-      headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)" },
+      headers: { "User-Agent": USER_AGENT_BOT },
       signal: AbortSignal.timeout(8000),
     });
     if (res.status === 405 || res.status === 501) {
       res = await fetch(href, {
         method: "GET",
         redirect: "follow",
-        headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)" },
+        headers: { "User-Agent": USER_AGENT_BOT },
         signal: AbortSignal.timeout(8000),
       });
     }
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
     const parsed = new URL(target);
 
     const pageRes = await fetch(target, {
-      headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)", Accept: "text/html" },
+      headers: { "User-Agent": USER_AGENT_BOT, Accept: "text/html" },
       redirect: "follow",
       signal: AbortSignal.timeout(15000),
     });

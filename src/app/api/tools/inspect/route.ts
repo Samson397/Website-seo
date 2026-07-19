@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeUrl, safeFetch, safeFetchText, validateUrlSafe } from "@/lib/fetcher";
+import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 
 export const maxDuration = 30;
 
 /** Lightweight robots.txt + sitemap + security-header inspector (no full crawl). */
 export async function POST(request: NextRequest) {
   try {
+    const limited = rateLimit(`tool:inspect:${clientKeyFromRequest(request)}`, {
+      limit: 40,
+      windowMs: 60 * 60 * 1000,
+    });
+    if (!limited.ok) {
+      return NextResponse.json(
+        { error: `Rate limit reached. Try again in ${limited.retryAfterSec}s.` },
+        { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } }
+      );
+    }
+
     const body = await request.json();
     const urlInput = body?.url;
     const mode = body?.mode === "headers" ? "headers" : "robots";

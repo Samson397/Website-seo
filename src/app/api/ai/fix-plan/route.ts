@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { isDeepSeekConfigured } from "@/lib/deepseek";
 import { generateAiFixPlan } from "@/lib/ai-fix-plan";
 import { verifyUnlockAccess } from "@/lib/unlock-access";
-import { isStripeConfigured } from "@/lib/stripe";
-import { isPromoSessionId } from "@/lib/promo-codes";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import type { AuditReport } from "@/lib/types";
 
@@ -54,21 +52,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (isStripeConfigured() || (sessionId && isPromoSessionId(sessionId))) {
-    if (!sessionId) {
-      return NextResponse.json(
-        { error: "Paid session or promo unlock required to generate an AI fix plan." },
-        { status: 402 }
-      );
-    }
-    // Consumed sessions are allowed — the plan belongs to that scan.
-    const ok = await verifyUnlockAccess(sessionId);
-    if (!ok) {
-      return NextResponse.json(
-        { error: "Payment or promo could not be verified." },
-        { status: 402 }
-      );
-    }
+  // Always require a verified unlock when AI is configured (prevents open cost abuse).
+  if (!sessionId) {
+    return NextResponse.json(
+      { error: "Paid session or promo unlock required to generate an AI fix plan." },
+      { status: 402 }
+    );
+  }
+  const ok = await verifyUnlockAccess(sessionId);
+  if (!ok) {
+    return NextResponse.json(
+      { error: "Payment or promo could not be verified." },
+      { status: 402 }
+    );
   }
 
   try {
