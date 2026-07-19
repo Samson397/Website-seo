@@ -32,15 +32,15 @@ Paid via Stripe Checkout (one scan per payment). No account.
 | Channel | How |
 |--------|-----|
 | Ads | Google AdSense (`ca-pub-4587075434685102`); optional `NEXT_PUBLIC_ADSENSE_SLOT` for fixed units |
-| Insights data | Anonymized scan events (public hostnames + scores) |
+| Insights data | Anonymized scan events (scores, tech, fails, AI score, CWV) |
+| First-party email | Optional report/digest contacts for tips & product updates (not sold) |
 
-We only keep facts about **public websites that were scanned** — not emails or private identity data.
+We keep facts about **public websites that were scanned**, plus optional emails users provide.
 
-**Store scan data (use Neon if you already have it):**  
-1. Vercel → **Storage** → confirm **Neon** is connected  
-2. Redeploy  
-3. View table `scan_events` in the Neon SQL editor (private)  
-4. Optional: set `INSIGHTS_SECRET` and call `/api/insights` with that bearer token  
+**Access your data (private):**  
+1. Vercel → **Storage** → confirm **Neon** is connected → redeploy  
+2. Neon SQL Editor → tables `scan_events`, `email_contacts`, `digest_subscriptions`  
+3. Set `INSIGHTS_SECRET` and call `GET /api/insights` with `Authorization: Bearer <secret>`  
 
 There is **no public `/benchmarks` page** — collected data is for you only.
 

@@ -6,6 +6,7 @@ import type { AuditReport } from "@/lib/types";
 export function EmailReportButton({ report }: { report: AuditReport }) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [marketingOk, setMarketingOk] = useState(false);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +18,7 @@ export function EmailReportButton({ report }: { report: AuditReport }) {
       const res = await fetch("/api/email/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, report }),
+        body: JSON.stringify({ email, report, marketingOk }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Send failed");
@@ -25,6 +26,7 @@ export function EmailReportButton({ report }: { report: AuditReport }) {
       setTimeout(() => {
         setStatus("idle");
         setOpen(false);
+        setMarketingOk(false);
       }, 2500);
     } catch (err) {
       setStatus("error");
@@ -73,11 +75,26 @@ export function EmailReportButton({ report }: { report: AuditReport }) {
           Cancel
         </button>
       </div>
+      <label className="flex items-start gap-2 text-xs text-ink-muted">
+        <input
+          type="checkbox"
+          checked={marketingOk}
+          onChange={(e) => setMarketingOk(e.target.checked)}
+          className="mt-0.5"
+        />
+        <span>
+          Also send me occasional SEO tips and product updates to help improve my site (unsubscribe
+          anytime).
+        </span>
+      </label>
       {error ? <p className="text-xs text-rose-600">{error}</p> : null}
       {status === "sent" ? (
         <p className="text-xs text-teal">Report emailed. Check your inbox.</p>
       ) : (
-        <p className="text-xs text-ink-muted">Optional — we only use this address to send the report.</p>
+        <p className="text-xs text-ink-muted">
+          We use your address to send this report
+          {marketingOk ? " and optional tips" : ""}. We don’t sell your email.
+        </p>
       )}
     </form>
   );

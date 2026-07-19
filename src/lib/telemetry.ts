@@ -1,6 +1,12 @@
 import type { AuditReport } from "@/lib/types";
 import { forwardWebhook, insertScanEvent, type ScanEventInput } from "@/lib/store";
 
+function metricSnippet(value?: string): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, 32) : null;
+}
+
 export function buildScanEvent(report: AuditReport): ScanEventInput {
   let hostname = "unknown";
   let tld = "";
@@ -26,6 +32,28 @@ export function buildScanEvent(report: AuditReport): ScanEventInput {
       4
   );
 
+  const technologies = (report.siteOverview?.technologies || [])
+    .map((t) => t.name.trim())
+    .filter(Boolean)
+    .slice(0, 15);
+
+  const topFailIds = (report.checklist?.items || [])
+    .filter((item) => item.status === "fail")
+    .map((item) => item.id)
+    .filter(Boolean)
+    .slice(0, 10);
+
+  const aiScore =
+    typeof report.aiVisibility?.score === "number"
+      ? Math.round(report.aiVisibility.score)
+      : typeof report.scores.ai === "number"
+        ? Math.round(report.scores.ai)
+        : null;
+
+  const overview = report.siteOverview;
+  const dns = overview?.dns;
+  const ssl = overview?.ssl;
+
   return {
     hostname,
     tld,
@@ -41,6 +69,18 @@ export function buildScanEvent(report: AuditReport): ScanEventInput {
     criticalIssues: report.summary.critical,
     warningIssues: report.summary.warning,
     scannedAt: report.scannedAt,
+    technologies,
+    topFailIds,
+    aiScore,
+    lcp: metricSnippet(report.performanceMetrics?.lcp),
+    cls: metricSnippet(report.performanceMetrics?.cls),
+    inp: metricSnippet(report.performanceMetrics?.inp),
+    tier: report.tier === "full" || report.tier === "free" ? report.tier : null,
+    hasSpf: typeof dns?.hasSpf === "boolean" ? dns.hasSpf : null,
+    hasDmarc: typeof dns?.hasDmarc === "boolean" ? dns.hasDmarc : null,
+    hasSsl: overview
+      ? Boolean(ssl?.issuer || ssl?.validTo || ssl?.protocol || typeof ssl?.daysUntilExpiry === "number")
+      : null,
   };
 }
 

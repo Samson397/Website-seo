@@ -17,6 +17,16 @@ const schema = z.object({
   criticalIssues: z.number().int().min(0).max(10_000).optional().default(0),
   warningIssues: z.number().int().min(0).max(10_000).optional().default(0),
   scannedAt: z.string().datetime().optional(),
+  technologies: z.array(z.string().max(64)).max(15).optional().default([]),
+  topFailIds: z.array(z.string().max(64)).max(10).optional().default([]),
+  aiScore: z.number().int().min(0).max(100).nullable().optional().default(null),
+  lcp: z.string().max(32).nullable().optional().default(null),
+  cls: z.string().max(32).nullable().optional().default(null),
+  inp: z.string().max(32).nullable().optional().default(null),
+  tier: z.enum(["free", "full"]).nullable().optional().default(null),
+  hasSpf: z.boolean().nullable().optional().default(null),
+  hasDmarc: z.boolean().nullable().optional().default(null),
+  hasSsl: z.boolean().nullable().optional().default(null),
 });
 
 export async function POST(request: NextRequest) {

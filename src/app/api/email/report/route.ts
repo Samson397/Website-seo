@@ -6,6 +6,8 @@ import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { getSiteUrl } from "@/lib/site-url";
 import type { AuditReport } from "@/lib/types";
 import { isValidEmail } from "@/lib/digest";
+import { recordEmailContact } from "@/lib/email-contacts";
+import { forwardWebhook } from "@/lib/store";
 
 export const runtime = "nodejs";
 
@@ -26,9 +28,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Too many email requests." }, { status: 429 });
     }
 
-    const body = (await req.json()) as { email?: string; report?: AuditReport };
+    const body = (await req.json()) as {
+      email?: string;
+      report?: AuditReport;
+      marketingOk?: boolean;
+    };
     const email = body.email?.trim() || "";
     const report = body.report;
+    const marketingOk = Boolean(body.marketingOk);
 
     if (!isValidEmail(email)) {
       return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
@@ -63,6 +70,34 @@ export async function POST(req: NextRequest) {
     });
 
     await sendEmail({ to: email, subject, html, text });
+
+    let hostname: string | null = null;
+    try {
+      hostname = new URL(report.url).hostname.replace(/^www\./, "");
+    } catch {
+      hostname = null;
+    }
+
+    try {
+      const contact = await recordEmailContact({
+        email,
+        hostname,
+        url: report.url,
+        source: "report",
+        marketingOk,
+      });
+      await forwardWebhook({
+        type: "email_contact",
+        email,
+        hostname,
+        url: report.url,
+        source: "report",
+        marketingOk,
+        stored: contact.stored,
+      });
+    } catch (err) {
+      console.error("[email/report] contact save failed", err);
+    }
 
     return NextResponse.json({ ok: true, shareUrl });
   } catch (err) {

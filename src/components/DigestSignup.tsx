@@ -43,8 +43,8 @@ export function DigestSignup({ watchlist }: { watchlist: WatchItem[] }) {
         Email me my watchlist every week
       </h2>
       <p className="mt-2 text-sm text-ink-muted">
-        Optional Reminder via Resend — unsubscribe anytime. Uses your current watchlist (
-        {watchlist.length} site{watchlist.length === 1 ? "" : "s"}).
+        Optional weekly reminder via Resend — we store your email to send it. Unsubscribe anytime.
+        Uses your current watchlist ({watchlist.length} site{watchlist.length === 1 ? "" : "s"}).
       </p>
       {status === "done" ? (
         <p className="mt-4 text-sm font-medium text-teal">You’re signed up. Check your inbox for confirmation.</p>
