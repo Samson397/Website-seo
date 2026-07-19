@@ -4,6 +4,8 @@ import { CookieConsent } from "@/components/CookieConsent";
 import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
+import { OG_IMAGE } from "@/lib/page-seo";
+import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 import { getSiteUrl } from "@/lib/site-url";
 
 const display = Fraunces({
@@ -24,6 +26,9 @@ const title = "Full-site SEO. No subscription. | SEOHub";
 const description =
   "Run a free homepage SEO audit with scores out of 10, then unlock a full-site crawl of up to 200 pages with fixes, checklist, and exports. No account required.";
 
+/** Paid unlock amount for schema (mirror Stripe display without currency symbol). */
+const paidPriceAmount = FULL_SCAN_PRICE_LABEL.replace(/^\$/, "") || "0.99";
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
@@ -35,11 +40,13 @@ export const metadata: Metadata = {
     siteName: "SEOHub",
     type: "website",
     locale: "en_GB",
+    images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
+    images: [OG_IMAGE.url],
   },
   icons: {
     icon: [
@@ -86,7 +93,31 @@ export default function RootLayout({
         description,
         url: siteUrl,
         applicationCategory: "BusinessApplication",
-        offers: { "@type": "Offer", price: "0", priceCurrency: "GBP" },
+        offers: {
+          "@type": "AggregateOffer",
+          lowPrice: "0",
+          highPrice: paidPriceAmount,
+          priceCurrency: "USD",
+          offerCount: 2,
+          offers: [
+            {
+              "@type": "Offer",
+              name: "Free homepage SEO preview",
+              price: "0",
+              priceCurrency: "USD",
+              description:
+                "Homepage scores out of 10 for SEO, speed, accessibility, security, and AI visibility.",
+            },
+            {
+              "@type": "Offer",
+              name: "Full-site SEO unlock",
+              price: paidPriceAmount,
+              priceCurrency: "USD",
+              description:
+                "One full-site crawl of up to 200 pages with checklist, fixes, and exports. Pay per scan — no subscription.",
+            },
+          ],
+        },
       },
     ],
   };

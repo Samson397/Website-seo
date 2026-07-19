@@ -1,6 +1,7 @@
 import { SeoPageIntro } from "@/components/SeoPageIntro";
 import { pageMetadata } from "@/lib/page-seo";
-import { TOOL_SEO_COPY, ToolSeoBody } from "@/lib/tool-seo-copy";
+import { ToolSeoBody } from "@/components/ToolSeoBody";
+import { TOOL_SEO_COPY } from "@/lib/tool-seo-copy";
 import BrokenLinksToolClient from "./BrokenLinksToolClient";
 
 const copy = TOOL_SEO_COPY["broken-links"];
