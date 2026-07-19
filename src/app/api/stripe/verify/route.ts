@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
           ok: false,
           paid: false,
           consumed: true,
+          code: "unlock_spent",
           error: "This payment was already used for a full scan. Pay again for another scan.",
         },
         { status: 402 }

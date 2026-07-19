@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isStripeConfigured } from "@/lib/stripe";
-import { markPreviewUnlockSession, verifyUnlockSession } from "@/lib/unlock-access";
+import { inspectUnlockSession, markPreviewUnlockSession } from "@/lib/unlock-access";
 import { isPromoSessionId } from "@/lib/promo-codes";
 import {
   canPersistReports,
@@ -53,14 +53,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Payments are not configured." }, { status: 503 });
   }
 
-  const unlocked = await verifyUnlockSession(sessionId);
-  if (!unlocked) {
+  const unlocked = await inspectUnlockSession(sessionId);
+  if (unlocked.status !== "valid") {
     return NextResponse.json(
       {
-        error:
-          "Payment or promo code could not be verified, or was already used for a full scan.",
+        error: unlocked.error,
+        code: unlocked.status === "spent" ? "unlock_spent" : "unlock_invalid",
       },
-      { status: 402 }
+      { status: unlocked.status === "unavailable" ? 503 : 402 }
     );
   }
 

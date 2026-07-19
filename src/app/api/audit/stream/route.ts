@@ -6,7 +6,11 @@ import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { maybeCreateSpotlightFromPaidScan } from "@/lib/blog-spotlights";
 import { canPersistReports, savePreviewReport, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
-import { consumeUnlockSession, verifyUnlockSession } from "@/lib/unlock-access";
+import {
+  claimUnlockSession,
+  consumeUnlockSession,
+  releaseUnlockSessionClaim,
+} from "@/lib/unlock-access";
 import { isPromoSessionId } from "@/lib/promo-codes";
 import { toFreePreviewReport } from "@/lib/free-preview";
 import { auditOptionsFromBody } from "@/lib/audit-request";
@@ -64,21 +68,23 @@ export async function POST(request: NextRequest) {
 
   let siteCrawl = wantFull;
   let tier: "free" | "full" = "full";
+  let claimedSessionId: string | undefined;
   const gated =
     isStripeConfigured() || Boolean(unlockSessionId && isPromoSessionId(unlockSessionId));
   if (gated) {
     if (wantFull && unlockSessionId) {
-      const unlocked = await verifyUnlockSession(unlockSessionId);
-      if (!unlocked) {
+      const claimed = await claimUnlockSession(unlockSessionId);
+      if (claimed.status !== "valid") {
         return new Response(
           JSON.stringify({
             type: "error",
-            error:
-              "This payment or promo code was already used for a full scan, or could not be verified. Pay again, redeem a new code, or run a free homepage preview.",
+            error: claimed.error,
+            code: claimed.status === "spent" ? "unlock_spent" : "unlock_invalid",
           }) + "\n",
           { status: 402, headers: { "Content-Type": "application/x-ndjson" } }
         );
       }
+      claimedSessionId = unlockSessionId;
       siteCrawl = true;
       tier = "full";
     } else {
@@ -94,6 +100,7 @@ export async function POST(request: NextRequest) {
         controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
       };
 
+      let finalized = false;
       try {
         send({
           type: "stage",
@@ -135,9 +142,9 @@ export async function POST(request: NextRequest) {
         }
 
         // One checkout / promo redeem = one full-site scan
-        if (tier === "full" && unlockSessionId) {
+        if (tier === "full" && claimedSessionId) {
           try {
-            await maybeCreateSpotlightFromPaidScan(responseReport, unlockSessionId);
+            await maybeCreateSpotlightFromPaidScan(responseReport, claimedSessionId);
           } catch (err) {
             console.error(
               "[stream] spotlight create failed",
@@ -145,7 +152,8 @@ export async function POST(request: NextRequest) {
             );
           }
           try {
-            await consumeUnlockSession(unlockSessionId);
+            await consumeUnlockSession(claimedSessionId);
+            finalized = true;
           } catch (err) {
             console.error(
               "[stream] consume session failed",
@@ -161,6 +169,16 @@ export async function POST(request: NextRequest) {
           error: err instanceof Error ? err.message : "Audit failed",
         });
       } finally {
+        if (claimedSessionId && !finalized) {
+          try {
+            await releaseUnlockSessionClaim(claimedSessionId);
+          } catch (err) {
+            console.error(
+              "[stream] release claim failed",
+              err instanceof Error ? err.message : err
+            );
+          }
+        }
         controller.close();
       }
     },

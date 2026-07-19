@@ -14,6 +14,8 @@ import {
   getUnlock,
   getUsableUnlockSessionId,
   hasFullUnlock,
+  hasHandledUnlockSession,
+  markUnlockSessionHandled,
   markUnlockUsed,
   saveUnlock,
 } from "@/lib/unlock";
@@ -58,6 +60,8 @@ export default function HomeScanClient() {
   const lastUrl = useRef<string>("");
   const autoStarted = useRef<string | null>(null);
   const unlockHandled = useRef<string | null>(null);
+  const scanGeneration = useRef(0);
+  const fullScanInFlight = useRef<string | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const lastCrawl = useRef<CrawlControls | undefined>(undefined);
 
@@ -68,8 +72,14 @@ export default function HomeScanClient() {
   // Complete Stripe / promo unlock — unlock stashed report in place, then expand crawl
   useEffect(() => {
     const sessionId = searchParams.get("unlock_session");
-    if (!sessionId || unlockHandled.current === sessionId) return;
+    if (!sessionId) return;
+    // Ref + sessionStorage: survive Strict Mode remounts / soft navigations.
+    if (unlockHandled.current === sessionId || hasHandledUnlockSession(sessionId)) {
+      stripUnlockSessionParam(router, searchParams);
+      return;
+    }
     unlockHandled.current = sessionId;
+    markUnlockSessionHandled(sessionId);
     const isPromo = sessionId.startsWith("promo_");
 
     // Already spent this unlock — clean the URL and skip the banner / re-scan.
@@ -81,18 +91,22 @@ export default function HomeScanClient() {
 
     void (async () => {
       try {
-        if (!isPromo) {
-          const res = await fetch("/api/stripe/verify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionId }),
-          });
-          const data = await res.json();
-          if (!res.ok || !data.paid) {
-            setError(data.error || "Payment could not be verified.");
-            stripUnlockSessionParam(router, searchParams);
-            return;
+        const verifyPath = isPromo ? "/api/promo/verify" : "/api/stripe/verify";
+        const res = await fetch(verifyPath, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.paid) {
+          if (data.consumed || data.code === "unlock_spent") {
+            saveUnlock(sessionId);
+            markUnlockUsed();
+            setUnlocked(false);
           }
+          setError(data.error || "Payment could not be verified.");
+          stripUnlockSessionParam(router, searchParams);
+          return;
         }
         saveUnlock(sessionId);
         setUnlocked(true);
@@ -168,6 +182,27 @@ export default function HomeScanClient() {
     crawl?: CrawlControls,
     keepVisible = false
   ) {
+    // Never reuse a locally spent unlock, even if a stale sessionOverride is passed.
+    const candidate = sessionOverride || getUsableUnlockSessionId() || undefined;
+    const unlockRecord = getUnlock();
+    const sessionId =
+      candidate && !(unlockRecord?.sessionId === candidate && unlockRecord.used)
+        ? candidate
+        : undefined;
+    // Paid/promo full crawl only while a usable session remains (forceFull cannot revive a spent one).
+    void forceFull;
+    const useFull = !paymentsOn || Boolean(sessionId);
+
+    // One in-flight full scan per unlock session — drops duplicate React/effect races.
+    if (useFull && sessionId && fullScanInFlight.current === sessionId) {
+      return;
+    }
+
+    const generation = ++scanGeneration.current;
+    if (useFull && sessionId) {
+      fullScanInFlight.current = sessionId;
+    }
+
     setLoading(!keepVisible);
     setExpandingCrawl(keepVisible);
     setScanningUrl(url);
@@ -184,9 +219,6 @@ export default function HomeScanClient() {
       setPreviousReport(report);
     }
 
-    // Spent checkouts must not force another full crawl — fall back to free preview.
-    const sessionId = sessionOverride || getUsableUnlockSessionId() || undefined;
-    const useFull = forceFull || !paymentsOn || Boolean(sessionId);
     setScanMode(useFull ? "full" : "free");
 
     try {
@@ -210,15 +242,21 @@ export default function HomeScanClient() {
 
       if (!response.ok || !response.body) {
         let msg = "Audit failed";
+        let code: string | undefined;
         try {
           const text = await response.text();
           const first = text.split("\n").find(Boolean);
           if (first) {
-            const parsed = JSON.parse(first) as { error?: string };
+            const parsed = JSON.parse(first) as { error?: string; code?: string };
             if (parsed.error) msg = parsed.error;
+            code = parsed.code;
           }
         } catch {
           /* keep default */
+        }
+        if (code === "unlock_spent" || /already used/i.test(msg)) {
+          markUnlockUsed();
+          setUnlocked(false);
         }
         if (msg.includes("timeout") || response.status === 504) {
           throw new Error(
@@ -252,16 +290,18 @@ export default function HomeScanClient() {
           }
           if (event.type === "done") {
             audit = event.report;
-          } else {
+          } else if (generation === scanGeneration.current) {
             setProgressEvents((prev) => [...prev.slice(-40), event]);
           }
         }
       }
 
       if (!audit) throw new Error("Scan finished without a report. Try again.");
+      if (generation !== scanGeneration.current) return;
 
       lastUrl.current = url;
       setReport(audit);
+      setError(null);
       if (audit.tier === "full" && useFull && sessionId) {
         // One payment = one full scan — burn the unlock after success
         markUnlockUsed();
@@ -277,21 +317,31 @@ export default function HomeScanClient() {
       }
       saveScanToHistory(audit);
       setHistoryTick((n) => n + 1);
-      if (!keepVisible) setUnlockNotice(null);
-      else setUnlockNotice(null);
+      setUnlockNotice(null);
       requestAnimationFrame(() => {
         resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (generation !== scanGeneration.current) return;
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      if (/already used/i.test(message)) {
+        markUnlockUsed();
+        setUnlocked(false);
+      }
+      setError(message);
       if (isRescan && previousReport) {
         setReport(previousReport);
         setPreviousReport(null);
       }
     } finally {
-      setLoading(false);
-      setExpandingCrawl(false);
-      setProgressEvents([]);
+      if (sessionId && fullScanInFlight.current === sessionId) {
+        fullScanInFlight.current = null;
+      }
+      if (generation === scanGeneration.current) {
+        setLoading(false);
+        setExpandingCrawl(false);
+        setProgressEvents([]);
+      }
     }
   }
 
