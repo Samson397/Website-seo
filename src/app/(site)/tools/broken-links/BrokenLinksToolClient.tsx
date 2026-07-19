@@ -18,6 +18,7 @@ export default function BrokenLinksToolPage() {
         title="Broken link checker"
         description="Fetch a page and probe up to 40 outbound links for 4xx/5xx failures."
         endpoint="/api/tools/broken-links"
+        idleHint="We sample up to 40 outbound links on the page (not a full-site crawl). Use a full SEOHub scan for sitewide coverage."
       >
         {(raw) => {
           const data = raw as BrokenResult;

@@ -70,6 +70,31 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
         </div>
       </section>
 
+      <section className="rounded-3xl border border-ink/10 bg-ink px-6 py-6 text-white sm:px-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-bright">
+          Unlock once
+        </p>
+        <h3 className="font-display mt-2 text-2xl font-semibold tracking-tight">
+          Get fixes, checklist, and full-site crawl
+        </h3>
+        <p className="mt-3 max-w-xl text-sm text-white/70">
+          One payment = one full-site scan. Unlock this report instantly, then we expand to a crawl
+          (up to 200 pages). No account.{" "}
+          <a href="/r/sample" className="text-brand-bright underline-offset-2 hover:underline">
+            See a sample report
+          </a>
+          .
+        </p>
+        <ul className="mt-4 space-y-2 text-sm text-white/75">
+          <li>✓ Issue details and fix recommendations</li>
+          <li>✓ Pass / Fail / Review checklist</li>
+          <li>✓ Full-site crawl + exports + share link</li>
+        </ul>
+        <div className="mt-5">
+          <UnlockFullScan url={report.url} variant="inline" />
+        </div>
+      </section>
+
       {report.aiVisibility ? <AiVisibilityPanel ai={report.aiVisibility} /> : null}
 
       <section className="rounded-3xl border border-ink/10 bg-white px-6 py-6 sm:px-8">
@@ -121,27 +146,6 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
           url={report.serpPreview.url}
         />
       ) : null}
-
-      <section className="rounded-3xl border border-ink/10 bg-ink px-6 py-6 text-white sm:px-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-bright">
-          Unlock once
-        </p>
-        <h3 className="font-display mt-2 text-2xl font-semibold tracking-tight">
-          Get fixes, checklist, and full-site crawl
-        </h3>
-        <p className="mt-3 max-w-xl text-sm text-white/70">
-          One payment = one full-site scan. Unlock this report instantly, then we expand to a crawl
-          (up to 200 pages). Shareable link included. No account.
-        </p>
-        <ul className="mt-4 space-y-2 text-sm text-white/75">
-          <li>✓ Issue details and fix recommendations</li>
-          <li>✓ Pass / Fail / Review checklist</li>
-          <li>✓ Full-site crawl + exports + share link</li>
-        </ul>
-        <div className="mt-5">
-          <UnlockFullScan url={report.url} variant="inline" />
-        </div>
-      </section>
     </div>
   );
 }

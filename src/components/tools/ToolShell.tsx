@@ -1,13 +1,18 @@
 "use client";
 
 import { FormEvent, ReactNode, useState } from "react";
+import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
+import { routes } from "@/lib/routes";
+
 type Props = {
   eyebrow: string;
   title: string;
   description: string;
   placeholder?: string;
   endpoint: string;
+  /** Shown before the first successful run */
+  idleHint?: ReactNode;
   children: (data: unknown) => ReactNode;
 };
 
@@ -17,6 +22,7 @@ export function ToolShell({
   description,
   placeholder = "https://example.com",
   endpoint,
+  idleHint,
   children,
 }: Props) {
   const [url, setUrl] = useState("");
@@ -69,12 +75,39 @@ export function ToolShell({
             {loading ? "Checking…" : "Run check"}
           </button>
         </form>
+        {!data && !error && idleHint ? (
+          <div className="mt-4 rounded-xl border border-ink/8 bg-white/70 px-4 py-3 text-sm text-ink-muted">
+            {idleHint}
+          </div>
+        ) : null}
         {error ? (
           <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}
           </div>
         ) : null}
-        {data ? <div className="animate-rise mt-8">{children(data)}</div> : null}
+        {data ? (
+          <>
+            <div className="animate-rise mt-8">{children(data)}</div>
+            <div className="mt-10 rounded-2xl border border-ink/10 bg-white px-5 py-5 text-center">
+              <p className="text-sm text-ink-muted">
+                Want the full Pass/Fail checklist across your site?
+              </p>
+              <Link
+                href={routes.home}
+                className="mt-3 inline-flex rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-ink-soft"
+              >
+                Run a free homepage scan
+              </Link>
+              <p className="mt-3 text-xs text-ink-muted">
+                Or browse{" "}
+                <Link href={routes.tools} className="text-brand hover:underline">
+                  more free tools
+                </Link>
+                .
+              </p>
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );

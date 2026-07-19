@@ -111,6 +111,14 @@ export default function ToolsPage() {
         eyebrow="SEOHub toolkit"
         title="Audit, research, optimize, generate."
         description="Free tools with no account — built to sit next to your weekly site scan."
+        actions={
+          <Link
+            href={routes.home}
+            className="inline-flex rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-ink-soft"
+          >
+            Run free homepage scan
+          </Link>
+        }
       />
 
       <SeoPageIntro heading="A free toolkit next to your weekly audit">

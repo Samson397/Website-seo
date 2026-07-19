@@ -370,7 +370,22 @@ export default function HomeScanClient() {
 
         {error && (
           <div className="mt-8 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
-            {error}
+            <p>{error}</p>
+            <div className="mt-3 flex flex-wrap gap-3 text-sm">
+              <button
+                type="button"
+                onClick={handleRescan}
+                className="font-semibold text-rose-800 underline-offset-2 hover:underline"
+              >
+                Retry
+              </button>
+              <Link href={routes.sampleReport} className="font-semibold text-rose-800 underline-offset-2 hover:underline">
+                View sample report
+              </Link>
+              <Link href={routes.tools} className="font-semibold text-rose-800 underline-offset-2 hover:underline">
+                Browse free tools
+              </Link>
+            </div>
           </div>
         )}
 
