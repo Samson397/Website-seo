@@ -8,6 +8,7 @@ const FOOTER_LINKS = [
   { href: routes.blog, label: "Blog" },
   { href: routes.guides, label: "Guides" },
   { href: routes.about, label: "About" },
+  { href: routes.contact, label: "Contact" },
   { href: routes.privacy, label: "Privacy" },
   { href: routes.terms, label: "Terms" },
 ] as const;

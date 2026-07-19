@@ -21,6 +21,7 @@ export const routes = {
   blog: "/blog",
   pricing: "/pricing",
   about: "/about",
+  contact: "/contact",
   privacy: "/privacy",
   terms: "/terms",
 } as const;

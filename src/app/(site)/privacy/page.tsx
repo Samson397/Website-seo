@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/brand";
 import { routes } from "@/lib/routes";
 
 export const metadata = {
@@ -96,8 +97,9 @@ export default function PrivacyPage() {
           <p className="mt-2 leading-relaxed">
             Optional paid unlocks (for example a full-site SEO scan) are processed by Stripe. We do
             not store your card details. Stripe may process payment information under its own
-            privacy policy. An unlock token may be saved in your browser so you can re-run full
-            scans without paying again during the unlock window.
+            privacy policy. After a successful payment, an unlock session may be saved in your
+            browser so you can complete that one full-site scan. Each payment covers one full-site
+            scan; a new payment is required for another.
           </p>
         </section>
 
@@ -112,11 +114,15 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-display text-xl font-semibold text-ink">Contact</h2>
           <p className="mt-2 leading-relaxed">
-            Questions? See our{" "}
-            <Link href={routes.about} className="text-teal hover:underline">
-              About
-            </Link>{" "}
-            page.
+            Questions? Email{" "}
+            <a href={SUPPORT_MAILTO} className="text-teal hover:underline">
+              {SUPPORT_EMAIL}
+            </a>{" "}
+            or visit{" "}
+            <Link href={routes.contact} className="text-teal hover:underline">
+              Contact
+            </Link>
+            .
           </p>
         </section>
       </article>
