@@ -16,7 +16,7 @@ export const metadata = pageMetadata({
 function HomeShell() {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
         <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
           <p className="font-display text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
             SEOHub

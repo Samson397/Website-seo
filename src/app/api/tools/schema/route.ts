@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as cheerio from "cheerio";
+import { USER_AGENT_BOT } from "@/lib/brand";
 import { normalizeUrl, validateUrlSafe } from "@/lib/fetcher";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
     const target = normalizeUrl(url);
 
     const res = await fetch(target, {
-      headers: { "User-Agent": "SEOHubBot/1.0 (+https://seohub.app)", Accept: "text/html" },
+      headers: { "User-Agent": USER_AGENT_BOT, Accept: "text/html" },
       redirect: "follow",
       signal: AbortSignal.timeout(15000),
     });

@@ -17,12 +17,12 @@ export function PageHero({
   actions,
 }: PageHeroProps) {
   return (
-    <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-20 sm:px-6 sm:pb-14 sm:pt-24">
+    <section className="hero-mesh relative overflow-hidden px-4 pb-12 pt-28 sm:px-6 sm:pb-14 sm:pt-32">
       <div className="relative z-[1] mx-auto flex max-w-3xl flex-col items-center text-center">
         <p className="animate-rise text-xs font-semibold uppercase tracking-[0.22em] text-teal">
           {eyebrow}
         </p>
-        <h1 className="font-display animate-rise-delay-1 mt-2 max-w-2xl text-4xl font-semibold tracking-tight text-ink sm:text-5xl">
+        <h1 className="font-display animate-rise-delay-1 mt-2 max-w-2xl text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
           {title}
         </h1>
         {description && (

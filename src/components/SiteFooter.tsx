@@ -5,9 +5,12 @@ import { routes } from "@/lib/routes";
 const FOOTER_LINKS = [
   { href: routes.pricing, label: "Pricing" },
   { href: routes.tools, label: "Tools" },
+  { href: routes.compare, label: "Comparisons" },
   { href: routes.blog, label: "Blog" },
   { href: routes.guides, label: "Guides" },
+  { href: routes.technicalSeoChecklist, label: "Technical SEO Checklist" },
   { href: routes.about, label: "About" },
+  { href: routes.contact, label: "Contact" },
   { href: routes.privacy, label: "Privacy" },
   { href: routes.terms, label: "Terms" },
 ] as const;

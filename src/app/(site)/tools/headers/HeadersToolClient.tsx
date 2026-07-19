@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { PageHero } from "@/components/ui/PageHero";
+import { RelatedTools } from "@/components/tools/RelatedTools";
+import { RELATED_BY_TOOL } from "@/lib/related-tools";
 
 interface HeadersResult {
   url: string;
@@ -100,6 +102,7 @@ export default function HeadersToolPage() {
             </ul>
           </>
         )}
+        <RelatedTools tools={[...RELATED_BY_TOOL.headers]} />
       </div>
     </main>
   );

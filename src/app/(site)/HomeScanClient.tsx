@@ -317,7 +317,7 @@ export default function HomeScanClient() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
         <div className="relative z-[1] mx-auto flex max-w-3xl flex-col items-center text-center">
           <p className="font-display animate-rise text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
             SEOHub
@@ -370,7 +370,22 @@ export default function HomeScanClient() {
 
         {error && (
           <div className="mt-8 rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
-            {error}
+            <p>{error}</p>
+            <div className="mt-3 flex flex-wrap gap-3 text-sm">
+              <button
+                type="button"
+                onClick={handleRescan}
+                className="font-semibold text-rose-800 underline-offset-2 hover:underline"
+              >
+                Retry
+              </button>
+              <Link href={routes.sampleReport} className="font-semibold text-rose-800 underline-offset-2 hover:underline">
+                View sample report
+              </Link>
+              <Link href={routes.tools} className="font-semibold text-rose-800 underline-offset-2 hover:underline">
+                Browse free tools
+              </Link>
+            </div>
           </div>
         )}
 

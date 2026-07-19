@@ -33,7 +33,7 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-bright">
                 Free preview
               </p>
-              <h2 className="font-display mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+              <h2 className="font-display mt-2 break-all text-2xl font-semibold tracking-tight sm:text-3xl">
                 {formatUrlDisplay(report.url)}
               </h2>
               <p className="mt-2 text-sm text-white/65">
@@ -44,7 +44,7 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
                 Overall /10
               </p>
-              <p className="font-display text-5xl font-semibold leading-none tabular-nums">
+              <p className="font-display text-4xl font-semibold leading-none tabular-nums sm:text-5xl">
                 {formatTenLabel(overall)}
               </p>
             </div>
@@ -61,12 +61,37 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-6 px-6 py-7 sm:grid-cols-3 lg:grid-cols-5 sm:px-8">
+        <div className="grid grid-cols-2 gap-4 px-4 py-6 sm:grid-cols-3 sm:gap-6 sm:px-8 sm:py-7 lg:grid-cols-5">
           <ScoreGauge label="SEO" score={report.scores.seo} />
           <ScoreGauge label="Performance" score={report.scores.performance} />
           <ScoreGauge label="Accessibility" score={report.scores.accessibility} />
           <ScoreGauge label="Security" score={report.scores.security} />
           <ScoreGauge label="AI visibility" score={report.scores.ai ?? 0} />
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-ink/10 bg-ink px-6 py-6 text-white sm:px-8">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-bright">
+          Unlock once
+        </p>
+        <h3 className="font-display mt-2 text-2xl font-semibold tracking-tight">
+          Get fixes, checklist, and full-site crawl
+        </h3>
+        <p className="mt-3 max-w-xl text-sm text-white/70">
+          One payment = one full-site scan. Unlock this report instantly, then we expand to a crawl
+          (up to 200 pages). No account.{" "}
+          <a href="/r/sample" className="text-brand-bright underline-offset-2 hover:underline">
+            See a sample report
+          </a>
+          .
+        </p>
+        <ul className="mt-4 space-y-2 text-sm text-white/75">
+          <li>✓ Issue details and fix recommendations</li>
+          <li>✓ Pass / Fail / Review checklist</li>
+          <li>✓ Full-site crawl + exports + share link</li>
+        </ul>
+        <div className="mt-5">
+          <UnlockFullScan url={report.url} variant="inline" />
         </div>
       </section>
 
@@ -121,27 +146,6 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
           url={report.serpPreview.url}
         />
       ) : null}
-
-      <section className="rounded-3xl border border-ink/10 bg-ink px-6 py-6 text-white sm:px-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-bright">
-          Unlock once
-        </p>
-        <h3 className="font-display mt-2 text-2xl font-semibold tracking-tight">
-          Get fixes, checklist, and full-site crawl
-        </h3>
-        <p className="mt-3 max-w-xl text-sm text-white/70">
-          One payment = one full-site scan. Unlock this report instantly, then we expand to a crawl
-          (up to 200 pages). Shareable link included. No account.
-        </p>
-        <ul className="mt-4 space-y-2 text-sm text-white/75">
-          <li>✓ Issue details and fix recommendations</li>
-          <li>✓ Pass / Fail / Review checklist</li>
-          <li>✓ Full-site crawl + exports + share link</li>
-        </ul>
-        <div className="mt-5">
-          <UnlockFullScan url={report.url} variant="inline" />
-        </div>
-      </section>
     </div>
   );
 }

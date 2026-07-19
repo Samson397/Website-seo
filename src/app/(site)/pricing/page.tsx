@@ -12,8 +12,8 @@ export const metadata = {
 
 const FREE = [
   "Homepage scores out of 10 (SEO, speed, a11y, security, AI)",
-  "AI visibility check — will assistants promote you?",
-  "Issue counts + a few locked issue titles",
+  "AI visibility / GEO readiness check",
+  "Top issue titles; full fixes on unlock",
   "Google SERP preview",
   "Keyword research & free toolkit",
   "On-device history & watchlist",
@@ -33,9 +33,42 @@ const PAID = [
   "Opt-in site spotlight on the SEOHub blog (homepage link; needs Neon)",
 ];
 
+const FAQS = [
+  {
+    q: "What does one payment cover?",
+    a: `One ${FULL_SCAN_PRICE_LABEL} payment unlocks one full-site scan — fixes for that report, a crawl of up to 200 pages, exports, and a share link. Another site or another crawl later needs another payment.`,
+  },
+  {
+    q: "Can I get a refund?",
+    a: "If the unlock and report were delivered successfully, the fee is non-refundable. We refund duplicate charges or cases where we failed to deliver after payment. See Terms for details.",
+  },
+  {
+    q: "Do you fully render JavaScript sites?",
+    a: "No. We fetch public HTML. That keeps scans fast and honest — JS-only apps may show fewer on-page signals.",
+  },
+  {
+    q: "Do I need an account?",
+    a: "No. Free tools and homepage previews work without signup. Payments run through Stripe Checkout.",
+  },
+];
+
 export default function PricingPage() {
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+
   return (
     <main className="min-h-screen pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <PageHero
         eyebrow="SEOHub pricing"
         title={<>Free preview. {FULL_SCAN_PRICE_LABEL} for the full report.</>}
@@ -43,7 +76,7 @@ export default function PricingPage() {
         actions={
           <>
             <PrimaryCta href={routes.home}>Start free preview</PrimaryCta>
-            <SecondaryCta href={routes.tools}>Browse free tools</SecondaryCta>
+            <SecondaryCta href={routes.sampleReport}>View sample report</SecondaryCta>
           </>
         }
       />
@@ -59,15 +92,40 @@ export default function PricingPage() {
         <Plan
           label="Full SEO"
           price={FULL_SCAN_PRICE_LABEL}
-          note="One-time unlock · Stripe Checkout"
+          note="One-time unlock · Stripe Checkout · no account"
           items={PAID}
           featured
           cta={{ href: routes.home, label: "Scan, then unlock" }}
         />
       </div>
 
+      <p className="mx-auto mt-8 max-w-5xl px-4 text-center text-sm text-ink-muted sm:px-6">
+        By unlocking you agree to our{" "}
+        <Link href={routes.terms} className="text-brand hover:underline">
+          Terms
+        </Link>{" "}
+        (digital delivery is immediate; non-refundable after successful unlock except delivery
+        failures).{" "}
+        <Link href={routes.contact} className="text-brand hover:underline">
+          Contact support
+        </Link>{" "}
+        if something goes wrong.
+      </p>
+
       <section className="mx-auto mt-16 max-w-5xl px-4 sm:px-6">
         <PromoCodesBoard />
+      </section>
+
+      <section className="mx-auto mt-16 max-w-3xl px-4 sm:px-6">
+        <h2 className="font-display text-center text-2xl font-semibold text-ink">FAQ</h2>
+        <dl className="mt-8 space-y-6">
+          {FAQS.map((item) => (
+            <div key={item.q}>
+              <dt className="font-display text-lg font-semibold text-ink">{item.q}</dt>
+              <dd className="mt-2 text-sm leading-relaxed text-ink-muted">{item.a}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       <section className="mx-auto mt-16 max-w-3xl px-4 text-center sm:px-6">

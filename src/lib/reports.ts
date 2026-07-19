@@ -126,7 +126,7 @@ export async function getPreviewReport(id: string): Promise<AuditReport | null> 
   const db = sql();
   const rows = await db`
     SELECT report_json, access FROM shared_reports
-    WHERE id = ${id}
+    WHERE id = ${id} AND access = 'preview'
     LIMIT 1
   `;
   if (!rows[0]) return null;

@@ -35,13 +35,11 @@ export const metadata: Metadata = {
     siteName: "SEOHub",
     type: "website",
     locale: "en_GB",
-    images: [{ url: "/logo.png", width: 578, height: 646, alt: "SEOHub" }],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: ["/logo.png"],
   },
   icons: {
     icon: [

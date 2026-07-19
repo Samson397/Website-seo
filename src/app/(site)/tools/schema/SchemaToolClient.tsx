@@ -1,6 +1,7 @@
 "use client";
 
 import { ToolShell } from "@/components/tools/ToolShell";
+import { RELATED_BY_TOOL } from "@/lib/related-tools";
 
 type SchemaResult = {
   url: string;
@@ -21,6 +22,7 @@ export default function SchemaToolPage() {
         title="JSON-LD schema inspector"
         description="Extract structured data blocks and see which schema types your page declares."
         endpoint="/api/tools/schema"
+        relatedTools={[...RELATED_BY_TOOL.schema]}
       >
         {(raw) => {
           const data = raw as SchemaResult;

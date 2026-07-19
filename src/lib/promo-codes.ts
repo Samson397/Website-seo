@@ -106,6 +106,10 @@ async function ensurePromoSchema() {
         ADD COLUMN IF NOT EXISTS client_ip TEXT
       `;
       await db`
+        ALTER TABLE promo_unlocks
+        ADD COLUMN IF NOT EXISTS preview_unlocked BOOLEAN NOT NULL DEFAULT FALSE
+      `;
+      await db`
         CREATE TABLE IF NOT EXISTS promo_ip_claims (
           client_ip TEXT PRIMARY KEY,
           code TEXT NOT NULL,
@@ -342,6 +346,22 @@ export async function consumePromoSession(sessionId: string): Promise<void> {
     SET consumed = TRUE, consumed_at = NOW()
     WHERE id = ${sessionId} AND consumed = FALSE
   `;
+}
+
+/** One promo session may promote at most one stashed preview. */
+export async function markPromoPreviewUnlock(sessionId: string): Promise<boolean> {
+  if (!isPromoSessionId(sessionId) || !canUsePromoCodes()) return false;
+  await ensurePromoSchema();
+  const db = sql();
+  const rows = await db`
+    UPDATE promo_unlocks
+    SET preview_unlocked = TRUE
+    WHERE id = ${sessionId}
+      AND consumed = FALSE
+      AND preview_unlocked = FALSE
+    RETURNING id
+  `;
+  return rows.length > 0;
 }
 
 /** Admin: all codes including inactive / exhausted. */

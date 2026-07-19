@@ -230,7 +230,7 @@ export interface AuditReport {
   /** Server-side stash id for unlock-in-place (free preview → paid without re-scan) */
   previewId?: string;
   /** free = homepage preview; full = paid unlock (when Stripe is configured) */
-  tier?: "free" | "full";
+  tier?: "free" | "full" | "compare";
 }
 
 export type ScanProgressEvent =

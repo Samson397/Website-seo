@@ -21,6 +21,15 @@ const schema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const { clientKeyFromRequest, rateLimit } = await import("@/lib/rate-limit");
+    const limited = rateLimit(`telemetry:${clientKeyFromRequest(request)}`, {
+      limit: 60,
+      windowMs: 60 * 60 * 1000,
+    });
+    if (!limited.ok) {
+      return NextResponse.json({ error: "Too many telemetry events" }, { status: 429 });
+    }
+
     const body = await request.json();
     const event = schema.parse(body);
 

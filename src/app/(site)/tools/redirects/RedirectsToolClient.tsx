@@ -1,6 +1,7 @@
 "use client";
 
 import { ToolShell } from "@/components/tools/ToolShell";
+import { RELATED_BY_TOOL } from "@/lib/related-tools";
 
 type RedirectResult = {
   hops: number;
@@ -18,6 +19,7 @@ export default function RedirectsToolPage() {
         title="Redirect chain checker"
         description="Follow every hop from your URL to the final destination — catch loops, mixed HTTP, and soft 404s."
         endpoint="/api/tools/redirects"
+        relatedTools={[...RELATED_BY_TOOL.redirects]}
       >
         {(raw) => {
           const data = raw as RedirectResult;

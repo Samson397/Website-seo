@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
 import { SeoPageIntro } from "@/components/SeoPageIntro";
+import { PLATFORM_AUDITS, platformAuditPath } from "@/lib/platform-audits";
 import { pageMetadata } from "@/lib/page-seo";
 import { routes } from "@/lib/routes";
 
@@ -96,6 +97,11 @@ const TOOL_GROUPS = [
         description: "Audit up to 10 sites side by side.",
       },
       {
+        href: routes.compare,
+        title: "SEOHub vs other tools",
+        description: "Honest comparisons with Ahrefs, Semrush, and free checkers.",
+      },
+      {
         href: routes.guides,
         title: "Fix guides",
         description: "Short how-tos for common audit failures.",
@@ -111,6 +117,14 @@ export default function ToolsPage() {
         eyebrow="SEOHub toolkit"
         title="Audit, research, optimize, generate."
         description="Free tools with no account — built to sit next to your weekly site scan."
+        actions={
+          <Link
+            href={routes.home}
+            className="inline-flex rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-ink-soft"
+          >
+            Run free homepage scan
+          </Link>
+        }
       />
 
       <SeoPageIntro heading="A free toolkit next to your weekly audit">
@@ -142,6 +156,28 @@ export default function ToolsPage() {
             </div>
           </section>
         ))}
+
+        <section>
+          <h2 className="font-display text-xl font-semibold text-ink">Audits by platform</h2>
+          <p className="mt-2 max-w-2xl text-sm text-ink-muted">
+            Platform-specific SEO checklists for common CMS and ecommerce stacks — then run a free
+            homepage scan.
+          </p>
+          <div className="mt-5 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {PLATFORM_AUDITS.map((audit) => (
+              <Link
+                key={audit.slug}
+                href={platformAuditPath(audit.slug)}
+                className="group border-t border-ink/10 pt-4 transition hover:border-brand"
+              >
+                <h3 className="font-display text-lg font-semibold text-ink group-hover:text-brand">
+                  {audit.shortName} SEO audit
+                </h3>
+                <p className="mt-2 text-sm text-ink-muted">{audit.summary}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );

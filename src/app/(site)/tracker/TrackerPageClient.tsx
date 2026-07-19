@@ -19,6 +19,7 @@ export default function TrackerPage() {
   const [keyword, setKeyword] = useState("");
   const [url, setUrl] = useState("");
   const [checking, setChecking] = useState<string | null>(null);
+  const [checkError, setCheckError] = useState<string | null>(null);
 
   useEffect(() => {
     setItems(getTrackedKeywords());
@@ -27,6 +28,7 @@ export default function TrackerPage() {
   async function checkRank(item: KeywordTrackItem) {
     const key = `${item.keyword}:${item.hostname}`;
     setChecking(key);
+    setCheckError(null);
     try {
       const res = await fetch("/api/tools/rank", {
         method: "POST",
@@ -34,7 +36,7 @@ export default function TrackerPage() {
         body: JSON.stringify({ url: item.url, keyword: item.keyword }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || "Rank check failed");
       const serpPos =
         data.serp?.available && typeof data.serp.position === "number"
           ? data.serp.position
@@ -51,8 +53,8 @@ export default function TrackerPage() {
           bodyCount: data.onPage.bodyCount,
         })
       );
-    } catch {
-      /* ignore */
+    } catch (err) {
+      setCheckError(err instanceof Error ? err.message : "Rank check failed");
     } finally {
       setChecking(null);
     }
@@ -92,6 +94,12 @@ export default function TrackerPage() {
             Track
           </button>
         </form>
+
+        {checkError ? (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {checkError}
+          </div>
+        ) : null}
 
         {items.length === 0 ? (
           <p className="text-center text-sm text-ink-muted">
@@ -158,6 +166,23 @@ export default function TrackerPage() {
                 </li>
               ))}
             </ul>
+            <div className="rounded-2xl border border-ink/10 bg-white px-5 py-5 text-center">
+              <p className="text-sm text-ink-muted">Next steps</p>
+              <div className="mt-3 flex flex-wrap justify-center gap-3">
+                <Link
+                  href={routes.contentOptimizer}
+                  className="rounded-xl border border-ink/10 px-4 py-2 text-sm font-semibold text-ink hover:border-brand/40"
+                >
+                  Optimize content
+                </Link>
+                <Link
+                  href={routes.home}
+                  className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white hover:bg-ink-soft"
+                >
+                  Full site scan
+                </Link>
+              </div>
+            </div>
           </>
         )}
       </div>

@@ -20,7 +20,7 @@ export function SerpPreview({ title, description, url }: SerpPreviewProps) {
         Google Search Preview
       </h3>
       <div className="rounded-lg bg-white p-4">
-        <div className="mb-1 text-sm text-slate-600">{url}</div>
+        <div className="mb-1 break-all text-sm text-slate-600">{url}</div>
         <div className="text-xl text-blue-800 hover:underline">{displayTitle}</div>
         <div className="mt-1 text-sm leading-relaxed text-slate-600">
           {displayDescription}

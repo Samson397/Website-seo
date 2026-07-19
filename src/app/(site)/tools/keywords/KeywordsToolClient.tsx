@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ToolShell } from "@/components/tools/ToolShell";
+import { RELATED_BY_TOOL } from "@/lib/related-tools";
 import { routes } from "@/lib/routes";
 
 type KeywordResult = {
@@ -21,6 +22,7 @@ export default function KeywordsToolPage() {
         title="Find keywords from any page"
         description="Extract phrases from titles, headings, and copy — plus Google suggestions. Optional DataForSEO volume when configured."
         endpoint="/api/tools/keywords"
+        relatedTools={[...RELATED_BY_TOOL.keywords]}
       >
         {(raw) => {
           const data = raw as KeywordResult;
