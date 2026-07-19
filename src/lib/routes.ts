@@ -63,6 +63,16 @@ export const mainNav = [
     description: "Keywords, content, generators, redirects, schema, and more",
   },
   {
+    href: routes.guides,
+    label: "Guides",
+    description: "Step-by-step fixes for common SEOHub check failures",
+  },
+  {
+    href: routes.blog,
+    label: "Blog",
+    description: "Practical SEO articles, audits, and site spotlights",
+  },
+  {
     href: routes.pricing,
     label: "Pricing",
     description: "Free preview vs $0.99 per full-site scan",

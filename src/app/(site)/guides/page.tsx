@@ -35,6 +35,14 @@ export default function GuidesPage() {
           </Link>
         ))}
         <p className="border-t border-ink/10 pt-6 text-sm text-ink-muted">
+          Want a printable pass before you scan?{" "}
+          <Link
+            href={routes.technicalSeoChecklist}
+            className="font-medium text-teal hover:underline"
+          >
+            Technical SEO Checklist
+          </Link>
+          {" · "}
           Looking for longer SEO articles?{" "}
           <Link href={routes.blog} className="font-medium text-teal hover:underline">
             Read the blog

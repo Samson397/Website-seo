@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { LinkedParagraph } from "@/components/LinkedParagraph";
 import { PageHero, PrimaryCta, SecondaryCta } from "@/components/ui/PageHero";
 import { BLOG_POSTS, formatBlogDate } from "@/lib/blog";
 import { getBlogPostBySlug, listAllBlogPosts } from "@/lib/blog-db";
@@ -86,14 +87,23 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
           <time dateTime={post.publishedAt} className="block text-xs text-ink-muted/80">
             {formatBlogDate(post.publishedAt)}
           </time>
-          {post.body.map((para) => (
-            <p key={para.slice(0, 48)} className="leading-relaxed">
-              {para}
-            </p>
+          {post.body.map((para, index) => (
+            <LinkedParagraph
+              key={`${post.slug}-${index}`}
+              text={para}
+              className="leading-relaxed"
+            />
           ))}
           <p className="border-t border-ink/10 pt-6 text-sm">
             <Link href={routes.home} className="font-medium text-teal hover:underline">
               Run a free homepage scan
+            </Link>
+            {" · "}
+            <Link
+              href={routes.technicalSeoChecklist}
+              className="font-medium text-teal hover:underline"
+            >
+              Technical SEO Checklist
             </Link>
             {" · "}
             <Link href={routes.guides} className="font-medium text-teal hover:underline">

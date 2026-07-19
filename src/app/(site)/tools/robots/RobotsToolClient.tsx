@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { PageHero } from "@/components/ui/PageHero";
+import { RelatedTools } from "@/components/tools/RelatedTools";
+import { RELATED_BY_TOOL } from "@/lib/related-tools";
 
 interface InspectResult {
   url: string;
@@ -119,6 +121,7 @@ export default function RobotsToolPage() {
             )}
           </>
         )}
+        <RelatedTools tools={[...RELATED_BY_TOOL.robots]} />
       </div>
     </main>
   );

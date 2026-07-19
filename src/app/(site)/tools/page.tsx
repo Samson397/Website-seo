@@ -97,6 +97,11 @@ const TOOL_GROUPS = [
         description: "Audit up to 10 sites side by side.",
       },
       {
+        href: routes.compare,
+        title: "SEOHub vs other tools",
+        description: "Honest comparisons with Ahrefs, Semrush, and free checkers.",
+      },
+      {
         href: routes.guides,
         title: "Fix guides",
         description: "Short how-tos for common audit failures.",

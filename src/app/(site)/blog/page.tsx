@@ -31,24 +31,50 @@ export default async function BlogIndexPage() {
       />
 
       <div className="mx-auto mt-10 max-w-3xl space-y-6 px-4 sm:px-6">
-        {posts.map((post) => (
+        <p className="rounded-2xl border border-ink/10 bg-white px-5 py-4 text-sm text-ink-muted">
+          Free lead magnet:{" "}
           <Link
-            key={post.slug}
-            href={`${routes.blog}/${post.slug}`}
-            className="block border-t border-ink/10 pt-5 transition hover:border-teal"
+            href={routes.technicalSeoChecklist}
+            className="font-medium text-teal hover:underline"
           >
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal">
-                {post.category}
-              </p>
-              <time dateTime={post.publishedAt} className="text-xs text-ink-muted">
-                {formatBlogDate(post.publishedAt)}
-              </time>
-            </div>
-            <h2 className="font-display mt-1 text-2xl font-semibold text-ink">{post.title}</h2>
-            <p className="mt-2 text-sm text-ink-muted">{post.summary}</p>
-          </Link>
-        ))}
+            Technical SEO Checklist
+          </Link>{" "}
+          — printable / Save as PDF, plus optional weekly digest signup.
+        </p>
+        {posts.length === 0 ? (
+          <div className="border-t border-ink/10 pt-5">
+            <p className="text-sm text-ink-muted">
+              No articles yet. Check back soon, or{" "}
+              <Link href={routes.guides} className="font-medium text-teal hover:underline">
+                browse SEO fix guides
+              </Link>{" "}
+              and{" "}
+              <Link href={routes.home} className="font-medium text-teal hover:underline">
+                run a free site scan
+              </Link>
+              .
+            </p>
+          </div>
+        ) : (
+          posts.map((post) => (
+            <Link
+              key={post.slug}
+              href={`${routes.blog}/${post.slug}`}
+              className="block border-t border-ink/10 pt-5 transition hover:border-teal"
+            >
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal">
+                  {post.category}
+                </p>
+                <time dateTime={post.publishedAt} className="text-xs text-ink-muted">
+                  {formatBlogDate(post.publishedAt)}
+                </time>
+              </div>
+              <h2 className="font-display mt-1 text-2xl font-semibold text-ink">{post.title}</h2>
+              <p className="mt-2 text-sm text-ink-muted">{post.summary}</p>
+            </Link>
+          ))
+        )}
 
         <section className="border-t border-ink/10 pt-10">
           <h2 className="font-display text-xl font-semibold text-ink">Site spotlights</h2>

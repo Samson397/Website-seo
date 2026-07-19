@@ -1,9 +1,11 @@
 import { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/site-url";
+import { COMPARE_PAGES } from "@/lib/compare-pages";
 import { GUIDES } from "@/lib/guides";
 import { PLATFORM_AUDITS } from "@/lib/platform-audits";
 import { listAllBlogPosts } from "@/lib/blog-db";
 import { listSpotlightSlugsForSitemap } from "@/lib/blog-spotlights";
+import { routes } from "@/lib/routes";
 
 const siteUrl = getSiteUrl();
 
@@ -20,6 +22,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.75,
+  }));
+
+  const compareEntries = COMPARE_PAGES.map((p) => ({
+    url: `${siteUrl}${routes.compare}/${p.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
   }));
 
   const posts = await listAllBlogPosts();
@@ -165,8 +174,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.75,
     },
+    {
+      url: `${siteUrl}${routes.compare}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
     ...guideEntries,
     ...platformAuditEntries,
+    ...compareEntries,
     {
       url: `${siteUrl}/blog`,
       lastModified: new Date(),

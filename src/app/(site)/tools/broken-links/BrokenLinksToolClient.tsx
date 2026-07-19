@@ -1,6 +1,7 @@
 "use client";
 
 import { ToolShell } from "@/components/tools/ToolShell";
+import { RELATED_BY_TOOL } from "@/lib/related-tools";
 
 type BrokenResult = {
   pageUrl: string;
@@ -19,6 +20,7 @@ export default function BrokenLinksToolPage() {
         description="Fetch a page and probe up to 40 outbound links for 4xx/5xx failures."
         endpoint="/api/tools/broken-links"
         idleHint="We sample up to 40 outbound links on the page (not a full-site crawl). Use a full SEOHub scan for sitewide coverage."
+        relatedTools={[...RELATED_BY_TOOL.brokenLinks]}
       >
         {(raw) => {
           const data = raw as BrokenResult;

@@ -3,6 +3,7 @@
 import { FormEvent, ReactNode, useState } from "react";
 import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
+import { RelatedTools, type RelatedToolLink } from "@/components/tools/RelatedTools";
 import { routes } from "@/lib/routes";
 
 type Props = {
@@ -13,6 +14,8 @@ type Props = {
   endpoint: string;
   /** Shown before the first successful run */
   idleHint?: ReactNode;
+  /** Related tools shown below the form / results */
+  relatedTools?: RelatedToolLink[];
   children: (data: unknown) => ReactNode;
 };
 
@@ -23,6 +26,7 @@ export function ToolShell({
   placeholder = "https://example.com",
   endpoint,
   idleHint,
+  relatedTools,
   children,
 }: Props) {
   const [url, setUrl] = useState("");
@@ -107,6 +111,9 @@ export function ToolShell({
               </p>
             </div>
           </>
+        ) : null}
+        {relatedTools && relatedTools.length > 0 ? (
+          <RelatedTools tools={relatedTools} />
         ) : null}
       </div>
     </div>
