@@ -1,11 +1,13 @@
 import {
   consumePaidSession,
+  markPaidPreviewUnlock,
   verifyPaidCheckoutSession,
   verifyPaidSession,
 } from "@/lib/stripe-unlock-server";
 import {
   consumePromoSession,
   isPromoSessionId,
+  markPromoPreviewUnlock,
   promoSessionExists,
   verifyPromoSession,
 } from "@/lib/promo-codes";
@@ -35,4 +37,10 @@ export async function consumeUnlockSession(sessionId: string): Promise<void> {
     return;
   }
   await consumePaidSession(sessionId);
+}
+
+/** Bind a session to a single preview promote (before full-crawl consume). */
+export async function markPreviewUnlockSession(sessionId: string): Promise<boolean> {
+  if (isPromoSessionId(sessionId)) return markPromoPreviewUnlock(sessionId);
+  return markPaidPreviewUnlock(sessionId);
 }

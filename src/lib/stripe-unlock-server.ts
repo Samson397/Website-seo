@@ -7,6 +7,8 @@ export interface PaidSessionResult {
   amountTotal?: number | null;
   currency?: string | null;
   consumed?: boolean;
+  /** Session already used to promote one stashed preview report. */
+  previewUnlocked?: boolean;
   /** Opt-in: publish a site spotlight on the SEOHub blog after the full scan. */
   spotlight?: boolean;
   error?: string;
@@ -67,6 +69,7 @@ export async function verifyPaidCheckoutSession(
     }
 
     const consumed = session.metadata?.consumed === "1";
+    const previewUnlocked = session.metadata?.previewUnlocked === "1";
     const spotlight = session.metadata?.spotlight === "1";
 
     return {
@@ -76,6 +79,7 @@ export async function verifyPaidCheckoutSession(
       amountTotal: session.amount_total,
       currency: session.currency,
       consumed,
+      previewUnlocked,
       spotlight,
     };
   } catch (err) {
@@ -113,4 +117,29 @@ export async function consumePaidSession(sessionId: string): Promise<void> {
       consumedAt: new Date().toISOString(),
     },
   });
+}
+
+/**
+ * One checkout may promote at most one stashed preview to a full report.
+ * Full-site crawl still uses {@link consumePaidSession}.
+ */
+export async function markPaidPreviewUnlock(sessionId: string): Promise<boolean> {
+  const stripe = getStripe();
+  if (!stripe || !sessionId.startsWith("cs_")) return false;
+
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (session.payment_status !== "paid") return false;
+  if (session.metadata?.consumed === "1") return false;
+  if (session.metadata?.previewUnlocked === "1") return false;
+
+  await stripe.checkout.sessions.update(sessionId, {
+    metadata: {
+      ...(session.metadata || {}),
+      app: session.metadata?.app || "seohub",
+      product: session.metadata?.product || "full_seo_scan",
+      previewUnlocked: "1",
+      previewUnlockedAt: new Date().toISOString(),
+    },
+  });
+  return true;
 }

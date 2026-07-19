@@ -33,7 +33,7 @@ export default function CompetitorsPageClient() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             // Homepage-focused for speed when comparing many sites
-            body: JSON.stringify({ url, siteCrawl: false, share: false }),
+            body: JSON.stringify({ url, siteCrawl: false, share: false, compareMode: true }),
           });
 
           const data = await response.json();

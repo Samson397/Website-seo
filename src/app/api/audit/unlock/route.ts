@@ -1,20 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isStripeConfigured } from "@/lib/stripe";
-import { verifyUnlockSession } from "@/lib/unlock-access";
+import { markPreviewUnlockSession, verifyUnlockSession } from "@/lib/unlock-access";
 import { isPromoSessionId } from "@/lib/promo-codes";
 import {
   canPersistReports,
   getPreviewReport,
   promotePreviewToShared,
 } from "@/lib/reports";
+import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 /**
  * Unlock a stashed free-preview report in place (no re-crawl).
  * Body: { previewId, sessionId } — sessionId is Stripe cs_… or promo_…
+ * One session may promote at most one preview; full crawl still consumes later.
  */
 export async function POST(request: NextRequest) {
+  const limited = rateLimit(`audit-unlock:${clientKeyFromRequest(request)}`, {
+    limit: 20,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: `Rate limit reached. Try again in ${limited.retryAfterSec}s.` },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } }
+    );
+  }
+
   if (!canPersistReports()) {
     return NextResponse.json(
       { error: "Report stash unavailable. Run a full scan after unlock instead." },
@@ -46,6 +59,17 @@ export async function POST(request: NextRequest) {
       {
         error:
           "Payment or promo code could not be verified, or was already used for a full scan.",
+      },
+      { status: 402 }
+    );
+  }
+
+  const claimed = await markPreviewUnlockSession(sessionId);
+  if (!claimed) {
+    return NextResponse.json(
+      {
+        error:
+          "This payment or promo was already used to unlock a preview. Run the full-site crawl, or pay again for another unlock.",
       },
       { status: 402 }
     );

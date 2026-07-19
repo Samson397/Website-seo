@@ -6,6 +6,7 @@ import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { getSiteUrl } from "@/lib/site-url";
 import type { AuditReport } from "@/lib/types";
 import { isValidEmail } from "@/lib/digest";
+import { verifyUnlockAccess } from "@/lib/unlock-access";
 
 export const runtime = "nodejs";
 
@@ -26,9 +27,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Too many email requests." }, { status: 429 });
     }
 
-    const body = (await req.json()) as { email?: string; report?: AuditReport };
+    const body = (await req.json()) as {
+      email?: string;
+      report?: AuditReport;
+      sessionId?: string;
+    };
     const email = body.email?.trim() || "";
     const report = body.report;
+    const sessionId = typeof body.sessionId === "string" ? body.sessionId : undefined;
 
     if (!isValidEmail(email)) {
       return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
@@ -39,6 +45,16 @@ export async function POST(req: NextRequest) {
     if (report.tier !== "full") {
       return NextResponse.json(
         { error: "Email reports require a full SEO unlock." },
+        { status: 402 }
+      );
+    }
+
+    const allowed = report.shareId
+      ? true
+      : await verifyUnlockAccess(sessionId);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "A verified payment or promo session is required to email this report." },
         { status: 402 }
       );
     }

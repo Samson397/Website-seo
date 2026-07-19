@@ -5,10 +5,10 @@ import { recordScanTelemetry } from "@/lib/telemetry";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import { isStripeConfigured } from "@/lib/stripe";
-import { verifyUnlockSession } from "@/lib/unlock-access";
 import { isPromoSessionId } from "@/lib/promo-codes";
-import { toFreePreviewReport } from "@/lib/free-preview";
+import { toFreePreviewReport, toCompetitorCompareReport } from "@/lib/free-preview";
 import { auditOptionsFromBody } from "@/lib/audit-request";
+import { consumeUnlockSession, verifyUnlockSession } from "@/lib/unlock-access";
 
 /** Allow longer full-site crawls on platforms that support it (e.g. Vercel Pro). */
 export const maxDuration = 300;
@@ -29,20 +29,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    let body: Record<string, unknown>;
+    try {
+      body = (await request.json()) as Record<string, unknown>;
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
     const urlInput = body?.url;
+    const compareMode = body?.compareMode === true;
     const { wantFull, unlockSessionId, share, auditOptions } = auditOptionsFromBody(body);
 
     if (!urlInput || typeof urlInput !== "string") {
       return NextResponse.json({ error: "URL is required" }, { status: 400 });
     }
 
-    let siteCrawl = wantFull;
-    let tier: "free" | "full" = "full";
+    let siteCrawl = wantFull && !compareMode;
+    let tier: "free" | "full" | "compare" = compareMode ? "compare" : "full";
 
     const gated =
       isStripeConfigured() || Boolean(unlockSessionId && isPromoSessionId(unlockSessionId));
-    if (gated) {
+    if (gated && !compareMode) {
       if (wantFull && unlockSessionId) {
         const unlocked = await verifyUnlockSession(unlockSessionId);
         if (!unlocked) {
@@ -60,6 +66,9 @@ export async function POST(request: NextRequest) {
         siteCrawl = false;
         tier = "free";
       }
+    } else if (compareMode) {
+      siteCrawl = false;
+      tier = "compare";
     }
 
     await validateUrlSafe(urlInput);
@@ -72,7 +81,11 @@ export async function POST(request: NextRequest) {
     void recordScanTelemetry(report);
 
     let responseReport =
-      tier === "free" ? toFreePreviewReport(report) : { ...report, tier: "full" as const };
+      tier === "free"
+        ? toFreePreviewReport(report)
+        : tier === "compare"
+          ? toCompetitorCompareReport(report)
+          : { ...report, tier: "full" as const };
 
     if (tier === "full" && share && canPersistReports()) {
       try {
@@ -82,6 +95,17 @@ export async function POST(request: NextRequest) {
         };
       } catch (err) {
         console.error("[audit] share save failed", err instanceof Error ? err.message : err);
+      }
+    }
+
+    if (tier === "full" && unlockSessionId) {
+      try {
+        await consumeUnlockSession(unlockSessionId);
+      } catch (err) {
+        console.error(
+          "[audit] consume session failed",
+          err instanceof Error ? err.message : err
+        );
       }
     }
 

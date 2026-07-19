@@ -50,10 +50,21 @@ function exportJson(report: AuditReport) {
   );
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function exportPdfHtml(report: AuditReport) {
   const hostname = hostnameSlug(report);
+  const safeUrl = escapeHtml(report.url);
+  const safeShare = report.shareId ? escapeHtml(report.shareId) : "";
   const html = `<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>SEOHub — ${hostname}</title>
+<html lang="en"><head><meta charset="utf-8"><title>SEOHub — ${escapeHtml(hostname)}</title>
 <style>
   :root { --ink:#0c1222; --teal:#0d9488; --mist:#e8eef6; }
   body { font-family: Georgia, 'Times New Roman', serif; max-width: 820px; margin: 2rem auto; padding: 0 1.25rem; color: var(--ink); line-height: 1.5; }
@@ -72,9 +83,9 @@ function exportPdfHtml(report: AuditReport) {
 </style></head><body>
   <p class="brand">SEOHub report</p>
   <h1>Website audit</h1>
-  <p><strong>URL:</strong> ${report.url}<br/>
-  <strong>Scanned:</strong> ${new Date(report.scannedAt).toLocaleString()}
-  ${report.shareId ? `<br/><strong>Share ID:</strong> ${report.shareId}` : ""}</p>
+  <p><strong>URL:</strong> ${safeUrl}<br/>
+  <strong>Scanned:</strong> ${escapeHtml(new Date(report.scannedAt).toLocaleString())}
+  ${safeShare ? `<br/><strong>Share ID:</strong> ${safeShare}` : ""}</p>
   <div class="scores">
     <div class="score"><strong>${report.scores.seo}</strong>SEO</div>
     <div class="score"><strong>${report.scores.performance}</strong>Performance</div>
@@ -87,12 +98,12 @@ function exportPdfHtml(report: AuditReport) {
   ${report.issues
     .map(
       (i) => `<div class="issue">
-    <span class="badge ${i.severity}">${i.severity}</span>
-    <strong> ${i.title}</strong>
-    <p>${i.description}</p>
-    ${i.currentValue ? `<p><em>Current:</em> ${i.currentValue}</p>` : ""}
-    <p><em>Fix:</em> ${i.recommendation}</p>
-    ${i.fixSnippet ? `<pre>${i.fixSnippet.replace(/</g, "&lt;")}</pre>` : ""}
+    <span class="badge ${escapeHtml(i.severity)}">${escapeHtml(i.severity)}</span>
+    <strong> ${escapeHtml(i.title)}</strong>
+    <p>${escapeHtml(i.description)}</p>
+    ${i.currentValue ? `<p><em>Current:</em> ${escapeHtml(i.currentValue)}</p>` : ""}
+    <p><em>Fix:</em> ${escapeHtml(i.recommendation)}</p>
+    ${i.fixSnippet ? `<pre>${escapeHtml(i.fixSnippet)}</pre>` : ""}
   </div>`
     )
     .join("")}

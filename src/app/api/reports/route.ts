@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { canPersistReports, saveSharedReport } from "@/lib/reports";
 import type { AuditReport } from "@/lib/types";
 import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
+import { verifyUnlockAccess } from "@/lib/unlock-access";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,6 +23,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const report = body?.report as AuditReport | undefined;
+    const sessionId = typeof body?.sessionId === "string" ? body.sessionId : undefined;
     if (!report?.url || !report?.scores || !Array.isArray(report.issues)) {
       return NextResponse.json({ error: "Valid report is required" }, { status: 400 });
     }
@@ -32,7 +34,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const id = await saveSharedReport(report);
+    // Prefer an existing server share id from a paid crawl; otherwise require session proof.
+    if (!report.shareId) {
+      const allowed = await verifyUnlockAccess(sessionId);
+      if (!allowed) {
+        return NextResponse.json(
+          { error: "A verified payment or promo session is required to create a share link." },
+          { status: 402 }
+        );
+      }
+    }
+
+    const id = report.shareId || (await saveSharedReport(report));
     return NextResponse.json({ id, path: `/r/${id}` });
   } catch (err) {
     console.error("[reports]", err);
