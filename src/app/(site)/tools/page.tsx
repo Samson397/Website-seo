@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHero } from "@/components/ui/PageHero";
 import { SeoPageIntro } from "@/components/SeoPageIntro";
+import { PLATFORM_AUDITS, platformAuditPath } from "@/lib/platform-audits";
 import { pageMetadata } from "@/lib/page-seo";
 import { routes } from "@/lib/routes";
 
@@ -150,6 +151,28 @@ export default function ToolsPage() {
             </div>
           </section>
         ))}
+
+        <section>
+          <h2 className="font-display text-xl font-semibold text-ink">Audits by platform</h2>
+          <p className="mt-2 max-w-2xl text-sm text-ink-muted">
+            Platform-specific SEO checklists for common CMS and ecommerce stacks — then run a free
+            homepage scan.
+          </p>
+          <div className="mt-5 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {PLATFORM_AUDITS.map((audit) => (
+              <Link
+                key={audit.slug}
+                href={platformAuditPath(audit.slug)}
+                className="group border-t border-ink/10 pt-4 transition hover:border-brand"
+              >
+                <h3 className="font-display text-lg font-semibold text-ink group-hover:text-brand">
+                  {audit.shortName} SEO audit
+                </h3>
+                <p className="mt-2 text-sm text-ink-muted">{audit.summary}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );

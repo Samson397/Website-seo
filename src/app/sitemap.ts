@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import { GUIDES } from "@/lib/guides";
+import { PLATFORM_AUDITS } from "@/lib/platform-audits";
 import { listAllBlogPosts } from "@/lib/blog-db";
 import { listSpotlightSlugsForSitemap } from "@/lib/blog-spotlights";
 
@@ -12,6 +13,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
     changeFrequency: "monthly" as const,
     priority: 0.6,
+  }));
+
+  const platformAuditEntries = PLATFORM_AUDITS.map((p) => ({
+    url: `${siteUrl}/audit/${p.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.75,
   }));
 
   const posts = await listAllBlogPosts();
@@ -151,7 +159,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    {
+      url: `${siteUrl}/checklist/technical-seo`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
     ...guideEntries,
+    ...platformAuditEntries,
     {
       url: `${siteUrl}/blog`,
       lastModified: new Date(),
