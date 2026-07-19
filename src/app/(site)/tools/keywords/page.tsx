@@ -1,10 +1,14 @@
-import KeywordsToolClient from "./KeywordsToolClient";
 import { SeoPageIntro } from "@/components/SeoPageIntro";
 import { pageMetadata } from "@/lib/page-seo";
+import { TOOL_SEO_COPY, ToolSeoBody } from "@/lib/tool-seo-copy";
+import KeywordsToolClient from "./KeywordsToolClient";
+
+const copy = TOOL_SEO_COPY["keywords"];
 
 export const metadata = pageMetadata({
-  title: 'Keyword research tool — SEOHub',
-  description: 'Extract on-page phrases and Google autocomplete suggestions from any URL. Free keyword research without an account.',
+  title: "Keyword research tool — SEOHub",
+  description:
+    "Extract on-page phrases and Google autocomplete suggestions from any URL. Free keyword research without an account — no login required.",
   path: "/tools/keywords",
 });
 
@@ -12,8 +16,8 @@ export default function Page() {
   return (
     <>
       <KeywordsToolClient />
-      <SeoPageIntro heading='Keyword research tool'>
-        <p>Discover phrases a page already targets and related Google Suggest ideas. Pair this with a full SEOHub audit to prioritize content updates that match how people search.</p>
+      <SeoPageIntro heading={copy.heading}>
+        <ToolSeoBody copy={copy} />
       </SeoPageIntro>
     </>
   );
