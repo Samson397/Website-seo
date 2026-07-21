@@ -21,8 +21,7 @@ export default function HistoryPage() {
         <p>
           SEOHub stores recent scans and watchlist URLs in your browser so you can compare scores
           over time without creating an account. Add important domains to the watchlist, re-run
-          audits when they are due, and optionally subscribe to email digests when Resend is
-          configured on your deployment.
+          audits when they are due, and optionally subscribe to email digests for watchlist reminders.
         </p>
         <p>
           For a deeper pass, unlock a full-site crawl from any free homepage preview to see
