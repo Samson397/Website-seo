@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { routes } from "@/lib/routes";
+import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 
 const FEATURES = [
   {
@@ -16,7 +17,7 @@ const FEATURES = [
   },
   {
     title: "Pay per full scan",
-    text: "Free shows /10 scores and AI visibility. $0.99 unlocks one full-site crawl with fixes, checklist, exports, and an AI priority plan.",
+    text: `Free shows /10 scores and AI visibility. ${FULL_SCAN_PRICE_LABEL} unlocks one full-site crawl with fixes, checklist, exports, and an AI priority plan.`,
   },
 ];
 

@@ -1,4 +1,4 @@
-const FALLBACK = "$0.99";
+const FALLBACK = "$4.99";
 
 /** Keep UI price copy safe if env is corrupted or oversized. */
 export function sanitizePriceLabel(raw: string | undefined | null): string {
