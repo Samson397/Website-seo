@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CompetitorUrlInput } from "@/components/CompetitorUrlInput";
 import { CompetitorComparisonPanel } from "@/components/CompetitorComparisonPanel";
+import { PageGapPanel } from "@/components/PageGapPanel";
 import { PageHero } from "@/components/ui/PageHero";
 import type { CompetitorAuditResult } from "@/lib/competitor-scores";
 import type { AuditReport } from "@/lib/types";
@@ -68,7 +69,7 @@ export default function CompetitorsPageClient() {
     <main className="min-h-screen pb-12">
       <PageHero
         title="Compare competitors"
-        description="Audit up to 10 public websites side by side. Each site gets the same 50+ homepage checks so you can rank gaps quickly."
+        description="Audit up to 10 public websites side by side, then see page gaps from sitemaps — pages they have that you don’t."
       >
         <div className="scan-shell w-full max-w-xl rounded-2xl p-4 sm:p-5">
           <CompetitorUrlInput onSubmit={auditCompetitors} loading={loading} progress={progress} />
@@ -92,6 +93,12 @@ export default function CompetitorsPageClient() {
         {results && !loading && (
           <div className="mt-10">
             <CompetitorComparisonPanel results={results} />
+            {results.length >= 2 && results[0]?.url ? (
+              <PageGapPanel
+                yourUrl={results[0].url}
+                competitorUrls={results.slice(1).map((r) => r.url).filter(Boolean)}
+              />
+            ) : null}
           </div>
         )}
 

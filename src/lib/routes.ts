@@ -15,6 +15,7 @@ export const routes = {
   keywords: "/tools/keywords",
   rankChecker: "/tools/rank-checker",
   contentOptimizer: "/tools/content",
+  articleWriter: "/tools/article",
   sitemapGenerator: "/tools/sitemap-generator",
   robotsGenerator: "/tools/robots-generator",
   guides: "/guides",

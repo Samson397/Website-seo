@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/weekly-traffic",
       "schedule": "15 9 * * 1"
+    },
+    {
+      "path": "/api/cron/weekly-ranks",
+      "schedule": "30 9 * * 1"
     }
   ]
 }

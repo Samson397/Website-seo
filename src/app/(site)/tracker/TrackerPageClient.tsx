@@ -20,6 +20,9 @@ export default function TrackerPage() {
   const [url, setUrl] = useState("");
   const [checking, setChecking] = useState<string | null>(null);
   const [checkError, setCheckError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [weeklyMsg, setWeeklyMsg] = useState<string | null>(null);
+  const [weeklyBusy, setWeeklyBusy] = useState(false);
 
   useEffect(() => {
     setItems(getTrackedKeywords());
@@ -72,7 +75,7 @@ export default function TrackerPage() {
       <PageHero
         eyebrow="On this device"
         title="Keyword tracker"
-        description="Save target keywords per URL and re-check on-page rank signals anytime — no account."
+        description="Save target keywords per URL, re-check anytime on this device, and optionally email weekly SERP updates when Neon + DataForSEO are configured."
         actions={<PrimaryCta href={routes.keywords}>Keyword research</PrimaryCta>}
       />
 
@@ -166,6 +169,58 @@ export default function TrackerPage() {
                 </li>
               ))}
             </ul>
+            <div className="rounded-2xl border border-ink/10 bg-white px-5 py-5">
+              <h2 className="font-display text-lg font-semibold text-ink">Weekly email ranks</h2>
+              <p className="mt-1 text-sm text-ink-muted">
+                Store a keyword on the server and get Monday updates (requires DataForSEO + Resend).
+              </p>
+              <form
+                className="mt-4 flex flex-col gap-3 sm:flex-row"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const first = items[0];
+                  if (!first || !email.includes("@")) return;
+                  setWeeklyBusy(true);
+                  setWeeklyMsg(null);
+                  void fetch("/api/rank-tracks/subscribe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email,
+                      url: first.url,
+                      keyword: first.keyword,
+                    }),
+                  })
+                    .then(async (res) => {
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.error || "Failed");
+                      setWeeklyMsg(data.message || "Saved for weekly checks.");
+                    })
+                    .catch((err) =>
+                      setWeeklyMsg(err instanceof Error ? err.message : "Failed")
+                    )
+                    .finally(() => setWeeklyBusy(false));
+                }}
+              >
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="flex-1 rounded-xl border border-ink/10 px-4 py-2.5 text-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={weeklyBusy || items.length === 0}
+                  className="rounded-xl bg-teal px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {weeklyBusy ? "Saving…" : "Email weekly ranks"}
+                </button>
+              </form>
+              {weeklyMsg ? <p className="mt-2 text-sm text-ink-muted">{weeklyMsg}</p> : null}
+            </div>
+
             <div className="rounded-2xl border border-ink/10 bg-white px-5 py-5 text-center">
               <p className="text-sm text-ink-muted">Next steps</p>
               <div className="mt-3 flex flex-wrap justify-center gap-3">

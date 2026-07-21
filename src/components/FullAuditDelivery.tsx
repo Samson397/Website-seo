@@ -11,6 +11,7 @@ import { AuditReportView } from "@/components/AuditReport";
 import { BenchmarkCompare } from "@/components/BenchmarkCompare";
 import { WatchToggle } from "@/components/WatchToggle";
 import { AiFixPlanPanel } from "@/components/AiFixPlanPanel";
+import { SeoAgentPanel } from "@/components/SeoAgentPanel";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 import { routes } from "@/lib/routes";
 import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
@@ -141,6 +142,7 @@ export function FullAuditDelivery({
 
       {tab === "brief" ? (
         <div className="space-y-8">
+          <SeoAgentPanel report={report} onJumpToIssues={() => setTab("issues")} />
           <AiFixPlanPanel report={report} auto onPlan={setAiPlan} />
           {report.aiVisibility ? <AiVisibilityPanel ai={report.aiVisibility} /> : null}
           <ProblemsSummary

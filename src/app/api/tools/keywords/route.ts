@@ -4,6 +4,11 @@ import { clientKeyFromRequest, rateLimit } from "@/lib/rate-limit";
 import { extractKeywordIdeas } from "@/lib/content-analysis";
 import { dataForSeoAuthHeader, getDataForSeoCredentials } from "@/lib/dataforseo";
 import { USER_AGENT_BOT } from "@/lib/brand";
+import {
+  enrichKeywords,
+  groupKeywordClusters,
+  type EnrichedKeyword,
+} from "@/lib/keyword-intelligence";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -56,7 +61,7 @@ export async function POST(req: NextRequest) {
     const seedPhrase = seed?.trim() || onPage[0]?.phrase || new URL(target).hostname.split(".")[0];
     const suggestions = seedPhrase ? await googleSuggestions(seedPhrase) : [];
 
-    let dataForSeo: Array<{ keyword: string; volume?: number; difficulty?: number }> = [];
+    let dataForSeo: EnrichedKeyword[] = [];
     const creds = getDataForSeoCredentials();
     if (creds && seedPhrase) {
       try {
@@ -73,7 +78,7 @@ export async function POST(req: NextRequest) {
                 keywords: [seedPhrase],
                 location_code: 2826,
                 language_code: "en",
-                limit: 15,
+                limit: 20,
               },
             ]),
             signal: AbortSignal.timeout(20000),
@@ -85,17 +90,35 @@ export async function POST(req: NextRequest) {
             keyword?: string;
             search_volume?: number;
             competition_index?: number;
+            competition?: number;
+            cpc?: number;
           }>;
-          dataForSeo = items.slice(0, 15).map((i) => ({
-            keyword: String(i.keyword || ""),
-            volume: i.search_volume,
-            difficulty: i.competition_index,
-          }));
+          dataForSeo = enrichKeywords(
+            items.slice(0, 20).map((i) => ({
+              keyword: String(i.keyword || ""),
+              volume: i.search_volume,
+              difficulty: i.competition_index,
+              competition: i.competition,
+              cpc: i.cpc,
+            }))
+          );
         }
       } catch {
         /* optional */
       }
     }
+
+    // Even without DataForSEO, enrich Google suggestions + on-page seeds
+    const fallbackSeeds = [
+      ...suggestions.slice(0, 10).map((phrase) => ({ keyword: phrase })),
+      ...onPage.slice(0, 8).map((p) => ({ keyword: p.phrase })),
+    ];
+    if (dataForSeo.length === 0 && fallbackSeeds.length > 0) {
+      dataForSeo = enrichKeywords(fallbackSeeds).slice(0, 15);
+    }
+
+    const clusters = groupKeywordClusters(dataForSeo);
+    const top = dataForSeo[0];
 
     return NextResponse.json({
       url: target,
@@ -103,7 +126,16 @@ export async function POST(req: NextRequest) {
       onPage,
       suggestions: suggestions.map((phrase) => ({ phrase, source: "suggest" as const })),
       dataForSeo,
-      hasDataForSeo: dataForSeo.length > 0,
+      clusters,
+      example: top
+        ? {
+            keyword: top.keyword,
+            intent: top.intent,
+            difficulty: top.difficulty,
+            recommendation: top.recommendation,
+          }
+        : null,
+      hasDataForSeo: Boolean(creds) && dataForSeo.some((k) => k.volume != null),
     });
   } catch (e) {
     return NextResponse.json(
