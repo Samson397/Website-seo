@@ -2,6 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getUnlock } from "@/lib/unlock";
+import {
+  aiFixPlanPlainText,
+  copyText,
+  downloadTextFile,
+} from "@/lib/ai-fix-plan-export";
 import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
 import type { AuditReport } from "@/lib/types";
 
@@ -10,6 +15,35 @@ interface AiFixPlanPanelProps {
   /** Auto-generate when DeepSeek is available (default true). */
   auto?: boolean;
   onPlan?: (plan: AiFixPlan | null) => void;
+}
+
+function hostnameSlug(url: string) {
+  try {
+    return new URL(url).hostname.replace(/\./g, "-");
+  } catch {
+    return "site";
+  }
+}
+
+function CopyButton({ label, text }: { label: string; text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void (async () => {
+          const ok = await copyText(text);
+          if (ok) {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1800);
+          }
+        })();
+      }}
+      className="rounded-lg border border-ink/10 bg-white px-2.5 py-1 text-xs font-semibold text-ink hover:border-teal/40 hover:bg-teal-soft"
+    >
+      {copied ? "Copied" : label}
+    </button>
+  );
 }
 
 export function AiFixPlanPanel({ report, auto = true, onPlan }: AiFixPlanPanelProps) {
@@ -114,6 +148,36 @@ export function AiFixPlanPanel({ report, auto = true, onPlan }: AiFixPlanPanelPr
 
       {plan ? (
         <div className="mt-6 space-y-6">
+          <div className="flex flex-wrap gap-2">
+            <CopyButton label="Copy brief" text={aiFixPlanPlainText(plan)} />
+            <button
+              type="button"
+              onClick={() =>
+                downloadTextFile(
+                  aiFixPlanPlainText(plan),
+                  `seohub-ai-brief-${hostnameSlug(report.url)}.txt`
+                )
+              }
+              className="rounded-lg border border-ink/10 bg-white px-2.5 py-1 text-xs font-semibold text-ink hover:border-teal/40 hover:bg-teal-soft"
+            >
+              Download brief
+            </button>
+            {plan.llmsTxtDraft ? (
+              <>
+                <CopyButton label="Copy llms.txt" text={plan.llmsTxtDraft} />
+                <button
+                  type="button"
+                  onClick={() =>
+                    downloadTextFile(plan.llmsTxtDraft, `llms-${hostnameSlug(report.url)}.txt`)
+                  }
+                  className="rounded-lg border border-ink/10 bg-white px-2.5 py-1 text-xs font-semibold text-ink hover:border-teal/40 hover:bg-teal-soft"
+                >
+                  Download llms.txt
+                </button>
+              </>
+            ) : null}
+          </div>
+
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
               Executive summary
@@ -169,7 +233,13 @@ export function AiFixPlanPanel({ report, auto = true, onPlan }: AiFixPlanPanelPr
                     key={`${meta.path}-${meta.suggestedTitle}`}
                     className="rounded-xl border border-ink/10 bg-white px-4 py-3"
                   >
-                    <p className="font-mono text-xs text-teal">{meta.path}</p>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-mono text-xs text-teal">{meta.path}</p>
+                      <CopyButton
+                        label="Copy title + meta"
+                        text={`Title: ${meta.suggestedTitle}\nMeta: ${meta.suggestedDescription}`}
+                      />
+                    </div>
                     <p className="mt-2 text-xs text-ink-muted">Title</p>
                     <p className="text-sm text-ink-muted line-through">{meta.currentTitle || "—"}</p>
                     <p className="text-sm font-semibold text-ink">{meta.suggestedTitle}</p>

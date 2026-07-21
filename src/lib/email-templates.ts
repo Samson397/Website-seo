@@ -1,32 +1,25 @@
 import { APP_NAME } from "@/lib/brand";
+import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
+import { aiFixPlanHtmlSection, aiFixPlanPlainText } from "@/lib/ai-fix-plan-export";
 import type { AuditReport } from "@/lib/types";
 import type { DigestSite } from "@/lib/digest";
-
-function overall(report: AuditReport): number {
-  const parts = [
-    report.scores.seo,
-    report.scores.performance,
-    report.scores.accessibility,
-    report.scores.security,
-    report.scores.ai,
-  ].filter((n): n is number => typeof n === "number");
-  return Math.round(parts.reduce((a, b) => a + b, 0) / Math.max(1, parts.length));
-}
+import { formatTen, formatTenLabel, overallFromScores } from "@/lib/score-display";
 
 export function reportEmailHtml(opts: {
   report: AuditReport;
   shareUrl?: string | null;
   siteUrl: string;
+  plan?: AiFixPlan | null;
 }): { subject: string; html: string; text: string } {
-  const { report, shareUrl, siteUrl } = opts;
+  const { report, shareUrl, siteUrl, plan } = opts;
   let host = report.url;
   try {
     host = new URL(report.url).hostname;
   } catch {
     /* keep */
   }
-  const score = overall(report);
-  const subject = `${APP_NAME} report — ${host} (score ${score})`;
+  const score = overallFromScores(report.scores);
+  const subject = `${APP_NAME} report — ${host} (${formatTenLabel(score)})`;
 
   const issues = report.issues
     .slice(0, 8)
@@ -36,20 +29,24 @@ export function reportEmailHtml(opts: {
     )
     .join("");
 
+  const planHtml = plan ? aiFixPlanHtmlSection(plan) : "";
+
   const html = `<!DOCTYPE html><html><body style="font-family:Georgia,serif;color:#0c1222;line-height:1.5;max-width:560px;margin:0 auto;padding:24px">
   <p style="font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:#0d9488;font-weight:700">${APP_NAME}</p>
   <h1 style="font-size:28px;margin:8px 0 16px">Your SEO report for ${escapeHtml(host)}</h1>
-  <p>Overall <strong>${(score / 10).toFixed(1)}/10</strong> · SEO ${(report.scores.seo / 10).toFixed(1)} · Speed ${(report.scores.performance / 10).toFixed(1)} · A11y ${(report.scores.accessibility / 10).toFixed(1)} · Security ${(report.scores.security / 10).toFixed(1)} · AI ${((report.scores.ai ?? 0) / 10).toFixed(1)}</p>
+  <p>Overall <strong>${formatTenLabel(score)}</strong> · SEO ${formatTen(report.scores.seo)} · Speed ${formatTen(report.scores.performance)} · A11y ${formatTen(report.scores.accessibility)} · Security ${formatTen(report.scores.security)} · AI ${formatTen(report.scores.ai ?? 0)}</p>
   <p>${report.summary.critical} critical · ${report.summary.warning} warnings · ${report.summary.info} info</p>
   ${shareUrl ? `<p><a href="${shareUrl}" style="display:inline-block;background:#0d9488;color:#fff;text-decoration:none;padding:10px 16px;border-radius:10px;font-weight:600">Open full report</a></p>` : ""}
+  ${planHtml}
   <h2 style="font-size:18px;margin-top:28px">Top issues</h2>
   <ul style="padding-left:18px">${issues || "<li>No issues listed</li>"}</ul>
   <p style="margin-top:28px;font-size:13px;color:#5b6b85"><a href="${siteUrl}">Run another scan on ${APP_NAME}</a></p>
 </body></html>`;
 
   const text = `${APP_NAME} report for ${host}
-Overall ${score}. SEO ${report.scores.seo}, Speed ${report.scores.performance}, A11y ${report.scores.accessibility}, Security ${report.scores.security}.
+Overall ${formatTenLabel(score)}. SEO ${formatTen(report.scores.seo)}, Speed ${formatTen(report.scores.performance)}, A11y ${formatTen(report.scores.accessibility)}, Security ${formatTen(report.scores.security)}.
 ${shareUrl ? `Full report: ${shareUrl}` : ""}
+${plan ? `\n${aiFixPlanPlainText(plan)}\n` : ""}
 Scan again: ${siteUrl}`;
 
   return { subject, html, text };
