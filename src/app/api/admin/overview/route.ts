@@ -60,21 +60,13 @@ function healthChecks() {
     },
     {
       key: "GOOGLE_OAUTH",
-      label: "Google admin sign-in",
-      ok: Boolean(
-        process.env.GOOGLE_CLIENT_ID &&
-          process.env.GOOGLE_CLIENT_SECRET &&
-          process.env.GOOGLE_ADMIN_EMAILS
-      ),
+      label: "Google connect (OAuth)",
+      ok: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
     },
     {
       key: "GSC",
       label: "Search Console OAuth",
-      ok: Boolean(
-        process.env.GOOGLE_CLIENT_ID &&
-          process.env.GOOGLE_CLIENT_SECRET &&
-          process.env.GOOGLE_ADMIN_EMAILS
-      ),
+      ok: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
     },
   ];
 }

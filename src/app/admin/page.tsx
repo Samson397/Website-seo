@@ -416,8 +416,10 @@ export default function AdminPage() {
       const googleError = params.get("google_error");
       if (googleError) {
         setLoginError(googleError);
+        setFormMsg(googleError);
         window.history.replaceState({}, "", "/admin");
       } else if (params.get("google") === "1") {
+        setFormMsg("Google connected. Analytics & Search Console can pull live data.");
         window.history.replaceState({}, "", "/admin");
       }
     } catch {
@@ -651,25 +653,18 @@ export default function AdminPage() {
     return (
       <main className="mx-auto max-w-md px-4 py-16">
         <h1 className="font-display text-2xl font-semibold text-ink">Sign in</h1>
-        <p className="mt-2 text-sm text-ink-muted">Owner access only — no public signup.</p>
-        {session.googleOAuth ? (
-          <a
-            href="/api/auth/google"
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-ink/15 bg-white px-4 py-2.5 text-sm font-semibold text-ink hover:border-brand/40"
-          >
-            Continue with Google
-          </a>
-        ) : null}
-        {session.googleOAuth ? (
-          <p className="mt-4 text-center text-xs uppercase tracking-wide text-ink-muted">or</p>
-        ) : null}
-        <form onSubmit={(e) => void login(e)} className="mt-4 space-y-3">
+        <p className="mt-2 text-sm text-ink-muted">
+          Owner access only — enter your admin code. After login you can connect Google for Analytics
+          & Search Console.
+        </p>
+        <form onSubmit={(e) => void login(e)} className="mt-6 space-y-3">
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="ADMIN_SECRET"
             autoComplete="current-password"
+            autoFocus
             className="w-full rounded-xl border border-ink/15 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
           />
           <button
@@ -1158,8 +1153,8 @@ export default function AdminPage() {
           ) : !ga.configured ? (
             <div className="space-y-3 text-sm text-ink-muted">
               <p>
-                GA4 reports need a property id plus either a service account or a Google admin
-                sign-in with Analytics access. See <code className="font-mono text-ink">docs/google-setup.md</code>.
+                GA4 reports need a property id plus either a service account or Connect Google with
+                Analytics access. See <code className="font-mono text-ink">docs/google-setup.md</code>.
               </p>
               {ga.error ? <p className="text-rose-600">{ga.error}</p> : null}
               <ul className="list-disc space-y-1 pl-5">
@@ -1171,7 +1166,8 @@ export default function AdminPage() {
                   Property ID: {ga.propertyIdConfigured || ga.propertyId ? "set" : "missing GA4_PROPERTY_ID"}
                 </li>
                 <li>
-                  OAuth refresh cookie: {ga.hasOauthRefresh ? "present" : "sign in with Google once"}
+                  OAuth refresh cookie:{" "}
+                  {ga.hasOauthRefresh ? "present" : "connect Google once after login"}
                 </li>
               </ul>
               {session.googleOAuth ? (
@@ -1179,7 +1175,7 @@ export default function AdminPage() {
                   href="/api/auth/google"
                   className="inline-flex rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-brand/40"
                 >
-                  Re-authorize Google (Analytics)
+                  {ga.hasOauthRefresh ? "Reconnect Google (Analytics)" : "Connect Google (Analytics)"}
                 </a>
               ) : null}
             </div>
@@ -1285,7 +1281,7 @@ export default function AdminPage() {
           ) : !gsc.configured ? (
             <div className="space-y-3 text-sm text-ink-muted">
               <p>
-                Search Console needs Google admin sign-in with the webmasters.readonly scope, plus a
+                Search Console needs Connect Google with the webmasters.readonly scope, plus a
                 verified property. See <code className="font-mono text-ink">docs/google-setup.md</code>.
               </p>
               {gsc.error ? <p className="text-rose-600">{gsc.error}</p> : null}
@@ -1298,7 +1294,8 @@ export default function AdminPage() {
                   </span>
                 </li>
                 <li>
-                  OAuth refresh cookie: {gsc.hasOauthRefresh ? "present" : "sign in with Google once"}
+                  OAuth refresh cookie:{" "}
+                  {gsc.hasOauthRefresh ? "present" : "connect Google once after login"}
                 </li>
               </ul>
               {session.googleOAuth ? (
@@ -1306,7 +1303,9 @@ export default function AdminPage() {
                   href="/api/auth/google"
                   className="inline-flex rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-brand/40"
                 >
-                  Re-authorize Google (Search Console)
+                  {gsc.hasOauthRefresh
+                    ? "Reconnect Google (Search Console)"
+                    : "Connect Google (Search Console)"}
                 </a>
               ) : null}
             </div>

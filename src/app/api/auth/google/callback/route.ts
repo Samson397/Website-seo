@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  ADMIN_COOKIE,
   adminCookieOptions,
-  createAdminSessionToken,
   getAdminSecret,
   isAdminConfigured,
+  isAdminRequest,
 } from "@/lib/admin-auth";
 import {
   GOOGLE_RT_COOKIE,
@@ -13,6 +12,7 @@ import {
   USER_GOOGLE_RT_COOKIE,
   exchangeCodeForTokens,
   fetchGoogleUserEmail,
+  getGoogleAdminEmails,
   getGoogleRedirectUri,
   isGoogleAdminEmail,
   isGoogleOAuthConfigured,
@@ -41,6 +41,29 @@ function userConnectUrl(query?: Record<string, string>): string {
   return `${base}?${params.toString()}`;
 }
 
+function clearOAuthCookies(res: NextResponse) {
+  res.cookies.set(OAUTH_STATE_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  res.cookies.set(OAUTH_INTENT_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+/**
+ * Google OAuth callback.
+ * - Admin intent: requires an existing ADMIN_SECRET session. Stores Google refresh token only
+ *   (Google is not an admin login method).
+ * - User intent: stores a user Google cookie for optional GSC page insights.
+ */
 export async function GET(req: NextRequest) {
   const ip = clientKeyFromRequest(req);
   const limited = rateLimit(`google:oauth:${ip}`, { limit: 30, windowMs: 15 * 60_000 });
@@ -55,7 +78,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (!isGoogleOAuthConfigured()) {
-    return fail("Google sign-in is not configured.");
+    return fail("Google connect is not configured.");
   }
 
   if (intent === "admin" && !isAdminConfigured()) {
@@ -65,7 +88,7 @@ export async function GET(req: NextRequest) {
   const url = req.nextUrl;
   const error = url.searchParams.get("error");
   if (error) {
-    return fail(error === "access_denied" ? "Google sign-in cancelled." : error);
+    return fail(error === "access_denied" ? "Google connect cancelled." : error);
   }
 
   const code = url.searchParams.get("code");
@@ -84,50 +107,38 @@ export async function GET(req: NextRequest) {
     }
 
     if (intent === "admin") {
-      if (!isGoogleAdminEmail(email)) {
-        return fail(`${email} is not in GOOGLE_ADMIN_EMAILS.`);
+      // Must already be signed in with ADMIN_SECRET — do not create an admin session here.
+      if (!isAdminRequest(req)) {
+        const res = fail("Sign in with your admin code first, then connect Google.");
+        clearOAuthCookies(res);
+        return res;
       }
+
+      // Optional allowlist: if GOOGLE_ADMIN_EMAILS is set, enforce it; otherwise any account works.
+      if (getGoogleAdminEmails().length > 0 && !isGoogleAdminEmail(email)) {
+        const res = fail(`${email} is not in GOOGLE_ADMIN_EMAILS.`);
+        clearOAuthCookies(res);
+        return res;
+      }
+
+      if (!tokens.refresh_token) {
+        const res = fail("Google did not return a refresh token. Reconnect and grant consent.");
+        clearOAuthCookies(res);
+        return res;
+      }
+
       const res = NextResponse.redirect(adminUrl({ google: "1" }));
-      res.cookies.set(ADMIN_COOKIE, createAdminSessionToken(), adminCookieOptions());
-      res.cookies.set(OAUTH_STATE_COOKIE, "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 0,
+      clearOAuthCookies(res);
+      const sealed = sealRefreshToken(tokens.refresh_token, getAdminSecret());
+      res.cookies.set(GOOGLE_RT_COOKIE, sealed, {
+        ...adminCookieOptions(60 * 60 * 24 * 30),
       });
-      res.cookies.set(OAUTH_INTENT_COOKIE, "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 0,
-      });
-      if (tokens.refresh_token) {
-        const sealed = sealRefreshToken(tokens.refresh_token, getAdminSecret());
-        res.cookies.set(GOOGLE_RT_COOKIE, sealed, {
-          ...adminCookieOptions(60 * 60 * 24 * 30),
-        });
-      }
       return res;
     }
 
     // User Connect Google (Search Console / optional Analytics)
     const res = NextResponse.redirect(userConnectUrl({ ok: "1", email }));
-    res.cookies.set(OAUTH_STATE_COOKIE, "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 0,
-    });
-    res.cookies.set(OAUTH_INTENT_COOKIE, "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 0,
-    });
+    clearOAuthCookies(res);
     if (tokens.refresh_token) {
       const sealed = sealRefreshToken(tokens.refresh_token, sealSecretForIntent("user"));
       res.cookies.set(USER_GOOGLE_RT_COOKIE, sealed, {
@@ -140,7 +151,7 @@ export async function GET(req: NextRequest) {
     }
     return res;
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Google sign-in failed";
+    const message = err instanceof Error ? err.message : "Google connect failed";
     console.error("[google-oauth]", message, "redirect_uri=", getGoogleRedirectUri());
     return fail(message);
   }

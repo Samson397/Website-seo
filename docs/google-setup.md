@@ -1,6 +1,6 @@
 # Google Analytics + Search Console + OAuth setup (SEOHub)
 
-Wire four pieces: **GA4 site tag**, **admin Google sign-in**, **GA4 Data API** reports, and **Search Console** reports in `/admin`.
+Wire four pieces: **GA4 site tag**, **admin Google connect** (after code login), **GA4 Data API** reports, and **Search Console** reports in `/admin`.
 
 **Never commit client secrets or service-account JSON.** Put them in Vercel env (or local `.env.local`).
 
@@ -26,7 +26,9 @@ On project `seohubonline`:
 
 4. Redeploy. Tags load only after cookie consent = **Accept**.
 
-## 3. OAuth Web client (admin “Continue with Google”)
+## 3. OAuth Web client (admin “Connect Google” after code login)
+
+Admin login is **only** `ADMIN_SECRET` (the code). Google is connected **inside** `/admin` after you sign in — it is not a login method.
 
 1. [Google Cloud Console](https://console.cloud.google.com/) → project `seohubonline`.
 2. **APIs & Services** → **OAuth consent screen** → add scopes:
@@ -50,11 +52,11 @@ On project `seohubonline`:
 |------|--------|
 | `GOOGLE_CLIENT_ID` | `….apps.googleusercontent.com` |
 | `GOOGLE_CLIENT_SECRET` | `GOCSPX-…` |
-| `GOOGLE_ADMIN_EMAILS` | Your Google email(s), comma-separated |
+| `GOOGLE_ADMIN_EMAILS` | Optional allowlist of Google emails (comma-separated). Leave empty to allow any account after code login. |
 | `GOOGLE_REDIRECT_URI` | `https://www.seohub.online` |
-| `ADMIN_SECRET` | Existing owner secret (still required) |
+| `ADMIN_SECRET` | Owner code (required for `/admin`) |
 
-8. Redeploy → `/admin` → **Continue with Google**.
+8. Redeploy → `/admin` → sign in with **ADMIN_SECRET** → open **GA4** or **Search Console** → **Connect Google**.
 
 Scopes requested: OpenID profile + Analytics readonly + Search Console readonly.
 
@@ -75,20 +77,20 @@ Scopes requested: OpenID profile + Analytics readonly + Search Console readonly.
 ### Option B — OAuth refresh (no service account)
 
 1. Set `GA4_PROPERTY_ID`.
-2. Sign in at `/admin` with **Continue with Google**.
+2. Sign in at `/admin` with your admin code, then **Connect Google**.
 3. `/admin` → **GA4** uses the sealed refresh cookie.
 
 ## 5. Search Console (admin → Search Console)
 
 1. [Search Console](https://search.google.com/search-console) → add and verify `https://www.seohub.online/` (or domain property `sc-domain:seohub.online`).
-2. Use the **same Google account** listed in `GOOGLE_ADMIN_EMAILS`.
+2. Connect the Google account that owns that property (optionally listed in `GOOGLE_ADMIN_EMAILS`).
 3. Optional Vercel override:
 
 | Name | Value |
 |------|--------|
 | `GSC_SITE_URL` | `https://www.seohub.online/` |
 
-4. Sign in with Google once (must grant Search Console scope), then open `/admin` → **Search Console**.
+4. After code login, connect Google once (must grant Search Console scope), then open `/admin` → **Search Console**.
 
 You’ll see clicks, impressions, CTR, average position, top queries, and top pages.
 
@@ -97,7 +99,8 @@ You’ll see clicks, impressions, CTR, average position, top queries, and top pa
 | Check | Expect |
 |-------|--------|
 | Cookie Accept on the site | Network calls to `googletagmanager.com` / `google-analytics.com` (when Measurement ID set) |
-| `/api/auth/google` | Redirects to Google (not 404) |
+| `/admin` without session → `/api/auth/google` | Redirects back asking to sign in with ADMIN_SECRET first |
+| `/admin` after code login → Connect Google | Redirects to Google, then back with refresh cookie |
 | `/admin` Overview health | Google OAuth / GA4 / GSC rows |
 | `/admin` → GA4 | Users, views, top pages (after data exists) |
 | `/admin` → Search Console | Clicks / impressions (after property verified + data exists) |
@@ -105,6 +108,6 @@ You’ll see clicks, impressions, CTR, average position, top queries, and top pa
 ## Security notes
 
 - Keep `GOOGLE_CLIENT_SECRET` and service-account JSON **server-only** (never `NEXT_PUBLIC_*`).
-- Restrict `GOOGLE_ADMIN_EMAILS` tightly.
-- Password login via `ADMIN_SECRET` still works as a backup.
+- Admin access is gated by `ADMIN_SECRET` only; Google connect never creates an admin session.
+- Optionally restrict connected accounts with `GOOGLE_ADMIN_EMAILS`.
 - Rotate any secret that was shared in chat when you can.
