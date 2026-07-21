@@ -2,10 +2,26 @@ import { createHmac, randomBytes, timingSafeEqual, createCipheriv, createDeciphe
 import { getSiteUrl } from "@/lib/site-url";
 
 export const GOOGLE_RT_COOKIE = "seohub_google_rt";
+export const USER_GOOGLE_RT_COOKIE = "seohub_user_google_rt";
 export const OAUTH_STATE_COOKIE = "seohub_oauth_state";
+export const OAUTH_INTENT_COOKIE = "seohub_oauth_intent";
 
 const ANALYTICS_READONLY = "https://www.googleapis.com/auth/analytics.readonly";
 const WEBMASTERS_READONLY = "https://www.googleapis.com/auth/webmasters.readonly";
+
+export type GoogleOAuthIntent = "admin" | "user";
+
+export function sealSecretForIntent(intent: GoogleOAuthIntent): string {
+  if (intent === "admin") {
+    return (
+      process.env.ADMIN_SECRET ||
+      process.env.INSIGHTS_SECRET ||
+      getGoogleClientSecret() ||
+      "seohub"
+    );
+  }
+  return getGoogleClientSecret() || process.env.ADMIN_SECRET || "seohub-user";
+}
 
 export function getGoogleClientId(): string {
   return (process.env.GOOGLE_CLIENT_ID || "").trim();

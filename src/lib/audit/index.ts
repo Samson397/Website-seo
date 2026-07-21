@@ -31,6 +31,7 @@ import {
   countInternalLinks,
 } from "@/lib/audit/social";
 import { fetchBacklinkProfile, runBacklinkAudit } from "@/lib/audit/backlinks";
+import { runLocalSeoAudit } from "@/lib/audit/local-seo";
 import { runDeepChecksAudit } from "@/lib/audit/deep-checks";
 import { runComprehensiveChecksAudit } from "@/lib/audit/comprehensive-checks";
 import { buildSiteChecklist } from "@/lib/audit/checklist";
@@ -108,6 +109,9 @@ export async function runFullAudit(
   const domainIssues = runDomainAudit(hostname, domainInfo, dnsInfo, sslInfo);
   const technologyIssues = runTechnologyAudit(ctx, technologies);
   const backlinkIssues = runBacklinkAudit(backlinkProfile);
+  const localSeoIssues = fetchResult.html
+    ? runLocalSeoAudit(fetchResult.html, fetchResult.finalUrl)
+    : [];
   const deepIssues = await runDeepChecksAudit(ctx);
   const comprehensiveIssues = await runComprehensiveChecksAudit(ctx);
   const aiVisibility = await runAiVisibilityAudit(ctx);
@@ -336,6 +340,7 @@ export async function runFullAudit(
     ...domainIssues,
     ...technologyIssues,
     ...backlinkIssues,
+    ...localSeoIssues,
     ...deepIssues,
     ...comprehensiveIssues,
     ...aiVisibility.issues,

@@ -30,9 +30,17 @@ function emptySummary(partial?: Partial<GscSummary>): GscSummary {
   };
 }
 
-export function getGscSiteUrl(): string {
-  const override = (process.env.GSC_SITE_URL || "").trim();
-  if (override) return override.endsWith("/") ? override : `${override}/`;
+export function getGscSiteUrl(preferred?: string): string {
+  const override = (preferred || process.env.GSC_SITE_URL || "").trim();
+  if (override) {
+    try {
+      const u = new URL(override.includes("://") ? override : `https://${override}`);
+      const href = `${u.protocol}//${u.host}/`;
+      return href;
+    } catch {
+      return override.endsWith("/") ? override : `${override}/`;
+    }
+  }
   const site = getSiteUrl();
   return site.endsWith("/") ? site : `${site}/`;
 }
@@ -109,10 +117,11 @@ function pickSiteUrl(
 
 export async function fetchGscSummary(options?: {
   oauthRefreshToken?: string | null;
+  preferredSiteUrl?: string;
 }): Promise<GscSummary> {
   if (!options?.oauthRefreshToken) {
     return emptySummary({
-      siteUrl: getGscSiteUrl(),
+      siteUrl: getGscSiteUrl(options?.preferredSiteUrl),
       error:
         "Sign in with Google (Search Console readonly) so a refresh token is stored, then open this tab again.",
     });
@@ -124,14 +133,14 @@ export async function fetchGscSummary(options?: {
     accessToken = tokens.access_token;
   } catch (err) {
     return emptySummary({
-      siteUrl: getGscSiteUrl(),
+      siteUrl: getGscSiteUrl(options?.preferredSiteUrl),
       error: err instanceof Error ? err.message : "OAuth refresh failed",
     });
   }
 
   try {
     const sites = await listSites(accessToken);
-    const preferred = getGscSiteUrl();
+    const preferred = getGscSiteUrl(options?.preferredSiteUrl);
     const siteUrl = pickSiteUrl(preferred, sites);
     if (!siteUrl) {
       return emptySummary({
@@ -200,7 +209,7 @@ export async function fetchGscSummary(options?: {
     };
   } catch (err) {
     return emptySummary({
-      siteUrl: getGscSiteUrl(),
+      siteUrl: getGscSiteUrl(options?.preferredSiteUrl),
       error: err instanceof Error ? err.message : "Search Console fetch failed",
     });
   }
