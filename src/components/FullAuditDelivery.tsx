@@ -11,6 +11,8 @@ import { AuditReportView } from "@/components/AuditReport";
 import { BenchmarkCompare } from "@/components/BenchmarkCompare";
 import { WatchToggle } from "@/components/WatchToggle";
 import { AiFixPlanPanel } from "@/components/AiFixPlanPanel";
+import { ExportButtons } from "@/components/ExportButtons";
+import { EmailReportButton } from "@/components/EmailReportButton";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 import { routes } from "@/lib/routes";
 import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
@@ -142,6 +144,23 @@ export function FullAuditDelivery({
       {tab === "brief" ? (
         <div className="space-y-8">
           <AiFixPlanPanel report={report} auto onPlan={setAiPlan} />
+          {aiPlan ? (
+            <section className="rounded-2xl border border-ink/10 bg-white px-5 py-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">
+                Takeaway
+              </p>
+              <h3 className="font-display mt-1 text-xl font-semibold text-ink">
+                Email or PDF with AI brief
+              </h3>
+              <p className="mt-2 text-sm text-ink-muted">
+                Send the full report plus this priority fix plan, or print a PDF you can keep.
+              </p>
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+                <ExportButtons report={report} plan={aiPlan} />
+                <EmailReportButton report={report} plan={aiPlan} />
+              </div>
+            </section>
+          ) : null}
           {report.aiVisibility ? <AiVisibilityPanel ai={report.aiVisibility} /> : null}
           <ProblemsSummary
             report={report}
@@ -184,6 +203,7 @@ export function FullAuditDelivery({
             categoryFilter={issueFilter}
             onCategoryFilterChange={setIssueFilter}
             aiIssueHints={aiIssueHints}
+            aiPlan={aiPlan}
           />
         </div>
       ) : null}
@@ -206,6 +226,7 @@ export function FullAuditDelivery({
           categoryFilter={issueFilter}
           onCategoryFilterChange={setIssueFilter}
           aiIssueHints={aiIssueHints}
+          aiPlan={aiPlan}
         />
       ) : null}
     </div>

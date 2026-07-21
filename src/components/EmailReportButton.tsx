@@ -1,9 +1,17 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
 import type { AuditReport } from "@/lib/types";
+import { getUnlock } from "@/lib/unlock";
 
-export function EmailReportButton({ report }: { report: AuditReport }) {
+export function EmailReportButton({
+  report,
+  plan,
+}: {
+  report: AuditReport;
+  plan?: AiFixPlan | null;
+}) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -14,10 +22,11 @@ export function EmailReportButton({ report }: { report: AuditReport }) {
     setStatus("sending");
     setError(null);
     try {
+      const sessionId = getUnlock()?.sessionId;
       const res = await fetch("/api/email/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, report }),
+        body: JSON.stringify({ email, report, sessionId, plan: plan || undefined }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Send failed");
@@ -77,7 +86,11 @@ export function EmailReportButton({ report }: { report: AuditReport }) {
       {status === "sent" ? (
         <p className="text-xs text-teal">Report emailed. Check your inbox.</p>
       ) : (
-        <p className="text-xs text-ink-muted">Optional — we only use this address to send the report.</p>
+        <p className="text-xs text-ink-muted">
+          {plan
+            ? "Includes your AI fix plan when available. We only use this address to send the report."
+            : "Optional — we only use this address to send the report."}
+        </p>
       )}
     </form>
   );

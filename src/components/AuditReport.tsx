@@ -15,6 +15,7 @@ import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
 import { IssueGroupsPanel } from "@/components/IssueGroupsPanel";
 import { AiVisibilityPanel } from "@/components/AiVisibilityPanel";
+import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 
 interface AuditReportViewProps {
@@ -27,6 +28,8 @@ interface AuditReportViewProps {
   onCategoryFilterChange?: (category: AuditCategory | "all") => void;
   /** AI plain-English hints keyed by issue id */
   aiIssueHints?: Record<string, { plainEnglish: string; action: string }>;
+  /** Optional AI brief included in PDF / email exports */
+  aiPlan?: AiFixPlan | null;
 }
 
 const CATEGORIES: { key: AuditCategory | "all"; label: string }[] = [
@@ -52,6 +55,7 @@ export function AuditReportView({
   categoryFilter: controlledFilter,
   onCategoryFilterChange,
   aiIssueHints,
+  aiPlan,
 }: AuditReportViewProps) {
   const [internalFilter, setInternalFilter] = useState<AuditCategory | "all">("all");
   const filter = controlledFilter ?? internalFilter;
@@ -127,8 +131,8 @@ export function AuditReportView({
                   {rescanLoading ? "Re-scanning…" : "Re-scan"}
                 </button>
               )}
-              <ExportButtons report={report} />
-              <EmailReportButton report={report} />
+              <ExportButtons report={report} plan={aiPlan} />
+              <EmailReportButton report={report} plan={aiPlan} />
             </div>
             <ShareReportButton report={report} />
             <div className="flex flex-wrap gap-2 text-sm">

@@ -1,9 +1,13 @@
 "use client";
 
+import type { AiFixPlan } from "@/lib/ai-fix-plan-types";
+import { aiFixPlanHtmlSection } from "@/lib/ai-fix-plan-export";
+import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 import type { AuditReport } from "@/lib/types";
 
 interface ExportButtonsProps {
   report: AuditReport;
+  plan?: AiFixPlan | null;
 }
 
 function downloadBlob(content: string, filename: string, type: string) {
@@ -42,9 +46,9 @@ function exportCsv(report: AuditReport) {
   downloadBlob(csv, `seohub-${hostnameSlug(report)}-${Date.now()}.csv`, "text/csv;charset=utf-8");
 }
 
-function exportJson(report: AuditReport) {
+function exportJson(report: AuditReport, plan?: AiFixPlan | null) {
   downloadBlob(
-    JSON.stringify(report, null, 2),
+    JSON.stringify(plan ? { report, aiFixPlan: plan } : report, null, 2),
     `seohub-${hostnameSlug(report)}-${Date.now()}.json`,
     "application/json"
   );
@@ -59,10 +63,12 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function exportPdfHtml(report: AuditReport) {
+function exportPdfHtml(report: AuditReport, plan?: AiFixPlan | null) {
   const hostname = hostnameSlug(report);
   const safeUrl = escapeHtml(report.url);
   const safeShare = report.shareId ? escapeHtml(report.shareId) : "";
+  const overall = overallFromScores(report.scores);
+  const planSection = plan ? aiFixPlanHtmlSection(plan) : "";
   const html = `<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>SEOHub — ${escapeHtml(hostname)}</title>
 <style>
@@ -78,7 +84,7 @@ function exportPdfHtml(report: AuditReport) {
   .critical { background: #ffe4e6; color: #9f1239; }
   .warning { background: #fef3c7; color: #92400e; }
   .info { background: #ccfbf1; color: #115e59; }
-  pre { background: #0c1222; color: #5eead4; padding: 0.75rem; border-radius: 8px; font-size: 0.75rem; overflow-x: auto; }
+  pre { background: #0c1222; color: #5eead4; padding: 0.75rem; border-radius: 8px; font-size: 0.75rem; overflow-x: auto; white-space: pre-wrap; }
   @media print { body { margin: 0; } .noprint { display: none; } }
 </style></head><body>
   <p class="brand">SEOHub report</p>
@@ -86,14 +92,16 @@ function exportPdfHtml(report: AuditReport) {
   <p><strong>URL:</strong> ${safeUrl}<br/>
   <strong>Scanned:</strong> ${escapeHtml(new Date(report.scannedAt).toLocaleString())}
   ${safeShare ? `<br/><strong>Share ID:</strong> ${safeShare}` : ""}</p>
+  <p><strong>Overall:</strong> ${escapeHtml(formatTenLabel(overall))}</p>
   <div class="scores">
-    <div class="score"><strong>${report.scores.seo}</strong>SEO</div>
-    <div class="score"><strong>${report.scores.performance}</strong>Performance</div>
-    <div class="score"><strong>${report.scores.accessibility}</strong>Accessibility</div>
-    <div class="score"><strong>${report.scores.security}</strong>Security</div>
+    <div class="score"><strong>${escapeHtml(formatTenLabel(report.scores.seo))}</strong>SEO</div>
+    <div class="score"><strong>${escapeHtml(formatTenLabel(report.scores.performance))}</strong>Performance</div>
+    <div class="score"><strong>${escapeHtml(formatTenLabel(report.scores.accessibility))}</strong>Accessibility</div>
+    <div class="score"><strong>${escapeHtml(formatTenLabel(report.scores.security))}</strong>Security</div>
   </div>
   <p class="noprint"><em>Tip: use your browser Print → Save as PDF for a PDF file.</em></p>
   <p>${report.summary.critical} critical · ${report.summary.warning} warnings · ${report.summary.info} info · ${report.issues.length} issues</p>
+  ${planSection}
   <h2>Issues</h2>
   ${report.issues
     .map(
@@ -119,7 +127,7 @@ function exportPdfHtml(report: AuditReport) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-export function ExportButtons({ report }: ExportButtonsProps) {
+export function ExportButtons({ report, plan }: ExportButtonsProps) {
   return (
     <div className="flex flex-wrap gap-2">
       <button
@@ -131,14 +139,14 @@ export function ExportButtons({ report }: ExportButtonsProps) {
       </button>
       <button
         type="button"
-        onClick={() => exportJson(report)}
+        onClick={() => exportJson(report, plan)}
         className="rounded-xl border border-ink/10 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-teal/40 hover:bg-teal-soft"
       >
         JSON
       </button>
       <button
         type="button"
-        onClick={() => exportPdfHtml(report)}
+        onClick={() => exportPdfHtml(report, plan)}
         className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-bright"
       >
         PDF report

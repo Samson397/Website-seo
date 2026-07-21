@@ -6,7 +6,7 @@ import type {
   AiPriorityFix,
 } from "@/lib/ai-fix-plan-types";
 import { deepSeekChat } from "@/lib/deepseek";
-import { overallFromScores } from "@/lib/score-display";
+import { overallFromScores, toTen } from "@/lib/score-display";
 
 export type {
   AiFixPlan,
@@ -50,8 +50,15 @@ function compactReport(report: AuditReport) {
 
   return {
     url: report.url,
-    overall10: overallFromScores(report.scores),
-    scores: report.scores,
+    // Model prompt asks for /10 notes — send the display scale, not 0–100.
+    overall10: toTen(overallFromScores(report.scores)),
+    scores: {
+      seo: toTen(report.scores.seo),
+      performance: toTen(report.scores.performance),
+      accessibility: toTen(report.scores.accessibility),
+      security: toTen(report.scores.security),
+      ai: typeof report.scores.ai === "number" ? toTen(report.scores.ai) : null,
+    },
     summary: report.summary,
     crawlPages: report.crawl?.pagesScanned ?? null,
     aiVisibility: report.aiVisibility
