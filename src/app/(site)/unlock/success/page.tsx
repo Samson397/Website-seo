@@ -8,6 +8,7 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/brand";
 import { saveUnlock } from "@/lib/unlock";
 import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 import { routes, scanUrlFor } from "@/lib/routes";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 export default function UnlockSuccessPage() {
   return (
@@ -51,6 +52,7 @@ function UnlockSuccessInner() {
           throw new Error(data.error || "Payment could not be verified yet.");
         }
         saveUnlock(id, targetUrl || undefined);
+        trackAnalyticsEvent("unlock", { source: "stripe" });
         setSessionId(id);
         setStatus("ok");
         if (targetUrl) {

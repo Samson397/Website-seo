@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
-type Tab = "overview" | "scans" | "payments" | "reports" | "promos" | "blog";
+type Tab = "overview" | "visitors" | "scans" | "payments" | "reports" | "promos" | "blog";
 
 type Session = {
   configured: boolean;
@@ -10,6 +10,68 @@ type Session = {
   database: boolean;
   promoDb: boolean;
   blogDb: boolean;
+  analyticsDb?: boolean;
+};
+
+type NamedCount = { name: string; count: number };
+
+type VisitorsSummary = {
+  configured: boolean;
+  onlineNow: number;
+  onlineWindowMinutes: number;
+  totals: {
+    viewsToday: number;
+    views7d: number;
+    views30d: number;
+    uniqueToday: number;
+    unique7d: number;
+    unique30d: number;
+    new7d: number;
+    returning7d: number;
+  };
+  funnel: {
+    visitors: number;
+    scans: number;
+    unlocks: number;
+    visitToScanPct: number;
+    scanToUnlockPct: number;
+    visitToUnlockPct: number;
+  };
+  countries: NamedCount[];
+  pages: NamedCount[];
+  referrers: NamedCount[];
+  devices: NamedCount[];
+  browsers: NamedCount[];
+  utmSources: NamedCount[];
+  utmCampaigns: NamedCount[];
+  hourly: { hour: string; count: number }[];
+  online: {
+    visitorId: string;
+    lastPath: string | null;
+    country: string | null;
+    city: string | null;
+    device: string | null;
+    lastSeenAt: string;
+  }[];
+  recent: {
+    path: string;
+    country: string | null;
+    city: string | null;
+    device: string | null;
+    browser: string | null;
+    referrer: string | null;
+    utmSource: string | null;
+    createdAt: string;
+  }[];
+  settings: {
+    enabled: boolean;
+    blockBots: boolean;
+    blockedCountries: string[];
+    blockedIpHashes: string[];
+    blockedPathPrefixes: string[];
+    digestEnabled: boolean;
+    digestEmail: string;
+  };
 };
 
 type PromoRow = {
@@ -71,6 +133,7 @@ type ScanEvent = {
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
+  { id: "visitors", label: "Visitors" },
   { id: "scans", label: "Scans" },
   { id: "payments", label: "Payments" },
   { id: "reports", label: "Reports" },
@@ -139,6 +202,17 @@ export default function AdminPage() {
   >([]);
   const [promos, setPromos] = useState<PromoRow[]>([]);
   const [posts, setPosts] = useState<BlogRow[]>([]);
+  const [visitors, setVisitors] = useState<VisitorsSummary | null>(null);
+  const [settingsBusy, setSettingsBusy] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({
+    enabled: true,
+    blockBots: true,
+    blockedCountries: "",
+    blockedIpHashes: "",
+    blockedPathPrefixes: "",
+    digestEnabled: false,
+    digestEmail: "",
+  });
 
   const [newCode, setNewCode] = useState("");
   const [newMax, setNewMax] = useState("50");
@@ -172,6 +246,29 @@ export default function AdminPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Overview failed");
         setOverview(data as Overview);
+        return;
+      }
+      if (active === "visitors") {
+        const res = await fetch("/api/admin/visitors", { cache: "no-store" });
+        if (res.status === 401) {
+          setSession((s) => (s ? { ...s, authenticated: false } : s));
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Visitors failed");
+        const summary = data as VisitorsSummary;
+        setVisitors(summary);
+        if (summary.settings) {
+          setSettingsForm({
+            enabled: summary.settings.enabled,
+            blockBots: summary.settings.blockBots,
+            blockedCountries: summary.settings.blockedCountries.join(", "),
+            blockedIpHashes: summary.settings.blockedIpHashes.join("\n"),
+            blockedPathPrefixes: summary.settings.blockedPathPrefixes.join("\n"),
+            digestEnabled: summary.settings.digestEnabled,
+            digestEmail: summary.settings.digestEmail,
+          });
+        }
         return;
       }
       if (active === "scans") {
@@ -250,6 +347,15 @@ export default function AdminPage() {
     if (session?.authenticated) void loadTab(tab);
   }, [tab, session?.authenticated, loadTab]);
 
+  // Keep “online now” fresh while the Visitors tab is open
+  useEffect(() => {
+    if (!session?.authenticated || tab !== "visitors") return;
+    const id = window.setInterval(() => {
+      void loadTab("visitors");
+    }, 30_000);
+    return () => window.clearInterval(id);
+  }, [session?.authenticated, tab, loadTab]);
+
   async function login(e: FormEvent) {
     e.preventDefault();
     setLoggingIn(true);
@@ -277,6 +383,27 @@ export default function AdminPage() {
     await fetch("/api/admin/logout", { method: "POST" });
     setOverview(null);
     await refreshSession();
+  }
+
+  async function saveVisitorSettings(e: FormEvent) {
+    e.preventDefault();
+    setSettingsBusy(true);
+    setFormMsg(null);
+    try {
+      const res = await fetch("/api/admin/visitors", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settingsForm),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not save settings");
+      setFormMsg("Visitor settings saved.");
+      await loadTab("visitors");
+    } catch (err) {
+      setFormMsg(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSettingsBusy(false);
+    }
   }
 
   async function createPromo(e: FormEvent) {
@@ -471,7 +598,7 @@ export default function AdminPage() {
         <div>
           <h1 className="font-display text-2xl font-semibold text-ink">Dashboard</h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Health, scans, payments, reports, promos · DB{" "}
+            Health, visitors, scans, payments, reports, promos · DB{" "}
             {session.database ? "connected" : "missing"}
           </p>
         </div>
@@ -552,6 +679,382 @@ export default function AdminPage() {
               </ul>
             )}
           </div>
+        </section>
+      ) : null}
+
+      {tab === "visitors" ? (
+        <section className="mt-8 space-y-8">
+          {!visitors ? (
+            <p className="text-sm text-ink-muted">Loading visitor analytics…</p>
+          ) : !visitors.configured ? (
+            <p className="text-sm text-ink-muted">
+              Connect Neon (<code className="font-mono text-ink">DATABASE_URL</code>) to store
+              first-party visitor analytics. Tracking only runs after cookie consent = Accept.
+            </p>
+          ) : (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <p className="text-xs uppercase tracking-wide text-ink-muted">Online now</p>
+                  <p className="mt-1 font-display text-2xl font-semibold text-teal">
+                    {visitors.onlineNow}
+                  </p>
+                  <p className="text-xs text-ink-muted">
+                    active in last {visitors.onlineWindowMinutes} min · auto-refresh
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <p className="text-xs uppercase tracking-wide text-ink-muted">Views today</p>
+                  <p className="mt-1 font-display text-2xl font-semibold">
+                    {visitors.totals.viewsToday}
+                  </p>
+                  <p className="text-xs text-ink-muted">
+                    {visitors.totals.uniqueToday} unique visitors
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <p className="text-xs uppercase tracking-wide text-ink-muted">Last 7 days</p>
+                  <p className="mt-1 font-display text-2xl font-semibold">
+                    {visitors.totals.views7d}
+                  </p>
+                  <p className="text-xs text-ink-muted">
+                    {visitors.totals.unique7d} unique · {visitors.totals.new7d} new /{" "}
+                    {visitors.totals.returning7d} returning
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h2 className="font-display text-lg font-semibold">Conversion funnel (30d)</h2>
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                    <p className="text-xs uppercase tracking-wide text-ink-muted">Visitors</p>
+                    <p className="mt-1 font-display text-2xl font-semibold">
+                      {visitors.funnel.visitors}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                    <p className="text-xs uppercase tracking-wide text-ink-muted">Scans</p>
+                    <p className="mt-1 font-display text-2xl font-semibold">
+                      {visitors.funnel.scans}
+                    </p>
+                    <p className="text-xs text-ink-muted">
+                      {visitors.funnel.visitToScanPct}% of visitors
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                    <p className="text-xs uppercase tracking-wide text-ink-muted">Unlocks</p>
+                    <p className="mt-1 font-display text-2xl font-semibold">
+                      {visitors.funnel.unlocks}
+                    </p>
+                    <p className="text-xs text-ink-muted">
+                      {visitors.funnel.scanToUnlockPct}% of scans ·{" "}
+                      {visitors.funnel.visitToUnlockPct}% of visitors
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-8 lg:grid-cols-2">
+                <div>
+                  <h2 className="font-display text-lg font-semibold">Countries</h2>
+                  {visitors.countries.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">No country data yet.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {visitors.countries.map((c) => (
+                        <li
+                          key={c.name}
+                          className="flex items-center justify-between border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="font-medium">{c.name}</span>
+                          <span className="text-ink-muted">{c.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">Top pages</h2>
+                  {visitors.pages.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">No page views yet.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {visitors.pages.map((p) => (
+                        <li
+                          key={p.name}
+                          className="flex items-center justify-between gap-3 border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="truncate font-medium">{p.name}</span>
+                          <span className="shrink-0 text-ink-muted">{p.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">Referrers</h2>
+                  {visitors.referrers.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">No referrers yet.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {visitors.referrers.map((r) => (
+                        <li
+                          key={r.name}
+                          className="flex items-center justify-between gap-3 border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="truncate font-medium">{r.name}</span>
+                          <span className="shrink-0 text-ink-muted">{r.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">Devices & browsers</h2>
+                  <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                    <ul className="space-y-2">
+                      {visitors.devices.map((d) => (
+                        <li
+                          key={d.name}
+                          className="flex items-center justify-between border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="capitalize">{d.name}</span>
+                          <span className="text-ink-muted">{d.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <ul className="space-y-2">
+                      {visitors.browsers.map((b) => (
+                        <li
+                          key={b.name}
+                          className="flex items-center justify-between border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="capitalize">{b.name}</span>
+                          <span className="text-ink-muted">{b.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">UTM sources</h2>
+                  {visitors.utmSources.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">
+                      No UTM traffic yet. Use <code className="font-mono">?utm_source=</code> links.
+                    </p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {visitors.utmSources.map((u) => (
+                        <li
+                          key={u.name}
+                          className="flex items-center justify-between border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="font-medium">{u.name}</span>
+                          <span className="text-ink-muted">{u.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">UTM campaigns</h2>
+                  {visitors.utmCampaigns.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">No campaign tags yet.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {visitors.utmCampaigns.map((u) => (
+                        <li
+                          key={u.name}
+                          className="flex items-center justify-between border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="font-medium">{u.name}</span>
+                          <span className="text-ink-muted">{u.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h2 className="font-display text-lg font-semibold">Last 24 hours</h2>
+                {visitors.hourly.length === 0 ? (
+                  <p className="mt-2 text-sm text-ink-muted">No hourly traffic yet.</p>
+                ) : (
+                  <ul className="mt-3 space-y-1">
+                    {visitors.hourly.map((h) => {
+                      const max = Math.max(...visitors.hourly.map((x) => x.count), 1);
+                      const pct = Math.max(4, Math.round((h.count / max) * 100));
+                      return (
+                        <li key={h.hour} className="flex items-center gap-3 text-xs">
+                          <span className="w-28 shrink-0 font-mono text-ink-muted">
+                            {when(h.hour).replace(/:\d{2}\s/, " ")}
+                          </span>
+                          <span className="h-2 flex-1 rounded-full bg-mist">
+                            <span
+                              className="block h-2 rounded-full bg-brand/70"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </span>
+                          <span className="w-8 text-right text-ink-muted">{h.count}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              <div className="grid gap-8 lg:grid-cols-2">
+                <div>
+                  <h2 className="font-display text-lg font-semibold">Online visitors</h2>
+                  {visitors.online.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">Nobody online right now.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {visitors.online.map((o) => (
+                        <li key={o.visitorId} className="border-t border-ink/10 pt-2 text-sm">
+                          <p className="font-medium">{o.lastPath || "—"}</p>
+                          <p className="text-xs text-ink-muted">
+                            {[o.city, o.country].filter(Boolean).join(", ") || "Unknown location"}
+                            {o.device ? ` · ${o.device}` : ""} · {when(o.lastSeenAt)}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">Recent visits</h2>
+                  {visitors.recent.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">No visits recorded yet.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {visitors.recent.map((r, i) => (
+                        <li
+                          key={`${r.createdAt}-${r.path}-${i}`}
+                          className="border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <p className="truncate font-medium">{r.path}</p>
+                          <p className="text-xs text-ink-muted">
+                            {[r.city, r.country].filter(Boolean).join(", ") || "Unknown"}
+                            {r.device ? ` · ${r.device}` : ""}
+                            {r.browser ? ` · ${r.browser}` : ""}
+                            {r.utmSource ? ` · utm:${r.utmSource}` : ""} · {when(r.createdAt)}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h2 className="font-display text-lg font-semibold">Spam / bot controls</h2>
+                <p className="mt-1 text-sm text-ink-muted">
+                  Tracking only runs after cookie Accept. Filters apply to page views and funnel
+                  events.
+                </p>
+                <form onSubmit={(e) => void saveVisitorSettings(e)} className="mt-4 space-y-4">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.enabled}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, enabled: e.target.checked }))
+                      }
+                    />
+                    Analytics enabled
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.blockBots}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, blockBots: e.target.checked }))
+                      }
+                    />
+                    Block bots / crawlers
+                  </label>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                      Blocked countries (ISO codes)
+                    </label>
+                    <input
+                      value={settingsForm.blockedCountries}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, blockedCountries: e.target.value }))
+                      }
+                      placeholder="CN, RU, ..."
+                      className="mt-1 w-full rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                      Blocked IP hashes (one per line)
+                    </label>
+                    <textarea
+                      value={settingsForm.blockedIpHashes}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, blockedIpHashes: e.target.value }))
+                      }
+                      rows={3}
+                      placeholder="Paste hashes from logs if needed"
+                      className="mt-1 w-full rounded-xl border border-ink/15 bg-white px-3 py-2 font-mono text-xs focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                      Blocked path prefixes
+                    </label>
+                    <textarea
+                      value={settingsForm.blockedPathPrefixes}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, blockedPathPrefixes: e.target.value }))
+                      }
+                      rows={2}
+                      placeholder={"/wp-admin\n/.env"}
+                      className="mt-1 w-full rounded-xl border border-ink/15 bg-white px-3 py-2 font-mono text-xs focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
+                  </div>
+                  <div className="border-t border-ink/10 pt-4">
+                    <h3 className="font-display text-base font-semibold">Weekly traffic email</h3>
+                    <p className="mt-1 text-xs text-ink-muted">
+                      Mondays via Resend cron (<code className="font-mono">/api/cron/weekly-traffic</code>
+                      ). Needs <code className="font-mono">RESEND_*</code> +{" "}
+                      <code className="font-mono">CRON_SECRET</code>.
+                    </p>
+                    <label className="mt-3 flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.digestEnabled}
+                        onChange={(e) =>
+                          setSettingsForm((s) => ({ ...s, digestEnabled: e.target.checked }))
+                        }
+                      />
+                      Send weekly digest
+                    </label>
+                    <input
+                      type="email"
+                      value={settingsForm.digestEmail}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, digestEmail: e.target.value }))
+                      }
+                      placeholder="you@example.com"
+                      className="mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={settingsBusy}
+                    className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-bright disabled:opacity-60"
+                  >
+                    {settingsBusy ? "Saving…" : "Save controls"}
+                  </button>
+                </form>
+              </div>
+            </>
+          )}
         </section>
       ) : null}
 

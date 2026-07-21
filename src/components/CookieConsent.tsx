@@ -41,6 +41,7 @@ export function CookieConsent() {
     try {
       localStorage.setItem(STORAGE_KEY_CHOICE, choice);
       if (choice === "accepted") localStorage.setItem(STORAGE_KEY, "1");
+      window.dispatchEvent(new CustomEvent("seohub-cookie-choice", { detail: choice }));
     } catch {
       // ignore
     }
