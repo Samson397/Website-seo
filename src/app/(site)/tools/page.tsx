@@ -37,6 +37,16 @@ const TOOL_GROUPS = [
         description: "Generate title, outline, article, FAQs, schema, and internal links.",
       },
       {
+        href: routes.backlinksIntel,
+        title: "Backlink intelligence",
+        description: "Competitor link opportunities and toxic / low-quality review.",
+      },
+      {
+        href: routes.jsRender,
+        title: "JS rendering check",
+        description: "Compare static HTML with a browser-rendered snapshot.",
+      },
+      {
         href: routes.tracker,
         title: "Keyword tracker",
         description: "Save keywords on this device and optional weekly email ranks.",

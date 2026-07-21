@@ -4,36 +4,20 @@ import {
   OAUTH_STATE_COOKIE,
   buildGoogleAuthUrl,
   createOAuthState,
-  getGoogleAdminEmails,
   isGoogleOAuthConfigured,
 } from "@/lib/google-oauth";
-import { isAdminConfigured } from "@/lib/admin-auth";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+/** Optional user Connect Google (Search Console) — not limited to admin emails. */
 export async function GET() {
   const base = getSiteUrl();
-  if (!isAdminConfigured()) {
-    return NextResponse.redirect(
-      new URL("/admin?google_error=" + encodeURIComponent("Admin secret not configured."), base)
-    );
-  }
   if (!isGoogleOAuthConfigured()) {
     return NextResponse.redirect(
       new URL(
-        "/admin?google_error=" +
-          encodeURIComponent("Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET."),
-        base
-      )
-    );
-  }
-  if (getGoogleAdminEmails().length === 0) {
-    return NextResponse.redirect(
-      new URL(
-        "/admin?google_error=" +
-          encodeURIComponent("Set GOOGLE_ADMIN_EMAILS to your Google account email."),
+        "/connect/google?error=" + encodeURIComponent("Google OAuth is not configured."),
         base
       )
     );
@@ -48,7 +32,7 @@ export async function GET() {
     path: "/",
     maxAge: 600,
   });
-  res.cookies.set(OAUTH_INTENT_COOKIE, "admin", {
+  res.cookies.set(OAUTH_INTENT_COOKIE, "user", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
