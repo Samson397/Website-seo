@@ -61,7 +61,8 @@ Alternatives: [KV](docs/vercel-kv-setup.md) · [Firebase](docs/firebase-setup.md
 | `PAGESPEED_API_KEY` | Google Lighthouse Core Web Vitals |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 site tag (`G-…`, consent-gated) |
 | `GA4_PROPERTY_ID` + `GA_SERVICE_ACCOUNT` | GA4 reports in `/admin` → GA4 |
-| `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` + `GOOGLE_ADMIN_EMAILS` | Google sign-in for `/admin` + GA4/GSC tabs |
+| `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` | Connect Google after `/admin` code login (GA4/GSC) |
+| `GOOGLE_ADMIN_EMAILS` | Optional allowlist of Google accounts for admin connect |
 | `GOOGLE_REDIRECT_URI` | OAuth redirect (use `https://www.seohub.online`) |
 | `GSC_SITE_URL` | Optional Search Console property URL |
 | `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlinks, keyword volume, Google rank position |

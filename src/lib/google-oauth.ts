@@ -35,7 +35,10 @@ export function isGoogleOAuthConfigured(): boolean {
   return Boolean(getGoogleClientId() && getGoogleClientSecret());
 }
 
-/** Comma/space-separated allowlist. Empty = Google sign-in disabled even if client is set. */
+/**
+ * Optional allowlist for which Google account may be connected in admin.
+ * Empty = any Google account is allowed after ADMIN_SECRET login.
+ */
 export function getGoogleAdminEmails(): string[] {
   const raw = (process.env.GOOGLE_ADMIN_EMAILS || "").trim();
   if (!raw) return [];
@@ -47,7 +50,7 @@ export function getGoogleAdminEmails(): string[] {
 
 export function isGoogleAdminEmail(email: string): boolean {
   const allow = getGoogleAdminEmails();
-  if (allow.length === 0) return false;
+  if (allow.length === 0) return true;
   return allow.includes(email.trim().toLowerCase());
 }
 
