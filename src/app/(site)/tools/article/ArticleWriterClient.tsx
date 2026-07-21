@@ -56,7 +56,7 @@ export default function ArticleWriterClient() {
         </h1>
         <p className="mt-3 text-sm text-ink-muted">
           Generate an SEO title, outline, article, FAQs, schema, and internal link ideas from a
-          keyword. Uses DeepSeek when configured; otherwise a solid template draft.
+          keyword. Uses DeepSeek for the draft when available; otherwise a solid template draft.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-4 rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">

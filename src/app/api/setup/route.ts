@@ -49,8 +49,14 @@ function checks(): Check[] {
     },
     {
       key: "DATAFORSEO",
-      label: "DataForSEO backlinks",
+      label: "DataForSEO backlinks (optional)",
       ok: Boolean(process.env.DATAFORSEO_LOGIN && process.env.DATAFORSEO_PASSWORD),
+      required: false,
+    },
+    {
+      key: "DEEPSEEK",
+      label: "DeepSeek (AI fix plan + article drafts)",
+      ok: Boolean(process.env.DEEPSEEK_API_KEY),
       required: false,
     },
     {

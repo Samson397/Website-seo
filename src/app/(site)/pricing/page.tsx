@@ -28,9 +28,9 @@ const PAID = [
   "Site-wide duplicate / thin / canonical / hreflang issues",
   "Domain, DNS, SSL & tech overview",
   "CSV / JSON / PDF export + shareable report link",
-  "AI priority fix plan + draft llms.txt (when DeepSeek is configured)",
-  "Email report when Resend is configured",
-  "Opt-in site spotlight on the SEOHub blog (homepage link; needs Neon)",
+  "AI priority fix plan + draft llms.txt",
+  "Email the report to yourself",
+  "Opt-in site spotlight on the SEOHub blog (homepage link)",
 ];
 
 const FAQS = [
