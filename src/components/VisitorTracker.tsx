@@ -2,41 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import {
+  getAnalyticsIds,
+  hasAnalyticsConsent,
+} from "@/lib/analytics-client";
 
-const VISITOR_KEY = "seohub-visitor-id";
-const SESSION_KEY = "seohub-session-id";
-const CHOICE_KEY = "seohub-cookie-choice";
 const HEARTBEAT_MS = 30_000;
-
-function randomId(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-  return `v_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function readOrCreate(storage: Storage, key: string): string {
-  try {
-    const existing = storage.getItem(key);
-    if (existing && existing.length >= 8) return existing;
-    const id = randomId();
-    storage.setItem(key, id);
-    return id;
-  } catch {
-    return randomId();
-  }
-}
-
-function hasAnalyticsConsent(): boolean {
-  try {
-    const choice = localStorage.getItem(CHOICE_KEY);
-    if (choice === "accepted") return true;
-    if (choice === "essential") return false;
-    return Boolean(localStorage.getItem("seohub-cookie-accepted"));
-  } catch {
-    return false;
-  }
-}
 
 function currentPath(pathname: string, searchParams: { toString(): string } | null): string {
   const qs = searchParams?.toString();
@@ -89,13 +60,13 @@ export function VisitorTracker() {
       if (!force && lastPathRef.current === path) return;
       lastPathRef.current = path;
 
-      const visitorId = readOrCreate(localStorage, VISITOR_KEY);
-      const sessionId = readOrCreate(sessionStorage, SESSION_KEY);
-      idsRef.current = { visitorId, sessionId };
+      const ids = getAnalyticsIds();
+      if (!ids) return;
+      idsRef.current = ids;
 
       sendVisit({
-        visitorId,
-        sessionId,
+        visitorId: ids.visitorId,
+        sessionId: ids.sessionId,
         path,
         referrer: typeof document !== "undefined" ? document.referrer || null : null,
         heartbeat: false,
@@ -113,8 +84,9 @@ export function VisitorTracker() {
     const beat = () => {
       if (document.visibilityState !== "visible") return;
       if (!hasAnalyticsConsent()) return;
-      const ids = idsRef.current;
+      const ids = idsRef.current || getAnalyticsIds();
       if (!ids || !lastPathRef.current) return;
+      idsRef.current = ids;
       sendVisit({
         visitorId: ids.visitorId,
         sessionId: ids.sessionId,

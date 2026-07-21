@@ -6,6 +6,7 @@ import { usePaymentsEnabled } from "@/hooks/usePaymentsEnabled";
 import { saveUnlock } from "@/lib/unlock";
 import { routes, scanUrlFor } from "@/lib/routes";
 import { PromoCodesBoard, notifyPromoRedeemed } from "@/components/PromoCodesBoard";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 interface UnlockFullScanProps {
   url?: string;
@@ -24,6 +25,7 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
     setLoading(true);
     setError(null);
     try {
+      trackAnalyticsEvent("checkout_start", { url: url || null });
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,6 +65,8 @@ export function UnlockFullScan({ url, variant = "banner" }: UnlockFullScanProps)
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not redeem code");
       saveUnlock(data.sessionId as string);
+      trackAnalyticsEvent("promo_redeem", { code: String(data.code || code) });
+      trackAnalyticsEvent("unlock", { source: "promo" });
       if (
         typeof data.usedCount === "number" &&
         typeof data.remaining === "number" &&

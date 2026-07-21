@@ -27,6 +27,7 @@ import {
 import { usePaymentsEnabled } from "@/hooks/usePaymentsEnabled";
 import { HomeLaunchPass } from "@/components/HomeLaunchPass";
 import { routes } from "@/lib/routes";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
 import type { CrawlControls } from "@/lib/crawl-options";
 import type { AuditReport, ScanProgressEvent } from "@/lib/types";
 
@@ -220,6 +221,14 @@ export default function HomeScanClient() {
     }
 
     setScanMode(useFull ? "full" : "free");
+
+    trackAnalyticsEvent("scan", { full: useFull, urlHost: (() => {
+      try {
+        return new URL(url.includes("://") ? url : `https://${url}`).hostname;
+      } catch {
+        return null;
+      }
+    })() });
 
     try {
       const response = await fetch("/api/audit/stream", {

@@ -8,6 +8,7 @@ import {
   notifyPromoRedeemed,
   type PromoCodeRow,
 } from "@/components/PromoCodesBoard";
+import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 /** Homepage launch pass — only while a free code still has remaining uses. */
 export function HomeLaunchPass() {
@@ -65,6 +66,8 @@ export function HomeLaunchPass() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not redeem code");
       saveUnlock(data.sessionId as string);
+      trackAnalyticsEvent("promo_redeem", { code: String(data.code || value) });
+      trackAnalyticsEvent("unlock", { source: "promo" });
       notifyPromoRedeemed({
         code: String(data.code || value),
         usedCount: Number(data.usedCount),

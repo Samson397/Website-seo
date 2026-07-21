@@ -26,12 +26,24 @@ type VisitorsSummary = {
     uniqueToday: number;
     unique7d: number;
     unique30d: number;
+    new7d: number;
+    returning7d: number;
+  };
+  funnel: {
+    visitors: number;
+    scans: number;
+    unlocks: number;
+    visitToScanPct: number;
+    scanToUnlockPct: number;
+    visitToUnlockPct: number;
   };
   countries: NamedCount[];
   pages: NamedCount[];
   referrers: NamedCount[];
   devices: NamedCount[];
   browsers: NamedCount[];
+  utmSources: NamedCount[];
+  utmCampaigns: NamedCount[];
   hourly: { hour: string; count: number }[];
   online: {
     visitorId: string;
@@ -48,8 +60,18 @@ type VisitorsSummary = {
     device: string | null;
     browser: string | null;
     referrer: string | null;
+    utmSource: string | null;
     createdAt: string;
   }[];
+  settings: {
+    enabled: boolean;
+    blockBots: boolean;
+    blockedCountries: string[];
+    blockedIpHashes: string[];
+    blockedPathPrefixes: string[];
+    digestEnabled: boolean;
+    digestEmail: string;
+  };
 };
 
 type PromoRow = {
@@ -181,6 +203,16 @@ export default function AdminPage() {
   const [promos, setPromos] = useState<PromoRow[]>([]);
   const [posts, setPosts] = useState<BlogRow[]>([]);
   const [visitors, setVisitors] = useState<VisitorsSummary | null>(null);
+  const [settingsBusy, setSettingsBusy] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({
+    enabled: true,
+    blockBots: true,
+    blockedCountries: "",
+    blockedIpHashes: "",
+    blockedPathPrefixes: "",
+    digestEnabled: false,
+    digestEmail: "",
+  });
 
   const [newCode, setNewCode] = useState("");
   const [newMax, setNewMax] = useState("50");
@@ -224,7 +256,19 @@ export default function AdminPage() {
         }
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Visitors failed");
-        setVisitors(data as VisitorsSummary);
+        const summary = data as VisitorsSummary;
+        setVisitors(summary);
+        if (summary.settings) {
+          setSettingsForm({
+            enabled: summary.settings.enabled,
+            blockBots: summary.settings.blockBots,
+            blockedCountries: summary.settings.blockedCountries.join(", "),
+            blockedIpHashes: summary.settings.blockedIpHashes.join("\n"),
+            blockedPathPrefixes: summary.settings.blockedPathPrefixes.join("\n"),
+            digestEnabled: summary.settings.digestEnabled,
+            digestEmail: summary.settings.digestEmail,
+          });
+        }
         return;
       }
       if (active === "scans") {
@@ -339,6 +383,27 @@ export default function AdminPage() {
     await fetch("/api/admin/logout", { method: "POST" });
     setOverview(null);
     await refreshSession();
+  }
+
+  async function saveVisitorSettings(e: FormEvent) {
+    e.preventDefault();
+    setSettingsBusy(true);
+    setFormMsg(null);
+    try {
+      const res = await fetch("/api/admin/visitors", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settingsForm),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not save settings");
+      setFormMsg("Visitor settings saved.");
+      await loadTab("visitors");
+    } catch (err) {
+      setFormMsg(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSettingsBusy(false);
+    }
   }
 
   async function createPromo(e: FormEvent) {
@@ -653,8 +718,40 @@ export default function AdminPage() {
                     {visitors.totals.views7d}
                   </p>
                   <p className="text-xs text-ink-muted">
-                    {visitors.totals.unique7d} unique · {visitors.totals.views30d} views / 30d
+                    {visitors.totals.unique7d} unique · {visitors.totals.new7d} new /{" "}
+                    {visitors.totals.returning7d} returning
                   </p>
+                </div>
+              </div>
+
+              <div>
+                <h2 className="font-display text-lg font-semibold">Conversion funnel (30d)</h2>
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                    <p className="text-xs uppercase tracking-wide text-ink-muted">Visitors</p>
+                    <p className="mt-1 font-display text-2xl font-semibold">
+                      {visitors.funnel.visitors}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                    <p className="text-xs uppercase tracking-wide text-ink-muted">Scans</p>
+                    <p className="mt-1 font-display text-2xl font-semibold">
+                      {visitors.funnel.scans}
+                    </p>
+                    <p className="text-xs text-ink-muted">
+                      {visitors.funnel.visitToScanPct}% of visitors
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                    <p className="text-xs uppercase tracking-wide text-ink-muted">Unlocks</p>
+                    <p className="mt-1 font-display text-2xl font-semibold">
+                      {visitors.funnel.unlocks}
+                    </p>
+                    <p className="text-xs text-ink-muted">
+                      {visitors.funnel.scanToUnlockPct}% of scans ·{" "}
+                      {visitors.funnel.visitToUnlockPct}% of visitors
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -740,6 +837,44 @@ export default function AdminPage() {
                     </ul>
                   </div>
                 </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">UTM sources</h2>
+                  {visitors.utmSources.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">
+                      No UTM traffic yet. Use <code className="font-mono">?utm_source=</code> links.
+                    </p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {visitors.utmSources.map((u) => (
+                        <li
+                          key={u.name}
+                          className="flex items-center justify-between border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="font-medium">{u.name}</span>
+                          <span className="text-ink-muted">{u.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">UTM campaigns</h2>
+                  {visitors.utmCampaigns.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">No campaign tags yet.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {visitors.utmCampaigns.map((u) => (
+                        <li
+                          key={u.name}
+                          className="flex items-center justify-between border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="font-medium">{u.name}</span>
+                          <span className="text-ink-muted">{u.count}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -804,13 +939,119 @@ export default function AdminPage() {
                           <p className="text-xs text-ink-muted">
                             {[r.city, r.country].filter(Boolean).join(", ") || "Unknown"}
                             {r.device ? ` · ${r.device}` : ""}
-                            {r.browser ? ` · ${r.browser}` : ""} · {when(r.createdAt)}
+                            {r.browser ? ` · ${r.browser}` : ""}
+                            {r.utmSource ? ` · utm:${r.utmSource}` : ""} · {when(r.createdAt)}
                           </p>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
+              </div>
+
+              <div>
+                <h2 className="font-display text-lg font-semibold">Spam / bot controls</h2>
+                <p className="mt-1 text-sm text-ink-muted">
+                  Tracking only runs after cookie Accept. Filters apply to page views and funnel
+                  events.
+                </p>
+                <form onSubmit={(e) => void saveVisitorSettings(e)} className="mt-4 space-y-4">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.enabled}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, enabled: e.target.checked }))
+                      }
+                    />
+                    Analytics enabled
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.blockBots}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, blockBots: e.target.checked }))
+                      }
+                    />
+                    Block bots / crawlers
+                  </label>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                      Blocked countries (ISO codes)
+                    </label>
+                    <input
+                      value={settingsForm.blockedCountries}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, blockedCountries: e.target.value }))
+                      }
+                      placeholder="CN, RU, ..."
+                      className="mt-1 w-full rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                      Blocked IP hashes (one per line)
+                    </label>
+                    <textarea
+                      value={settingsForm.blockedIpHashes}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, blockedIpHashes: e.target.value }))
+                      }
+                      rows={3}
+                      placeholder="Paste hashes from logs if needed"
+                      className="mt-1 w-full rounded-xl border border-ink/15 bg-white px-3 py-2 font-mono text-xs focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                      Blocked path prefixes
+                    </label>
+                    <textarea
+                      value={settingsForm.blockedPathPrefixes}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, blockedPathPrefixes: e.target.value }))
+                      }
+                      rows={2}
+                      placeholder={"/wp-admin\n/.env"}
+                      className="mt-1 w-full rounded-xl border border-ink/15 bg-white px-3 py-2 font-mono text-xs focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
+                  </div>
+                  <div className="border-t border-ink/10 pt-4">
+                    <h3 className="font-display text-base font-semibold">Weekly traffic email</h3>
+                    <p className="mt-1 text-xs text-ink-muted">
+                      Mondays via Resend cron (<code className="font-mono">/api/cron/weekly-traffic</code>
+                      ). Needs <code className="font-mono">RESEND_*</code> +{" "}
+                      <code className="font-mono">CRON_SECRET</code>.
+                    </p>
+                    <label className="mt-3 flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.digestEnabled}
+                        onChange={(e) =>
+                          setSettingsForm((s) => ({ ...s, digestEnabled: e.target.checked }))
+                        }
+                      />
+                      Send weekly digest
+                    </label>
+                    <input
+                      type="email"
+                      value={settingsForm.digestEmail}
+                      onChange={(e) =>
+                        setSettingsForm((s) => ({ ...s, digestEmail: e.target.value }))
+                      }
+                      placeholder="you@example.com"
+                      className="mt-2 w-full rounded-xl border border-ink/15 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={settingsBusy}
+                    className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-bright disabled:opacity-60"
+                  >
+                    {settingsBusy ? "Saving…" : "Save controls"}
+                  </button>
+                </form>
               </div>
             </>
           )}
