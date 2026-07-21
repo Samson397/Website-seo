@@ -30,7 +30,7 @@ const description =
   "Run a free homepage SEO audit with scores out of 10, then unlock a full-site crawl of up to 200 pages with fixes, checklist, and exports. No account required.";
 
 /** Paid unlock amount for schema (mirror Stripe display without currency symbol). */
-const paidPriceAmount = FULL_SCAN_PRICE_LABEL.replace(/^\$/, "") || "0.99";
+const paidPriceAmount = FULL_SCAN_PRICE_LABEL.replace(/^\$/, "") || "4.99";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

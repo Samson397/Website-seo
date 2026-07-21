@@ -22,7 +22,7 @@ No login. No email signup. No private user profiles.
 When Stripe env vars are set:
 
 - **Free** — homepage SEO preview + all toolkit pages
-- **$0.99** — one full-site scan (up to 200 pages), shareable report, deeper site-wide checks
+- **$4.99** — one full-site scan (up to 200 pages), shareable report, deeper site-wide checks
 - **Opt-in blog spotlight** (requires Neon/`DATABASE_URL`) — after a paid full scan, publish a short public post on `/blog` with a homepage link
 
 Paid via Stripe Checkout (one scan per payment). No account.
@@ -71,10 +71,10 @@ Alternatives: [KV](docs/vercel-kv-setup.md) · [Firebase](docs/firebase-setup.md
 | `KV_REST_API_*` / `FIREBASE_SERVICE_ACCOUNT` | Optional alternatives |
 | `DATA_WEBHOOK_URL` | Optional forward of scan events to Zapier/Make/n8n |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` / `NEXT_PUBLIC_ADSENSE_SLOT` | AdSense override + optional display slot (client defaults in code) |
-| `STRIPE_SECRET_KEY` + `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` + `STRIPE_PRICE_ID` | $0.99 per full-site scan |
+| `STRIPE_SECRET_KEY` + `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` + `STRIPE_PRICE_ID` | $4.99 per full-site scan |
 | `DEEPSEEK_API_KEY` | AI priority fix plan on paid full reports |
 | `DEEPSEEK_MODEL` | Optional model id (default `deepseek-chat`) |
-| `NEXT_PUBLIC_STRIPE_PRICE_DISPLAY` | Price label (default `$0.99`) |
+| `NEXT_PUBLIC_STRIPE_PRICE_DISPLAY` | Price label (default `$4.99`) |
 | `RESEND_API_KEY` + `RESEND_FROM_EMAIL` | Email reports + weekly digests |
 | `CRON_SECRET` | Auth for Monday weekly-digest cron |
 

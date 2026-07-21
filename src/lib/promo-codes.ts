@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 import { neon } from "@neondatabase/serverless";
+import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 
 export interface PublicPromoCode {
   code: string;
@@ -252,7 +253,7 @@ export async function redeemPromoCode(
   if (claimed.length === 0) {
     return {
       ok: false,
-      error: "This network already claimed a free unlock. Pay $0.99 for another full scan.",
+      error: `This network already claimed a free unlock. Pay ${FULL_SCAN_PRICE_LABEL} for another full scan.`,
       status: 409,
     };
   }
@@ -280,7 +281,7 @@ export async function redeemPromoCode(
     }
     return {
       ok: false,
-      error: "The free launch pass is fully claimed (first 100). Pay $0.99 for a full scan.",
+      error: `The free launch pass is fully claimed (first 100). Pay ${FULL_SCAN_PRICE_LABEL} for a full scan.`,
       status: 410,
     };
   }
