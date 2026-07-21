@@ -3,6 +3,14 @@
 const VISITOR_KEY = "seohub-visitor-id";
 const SESSION_KEY = "seohub-session-id";
 const CHOICE_KEY = "seohub-cookie-choice";
+const MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "";
+
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}
 
 function randomId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -63,6 +71,8 @@ export function trackAnalyticsEvent(
     meta: meta || null,
   });
 
+  trackGaEvent(eventType, meta);
+
   try {
     if (typeof navigator.sendBeacon === "function") {
       const blob = new Blob([payload], { type: "application/json" });
@@ -81,4 +91,18 @@ export function trackAnalyticsEvent(
   }).catch(() => {
     // ignore
   });
+}
+
+/** Mirror funnel events to GA4 when configured + consented. */
+export function trackGaEvent(name: string, params?: Record<string, unknown>) {
+  if (typeof window === "undefined") return;
+  if (!MEASUREMENT_ID || !MEASUREMENT_ID.startsWith("G-")) return;
+  if (!hasAnalyticsConsent()) return;
+  window.dataLayer = window.dataLayer || [];
+  if (!window.gtag) {
+    window.gtag = function gtag(...args: unknown[]) {
+      window.dataLayer?.push(args);
+    };
+  }
+  window.gtag("event", name, params || {});
 }

@@ -71,7 +71,9 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-display text-xl font-semibold text-ink">Analytics</h2>
           <p className="mt-2 leading-relaxed">
-            We use Vercel Web Analytics to understand traffic (page views, performance).
+            We use first-party visitor analytics (after you accept cookies), Vercel Web Analytics,
+            and optionally Google Analytics 4 when configured. Analytics cookies load only after
+            consent = Accept; “Essential only” keeps them off.
           </p>
         </section>
 

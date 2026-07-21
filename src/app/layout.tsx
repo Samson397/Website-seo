@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { CookieConsent } from "@/components/CookieConsent";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { VisitorTracker } from "@/components/VisitorTracker";
 import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
@@ -145,6 +146,9 @@ export default function RootLayout({
         <CookieConsent />
         <Suspense fallback={null}>
           <VisitorTracker />
+        </Suspense>
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
         </Suspense>
         <Analytics />
       </body>
