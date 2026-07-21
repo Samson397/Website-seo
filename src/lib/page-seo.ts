@@ -29,6 +29,7 @@ export function pageMetadata(opts: {
       title: opts.title,
       description,
       url: path,
+      siteName: "SEOHub",
       images: [OG_IMAGE],
     },
     twitter: {

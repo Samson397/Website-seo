@@ -21,6 +21,7 @@ export function toFreePreviewReport(report: AuditReport): AuditReport {
     scores: report.scores,
     summary: report.summary,
     serpPreview: report.serpPreview,
+    siteBrief: report.siteBrief,
     issues: teaserIssues,
     checklist: summarizeChecklist(report.checklist),
     // AI visibility teaser stays visible — key free differentiator
@@ -70,6 +71,7 @@ export function toCompetitorCompareReport(report: AuditReport): AuditReport {
     scores: report.scores,
     summary: report.summary,
     serpPreview: report.serpPreview,
+    siteBrief: report.siteBrief,
     issues: titleIssues,
     checklist: {
       items,

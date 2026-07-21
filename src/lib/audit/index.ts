@@ -34,6 +34,7 @@ import { fetchBacklinkProfile, runBacklinkAudit } from "@/lib/audit/backlinks";
 import { runDeepChecksAudit } from "@/lib/audit/deep-checks";
 import { runComprehensiveChecksAudit } from "@/lib/audit/comprehensive-checks";
 import { buildSiteChecklist } from "@/lib/audit/checklist";
+import { buildSiteBrief } from "@/lib/audit/site-brief";
 import * as cheerio from "cheerio";
 import {
   AuditOptions,
@@ -291,6 +292,7 @@ export async function runFullAudit(
   onProgress?.({ type: "stage", stage: "score", message: "Scoring results…" });
 
   const pageMeta = extractPageMeta(ctx);
+  const siteBrief = buildSiteBrief(ctx);
   const jsonLdText = cheerio.load(ctx.fetchResult.html)('script[type="application/ld+json"]').text();
 
   const checklist = buildSiteChecklist(
@@ -384,6 +386,7 @@ export async function runFullAudit(
     },
     issues: allIssues,
     summary: computeSummary(allIssues),
+    siteBrief,
     performanceMetrics: perfResult.metrics,
     serpPreview: {
       title: pageMeta.title,

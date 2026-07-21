@@ -9,7 +9,7 @@ import { routes } from "@/lib/routes";
 export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
-  title: "SEO blog — SEOHub",
+  title: "SEO blog & site spotlights — SEOHub",
   description:
     "Practical SEO articles and opted-in site spotlights from full-site audits — written to help your site rank, not to sell a subscription.",
   path: routes.blog,

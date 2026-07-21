@@ -15,6 +15,7 @@ import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
 import { IssueGroupsPanel } from "@/components/IssueGroupsPanel";
 import { AiVisibilityPanel } from "@/components/AiVisibilityPanel";
+import { SiteBriefCard } from "@/components/SiteBriefCard";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 
 interface AuditReportViewProps {
@@ -181,6 +182,8 @@ export function AuditReportView({
           url={report.serpPreview.url}
         />
       )}
+
+      {report.siteBrief ? <SiteBriefCard brief={report.siteBrief} /> : null}
 
       {report.aiVisibility && <AiVisibilityPanel ai={report.aiVisibility} />}
 

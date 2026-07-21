@@ -68,7 +68,7 @@ export default function CompetitorsPageClient() {
     <main className="min-h-screen pb-12">
       <PageHero
         title="Compare competitors"
-        description="Audit up to 10 public websites side by side. Each site gets the same 50+ homepage checks so you can rank gaps quickly."
+        description="Audit up to 10 public websites side by side with the same homepage check suite. We also detect each site’s niche — useful for technical gaps even when niches differ."
       >
         <div className="scan-shell w-full max-w-xl rounded-2xl p-4 sm:p-5">
           <CompetitorUrlInput onSubmit={auditCompetitors} loading={loading} progress={progress} />
@@ -99,10 +99,11 @@ export default function CompetitorsPageClient() {
           <section className="mx-auto mt-10 max-w-xl border-t border-ink/10 pt-8 text-center text-sm text-ink-muted">
             <h2 className="font-display text-lg font-semibold text-ink">How it works</h2>
             <ol className="mx-auto mt-3 max-w-md list-none space-y-2">
-              <li>1. Add competitor domains in your niche.</li>
+              <li>1. Add competitor domains (ideally in the same niche).</li>
               <li>2. Each homepage is scanned with the same check suite.</li>
-              <li>3. Results are ranked by overall score so gaps are obvious.</li>
-              <li>4. Expand any row for the full report.</li>
+              <li>3. We show a brief for what each site is, and warn if niches differ.</li>
+              <li>4. Rankings are technical SEO health — not who wins the market.</li>
+              <li>5. Expand any row for the full report.</li>
             </ol>
           </section>
         )}

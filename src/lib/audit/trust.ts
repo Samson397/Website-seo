@@ -137,27 +137,37 @@ export async function runWwwConsistencyAudit(url: string): Promise<AuditIssue[]>
 
     const currentHasWww = parsed.hostname.startsWith("www.");
     const alternateUrl = currentHasWww ? withoutWww : withWww;
+    const preferredHost = parsed.hostname.toLowerCase();
 
     const alternate = await safeHead(alternateUrl);
+    if (!alternate.ok || alternate.status >= 400) return issues;
 
-    if (alternate.ok && alternate.status < 400) {
-      issues.push(
-        createIssue({
-          category: "seo",
-          severity: "warning",
-          title: "Both www and non-www versions accessible",
-          description:
-            "Having both versions live without redirects causes duplicate content. Pick one canonical version.",
-          currentValue: `Both ${parsed.origin} and ${new URL(alternateUrl).origin} return HTTP ${alternate.status}`,
-          recommendation: "301 redirect one version to the other and set a canonical URL.",
-          fixSnippet: `# Redirect www to non-www (Nginx)
+    let finalHost = "";
+    try {
+      finalHost = new URL(alternate.finalUrl).hostname.toLowerCase();
+    } catch {
+      finalHost = "";
+    }
+
+    // Redirecting the alternate host to the preferred host is the correct setup.
+    if (finalHost && finalHost === preferredHost) return issues;
+
+    issues.push(
+      createIssue({
+        category: "seo",
+        severity: "warning",
+        title: "Both www and non-www versions accessible",
+        description:
+          "Having both versions live without redirects causes duplicate content. Pick one canonical version.",
+        currentValue: `Both ${parsed.origin} and ${new URL(alternateUrl).origin} return HTTP ${alternate.status}`,
+        recommendation: "301 redirect one version to the other and set a canonical URL.",
+        fixSnippet: `# Redirect www to non-www (Nginx)
 server {
   server_name www.example.com;
   return 301 https://example.com$request_uri;
 }`,
-        })
-      );
-    }
+      })
+    );
   } catch {
     // skip if check fails
   }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { CompetitorAuditResult } from "@/lib/competitor-scores";
 import { checklistPassRate, overallScore, rankCompetitorResults } from "@/lib/competitor-scores";
+import { nichesDiffer } from "@/lib/audit/site-brief";
 import { formatUrlDisplay } from "@/lib/url-display";
 import { formatTen } from "@/lib/score-display";
 import { AuditReportView } from "@/components/AuditReport";
@@ -26,14 +27,53 @@ export function CompetitorComparisonPanel({ results }: CompetitorComparisonPanel
   const successful = ranked.filter((r) => r.report);
   const failed = ranked.filter((r) => r.error);
 
+  const nichePairs: { a: string; b: string; nicheA: string; nicheB: string }[] = [];
+  for (let i = 0; i < successful.length; i++) {
+    for (let j = i + 1; j < successful.length; j++) {
+      const ra = successful[i].report!;
+      const rb = successful[j].report!;
+      if (nichesDiffer(ra.siteBrief, rb.siteBrief)) {
+        nichePairs.push({
+          a: successful[i].label || formatUrlDisplay(successful[i].url),
+          b: successful[j].label || formatUrlDisplay(successful[j].url),
+          nicheA: ra.siteBrief!.niche,
+          nicheB: rb.siteBrief!.niche,
+        });
+      }
+    }
+  }
+  const nicheMismatch = nichePairs.length > 0;
+
   return (
     <div className="space-y-8">
+      {nicheMismatch ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
+          <p className="font-semibold">Different niches detected</p>
+          <p className="mt-1 text-amber-900/80">
+            These scores measure technical SEO health with the same check suite — not who wins
+            the market. Comparing different niches (for example SEO software vs wedding venues)
+            is still useful for technical gaps, but rankings are not competitive head-to-head.
+          </p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-amber-900/75">
+            {nichePairs.slice(0, 4).map((p) => (
+              <li key={`${p.a}-${p.b}`}>
+                <span className="font-medium">{p.a}</span> ({p.nicheA}) vs{" "}
+                <span className="font-medium">{p.b}</span> ({p.nicheB})
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <CompetitorGapPanel results={results} />
 
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-bold text-slate-900">Competitor comparison</h2>
         <p className="mt-1 text-sm text-slate-500">
           {successful.length} of {results.length} sites audited successfully
+          {nicheMismatch
+            ? " · scores are technical SEO, not business rivalry"
+            : " · same homepage check suite"}
         </p>
 
         <div className="mt-6 overflow-x-auto">
@@ -90,6 +130,9 @@ export function CompetitorComparisonPanel({ results }: CompetitorComparisonPanel
                       >
                         {formatUrlDisplay(report.url)}
                       </button>
+                      {report.siteBrief?.niche ? (
+                        <p className="mt-0.5 text-xs text-slate-500">{report.siteBrief.niche}</p>
+                      ) : null}
                     </td>
                     <td className={`py-3 pr-4 text-center font-bold ${scoreColor(overall)}`}>
                       {formatTen(overall)}
