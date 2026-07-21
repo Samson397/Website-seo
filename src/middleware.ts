@@ -8,6 +8,18 @@ export function middleware(request: NextRequest) {
   const host = request.headers.get("host")?.split(":")[0]?.toLowerCase();
   if (!host) return NextResponse.next();
 
+  // OAuth web client redirect_uri is https://www.seohub.online — forward code to callback.
+  const { pathname, searchParams } = request.nextUrl;
+  if (
+    pathname === "/" &&
+    searchParams.has("code") &&
+    searchParams.has("state")
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/api/auth/google/callback";
+    return NextResponse.rewrite(url);
+  }
+
   // Local / preview deployments keep their host
   if (host === "localhost" || host.endsWith(".vercel.app")) {
     return NextResponse.next();

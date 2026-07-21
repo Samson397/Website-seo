@@ -40,6 +40,42 @@ function healthChecks() {
           process.env.POSTGRES_URL_NON_POOLING
       ),
     },
+    {
+      key: "GA4_MEASUREMENT",
+      label: "GA4 measurement ID",
+      ok: Boolean(
+        process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID &&
+          process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID.startsWith("G-")
+      ),
+    },
+    {
+      key: "GA4_DATA",
+      label: "GA4 Data API",
+      ok: Boolean(
+        (process.env.GA4_PROPERTY_ID || process.env.GOOGLE_ANALYTICS_PROPERTY_ID) &&
+          (process.env.GA_SERVICE_ACCOUNT ||
+            process.env.GOOGLE_SERVICE_ACCOUNT ||
+            (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET))
+      ),
+    },
+    {
+      key: "GOOGLE_OAUTH",
+      label: "Google admin sign-in",
+      ok: Boolean(
+        process.env.GOOGLE_CLIENT_ID &&
+          process.env.GOOGLE_CLIENT_SECRET &&
+          process.env.GOOGLE_ADMIN_EMAILS
+      ),
+    },
+    {
+      key: "GSC",
+      label: "Search Console OAuth",
+      ok: Boolean(
+        process.env.GOOGLE_CLIENT_ID &&
+          process.env.GOOGLE_CLIENT_SECRET &&
+          process.env.GOOGLE_ADMIN_EMAILS
+      ),
+    },
   ];
 }
 

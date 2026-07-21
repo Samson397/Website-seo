@@ -59,6 +59,11 @@ Alternatives: [KV](docs/vercel-kv-setup.md) · [Firebase](docs/firebase-setup.md
 | Variable | What it enables |
 |----------|-----------------|
 | `PAGESPEED_API_KEY` | Google Lighthouse Core Web Vitals |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | GA4 site tag (`G-…`, consent-gated) |
+| `GA4_PROPERTY_ID` + `GA_SERVICE_ACCOUNT` | GA4 reports in `/admin` → GA4 |
+| `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET` + `GOOGLE_ADMIN_EMAILS` | Google sign-in for `/admin` + GA4/GSC tabs |
+| `GOOGLE_REDIRECT_URI` | OAuth redirect (use `https://www.seohub.online`) |
+| `GSC_SITE_URL` | Optional Search Console property URL |
 | `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` | Backlinks, keyword volume, Google rank position |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for SEOHub’s own SEO |
 | `DATABASE_URL` / `POSTGRES_URL` | Neon on Vercel Storage (usually auto) |
@@ -73,7 +78,8 @@ Alternatives: [KV](docs/vercel-kv-setup.md) · [Firebase](docs/firebase-setup.md
 | `RESEND_API_KEY` + `RESEND_FROM_EMAIL` | Email reports + weekly digests |
 | `CRON_SECRET` | Auth for Monday weekly-digest cron |
 
-Email setup: [docs/resend-setup.md](docs/resend-setup.md)
+Email setup: [docs/resend-setup.md](docs/resend-setup.md)  
+Google Analytics + Search Console + OAuth: [docs/google-setup.md](docs/google-setup.md)
 
 ---
 
