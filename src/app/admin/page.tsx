@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
-type Tab = "overview" | "visitors" | "ga" | "scans" | "payments" | "reports" | "promos" | "blog";
+type Tab = "overview" | "visitors" | "ga" | "gsc" | "scans" | "payments" | "reports" | "promos" | "blog";
 
 type Session = {
   configured: boolean;
@@ -147,6 +147,25 @@ type GaSummary = {
   error?: string;
 };
 
+type GscSummary = {
+  configured: boolean;
+  siteUrl: string | null;
+  preferredSiteUrl?: string;
+  oauthConfigured?: boolean;
+  hasOauthRefresh?: boolean;
+  sites: { siteUrl: string; permissionLevel?: string }[];
+  totals: {
+    clicks28d: number;
+    impressions28d: number;
+    ctr28d: number;
+    position28d: number;
+  };
+  topQueries: { query: string; clicks: number; impressions: number; ctr: number; position: number }[];
+  topPages: { page: string; clicks: number; impressions: number; ctr: number; position: number }[];
+  daily: { date: string; clicks: number; impressions: number }[];
+  error?: string;
+};
+
 type ScanEvent = {
   hostname: string;
   overall: number;
@@ -160,6 +179,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "visitors", label: "Visitors" },
   { id: "ga", label: "GA4" },
+  { id: "gsc", label: "Search Console" },
   { id: "scans", label: "Scans" },
   { id: "payments", label: "Payments" },
   { id: "reports", label: "Reports" },
@@ -230,6 +250,7 @@ export default function AdminPage() {
   const [posts, setPosts] = useState<BlogRow[]>([]);
   const [visitors, setVisitors] = useState<VisitorsSummary | null>(null);
   const [ga, setGa] = useState<GaSummary | null>(null);
+  const [gsc, setGsc] = useState<GscSummary | null>(null);
   const [settingsBusy, setSettingsBusy] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
     enabled: true,
@@ -307,6 +328,17 @@ export default function AdminPage() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "GA4 failed");
         setGa(data as GaSummary);
+        return;
+      }
+      if (active === "gsc") {
+        const res = await fetch("/api/admin/gsc", { cache: "no-store" });
+        if (res.status === 401) {
+          setSession((s) => (s ? { ...s, authenticated: false } : s));
+          return;
+        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Search Console failed");
+        setGsc(data as GscSummary);
         return;
       }
       if (active === "scans") {
@@ -1235,6 +1267,138 @@ export default function AdminPage() {
                         <span className="font-mono text-xs">{d.date}</span>
                         <span className="text-ink-muted">
                           {d.users} users · {d.views} views
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      ) : null}
+
+      {tab === "gsc" ? (
+        <section className="mt-8 space-y-8">
+          {!gsc ? (
+            <p className="text-sm text-ink-muted">Loading Search Console…</p>
+          ) : !gsc.configured ? (
+            <div className="space-y-3 text-sm text-ink-muted">
+              <p>
+                Search Console needs Google admin sign-in with the webmasters.readonly scope, plus a
+                verified property. See <code className="font-mono text-ink">docs/google-setup.md</code>.
+              </p>
+              {gsc.error ? <p className="text-rose-600">{gsc.error}</p> : null}
+              <ul className="list-disc space-y-1 pl-5">
+                <li>OAuth client: {gsc.oauthConfigured ? "set" : "missing GOOGLE_CLIENT_ID/SECRET"}</li>
+                <li>
+                  Preferred site:{" "}
+                  <span className="font-mono text-xs text-ink">
+                    {gsc.preferredSiteUrl || "https://www.seohub.online/"}
+                  </span>
+                </li>
+                <li>
+                  OAuth refresh cookie: {gsc.hasOauthRefresh ? "present" : "sign in with Google once"}
+                </li>
+              </ul>
+              {session.googleOAuth ? (
+                <a
+                  href="/api/auth/google"
+                  className="inline-flex rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-brand/40"
+                >
+                  Re-authorize Google (Search Console)
+                </a>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              <p className="text-xs text-ink-muted">
+                Property{" "}
+                <span className="font-mono">{gsc.siteUrl}</span>
+                {gsc.sites.length > 1 ? ` · ${gsc.sites.length} properties on account` : null}
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <p className="text-xs uppercase tracking-wide text-ink-muted">Clicks (28d)</p>
+                  <p className="mt-1 font-display text-2xl font-semibold">{gsc.totals.clicks28d}</p>
+                </div>
+                <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <p className="text-xs uppercase tracking-wide text-ink-muted">Impressions (28d)</p>
+                  <p className="mt-1 font-display text-2xl font-semibold">
+                    {gsc.totals.impressions28d}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <p className="text-xs uppercase tracking-wide text-ink-muted">CTR (28d)</p>
+                  <p className="mt-1 font-display text-2xl font-semibold">
+                    {(gsc.totals.ctr28d * 100).toFixed(1)}%
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-ink/10 bg-white p-4">
+                  <p className="text-xs uppercase tracking-wide text-ink-muted">Avg position</p>
+                  <p className="mt-1 font-display text-2xl font-semibold">
+                    {gsc.totals.position28d.toFixed(1)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-8 lg:grid-cols-2">
+                <div>
+                  <h2 className="font-display text-lg font-semibold">Top queries (28d)</h2>
+                  {gsc.topQueries.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">No query data yet.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {gsc.topQueries.map((q) => (
+                        <li
+                          key={q.query}
+                          className="flex items-center justify-between gap-3 border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="truncate">{q.query}</span>
+                          <span className="shrink-0 text-ink-muted">
+                            {q.clicks} clicks · pos {q.position.toFixed(1)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div>
+                  <h2 className="font-display text-lg font-semibold">Top pages (28d)</h2>
+                  {gsc.topPages.length === 0 ? (
+                    <p className="mt-2 text-sm text-ink-muted">No page data yet.</p>
+                  ) : (
+                    <ul className="mt-3 space-y-2">
+                      {gsc.topPages.map((p) => (
+                        <li
+                          key={p.page}
+                          className="flex items-center justify-between gap-3 border-t border-ink/10 pt-2 text-sm"
+                        >
+                          <span className="truncate font-mono text-xs">{p.page}</span>
+                          <span className="shrink-0 text-ink-muted">
+                            {p.clicks} clicks · {p.impressions} imp
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h2 className="font-display text-lg font-semibold">Daily (14d)</h2>
+                {gsc.daily.length === 0 ? (
+                  <p className="mt-2 text-sm text-ink-muted">No daily series yet.</p>
+                ) : (
+                  <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto">
+                    {gsc.daily.map((d) => (
+                      <li
+                        key={d.date}
+                        className="flex items-center justify-between border-t border-ink/10 pt-2 text-sm"
+                      >
+                        <span className="font-mono text-xs">{d.date}</span>
+                        <span className="text-ink-muted">
+                          {d.clicks} clicks · {d.impressions} impressions
                         </span>
                       </li>
                     ))}

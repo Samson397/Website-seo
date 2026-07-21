@@ -5,6 +5,7 @@ export const GOOGLE_RT_COOKIE = "seohub_google_rt";
 export const OAUTH_STATE_COOKIE = "seohub_oauth_state";
 
 const ANALYTICS_READONLY = "https://www.googleapis.com/auth/analytics.readonly";
+const WEBMASTERS_READONLY = "https://www.googleapis.com/auth/webmasters.readonly";
 
 export function getGoogleClientId(): string {
   return (process.env.GOOGLE_CLIENT_ID || "").trim();
@@ -44,7 +45,7 @@ export function getGoogleRedirectUri(): string {
 }
 
 export function googleOAuthScopes(): string {
-  return ["openid", "email", "profile", ANALYTICS_READONLY].join(" ");
+  return ["openid", "email", "profile", ANALYTICS_READONLY, WEBMASTERS_READONLY].join(" ");
 }
 
 function signState(nonce: string): string {

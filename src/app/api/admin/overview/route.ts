@@ -67,6 +67,15 @@ function healthChecks() {
           process.env.GOOGLE_ADMIN_EMAILS
       ),
     },
+    {
+      key: "GSC",
+      label: "Search Console OAuth",
+      ok: Boolean(
+        process.env.GOOGLE_CLIENT_ID &&
+          process.env.GOOGLE_CLIENT_SECRET &&
+          process.env.GOOGLE_ADMIN_EMAILS
+      ),
+    },
   ];
 }
 
