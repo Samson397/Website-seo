@@ -19,7 +19,7 @@ const TOOL_GROUPS = [
       {
         href: routes.keywords,
         title: "Keyword research",
-        description: "Extract phrases from a page plus Google autocomplete suggestions.",
+        description: "Volume, CPC, intent, clusters, and page-type recommendations.",
       },
       {
         href: routes.rankChecker,
@@ -32,9 +32,14 @@ const TOOL_GROUPS = [
         description: "Score copy against a target keyword with actionable fixes.",
       },
       {
+        href: routes.articleWriter,
+        title: "AI article writer",
+        description: "Generate title, outline, article, FAQs, schema, and internal links.",
+      },
+      {
         href: routes.tracker,
         title: "Keyword tracker",
-        description: "Save keywords on this device and re-check rank signals anytime.",
+        description: "Save keywords on this device and optional weekly email ranks.",
       },
     ],
   },
@@ -94,7 +99,7 @@ const TOOL_GROUPS = [
       {
         href: routes.competitors,
         title: "Competitor compare",
-        description: "Audit up to 10 sites side by side.",
+        description: "Side-by-side audits plus sitemap page-gap findings.",
       },
       {
         href: routes.compare,
