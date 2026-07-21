@@ -37,7 +37,10 @@ export function isGoogleAdminEmail(email: string): boolean {
 export function getGoogleRedirectUri(): string {
   const override = (process.env.GOOGLE_REDIRECT_URI || "").trim();
   if (override) return override.replace(/\/$/, "");
-  return `${getSiteUrl()}/api/auth/google/callback`;
+  // Prefer registered web-client origin (homepage); middleware rewrites ?code to the API callback.
+  const site = getSiteUrl();
+  if (site.includes("seohub.online")) return site;
+  return `${site}/api/auth/google/callback`;
 }
 
 export function googleOAuthScopes(): string {
