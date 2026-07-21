@@ -431,7 +431,8 @@ export function buildSiteChecklist(
   );
 
   items.push(
-    $('a[href="#main"], a[href="#content"], .skip-link, a.skip').length > 0
+    $('a[href="#main"], a[href="#content"], a[href="#main-content"], .skip-link, a.skip')
+      .length > 0
       ? item("skip", "Skip link", "pass", "accessibility", "Skip-to-content link found.")
       : item("skip", "Skip link", "attention", "accessibility", "No skip link detected.", "Add a skip link as the first focusable element.")
   );

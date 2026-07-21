@@ -4,7 +4,7 @@ import { routes } from "@/lib/routes";
 import { GUIDES } from "@/lib/guides";
 
 export const metadata = {
-  title: "SEO fix guides — SEOHub",
+  title: "SEO fix guides for common check failures",
   description:
     "Practical guides for the most common SEOHub check failures — titles, meta descriptions, canonicals, security headers, broken links, and structured data. Free, no account.",
   alternates: { canonical: "/guides" },

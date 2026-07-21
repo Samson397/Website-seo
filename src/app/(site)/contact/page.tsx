@@ -4,7 +4,7 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/brand";
 import { routes } from "@/lib/routes";
 
 export const metadata = {
-  title: "Contact — SEOHub",
+  title: "Contact SEOHub support — help & refunds",
   description:
     "Contact SEOHub support for payment help, refunds when we fail to deliver a paid unlock, or product questions about scans and free tools. No account required.",
   alternates: { canonical: "/contact" },

@@ -9,6 +9,13 @@ export function getSampleReport(): AuditReport {
     scannedAt: "2026-07-15T12:00:00.000Z",
     tier: "full",
     scores: { seo: 72, performance: 81, accessibility: 88, security: 76, ai: 64 },
+    siteBrief: {
+      niche: "SaaS / software",
+      confidence: 0.7,
+      summary:
+        "Example Domain looks like a SaaS / software site. Example Domain — Sample SEOHub Report for illustrating scores, crawl coverage, and fix recommendations.",
+      signals: ["title: Example Domain", "keyword: sample"],
+    },
     aiVisibility: {
       score: 64,
       botsAllowed: ["GPTBot", "ClaudeBot", "PerplexityBot", "Google-Extended"],

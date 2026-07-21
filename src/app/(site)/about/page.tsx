@@ -4,7 +4,7 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/brand";
 import { routes } from "@/lib/routes";
 
 export const metadata = {
-  title: "About — SEOHub",
+  title: "About SEOHub — browser-first SEO audits",
   description:
     "Why SEOHub exists: full-site SEO audits, free tools, and a pay-per-scan unlock — built for founders who want clear fixes without another SaaS login.",
   alternates: { canonical: "/about" },

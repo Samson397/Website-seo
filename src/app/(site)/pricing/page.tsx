@@ -5,7 +5,7 @@ import { routes } from "@/lib/routes";
 import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 
 export const metadata = {
-  title: "Pricing — SEOHub",
+  title: "SEOHub pricing — pay per full-site scan",
   description: `Free SEO score preview with AI visibility. Unlock one full-site crawl and complete fixes for ${FULL_SCAN_PRICE_LABEL} — no subscription and no account required.`,
   alternates: { canonical: "/pricing" },
 };

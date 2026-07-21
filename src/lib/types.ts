@@ -211,12 +211,21 @@ export interface AuditOptions {
   onProgress?: (event: Exclude<ScanProgressEvent, { type: "done" } | { type: "error" }>) => void;
 }
 
+export interface SiteBrief {
+  niche: string;
+  confidence: number;
+  summary: string;
+  signals: string[];
+}
+
 export interface AuditReport {
   url: string;
   scannedAt: string;
   scores: AuditScores;
   issues: AuditIssue[];
   summary: AuditSummary;
+  /** Plain-language niche + what the site appears to be */
+  siteBrief?: SiteBrief;
   performanceMetrics?: PerformanceMetrics;
   performanceNote?: string;
   serpPreview?: SerpPreview;

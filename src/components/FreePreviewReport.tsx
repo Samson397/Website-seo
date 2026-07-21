@@ -5,6 +5,7 @@ import { ScoreGauge } from "@/components/ScoreGauge";
 import { UnlockFullScan } from "@/components/UnlockFullScan";
 import { SerpPreview } from "@/components/SerpPreview";
 import { AiVisibilityPanel } from "@/components/AiVisibilityPanel";
+import { SiteBriefCard } from "@/components/SiteBriefCard";
 import { categoryLabel } from "@/lib/issue-summary";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 import type { AuditReport } from "@/lib/types";
@@ -69,6 +70,8 @@ export function FreePreviewReport({ report, onRescan, rescanLoading }: FreePrevi
           <ScoreGauge label="AI visibility" score={report.scores.ai ?? 0} />
         </div>
       </section>
+
+      {report.siteBrief ? <SiteBriefCard brief={report.siteBrief} /> : null}
 
       <section className="rounded-3xl border border-ink/10 bg-ink px-6 py-6 text-white sm:px-8">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-bright">

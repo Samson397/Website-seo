@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/page-seo";
 import { routes } from "@/lib/routes";
 
 export const metadata = pageMetadata({
-  title: "Free SEO tools — SEOHub",
+  title: "Free SEO toolkit — keywords, meta & more",
   description:
     "Free SEO toolkit: keyword research, meta preview, robots and sitemap inspectors, security headers, redirects, schema, broken links, and generators. No account required.",
   path: "/tools",
