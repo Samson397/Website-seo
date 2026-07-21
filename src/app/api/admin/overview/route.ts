@@ -30,6 +30,16 @@ function healthChecks() {
           (process.env.INSIGHTS_SECRET && process.env.INSIGHTS_SECRET.length >= 8)
       ),
     },
+    {
+      key: "ANALYTICS",
+      label: "Visitor analytics DB",
+      ok: Boolean(
+        process.env.DATABASE_URL ||
+          process.env.POSTGRES_URL ||
+          process.env.POSTGRES_PRISMA_URL ||
+          process.env.POSTGRES_URL_NON_POOLING
+      ),
+    },
   ];
 }
 

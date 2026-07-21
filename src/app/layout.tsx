@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { CookieConsent } from "@/components/CookieConsent";
+import { VisitorTracker } from "@/components/VisitorTracker";
 import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
@@ -141,6 +143,9 @@ export default function RootLayout({
       <body className="font-body antialiased">
         {children}
         <CookieConsent />
+        <Suspense fallback={null}>
+          <VisitorTracker />
+        </Suspense>
         <Analytics />
       </body>
     </html>
