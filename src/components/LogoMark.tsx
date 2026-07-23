@@ -20,13 +20,18 @@ export function LogoMark({
   const width = Math.round(height * (720 / 803));
 
   return (
-    <Image
-      src="/logo.png"
-      alt="SEOHub"
-      width={width}
-      height={height}
-      priority={priority}
-      className="shrink-0 object-contain"
-    />
+    <span
+      className="inline-flex shrink-0 items-center justify-center overflow-hidden"
+      style={{ width, height }}
+    >
+      <Image
+        src="/logo.png"
+        alt="SEOHub"
+        width={width}
+        height={height}
+        priority={priority}
+        className="object-contain"
+      />
+    </span>
   );
 }
