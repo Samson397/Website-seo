@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import type { AuditReport, AuditCategory } from "@/lib/types";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import type { AuditReport, AuditCategory, Severity } from "@/lib/types";
 import { formatUrlDisplay } from "@/lib/url-display";
 import { ProblemsSummary } from "@/components/ProblemsSummary";
 import { ScoreGauge } from "@/components/ScoreGauge";
@@ -15,6 +15,8 @@ import { SiteCrawlPanel } from "@/components/SiteCrawlPanel";
 import { SiteOverviewPanel } from "@/components/SiteOverviewPanel";
 import { IssueGroupsPanel } from "@/components/IssueGroupsPanel";
 import { AiVisibilityPanel } from "@/components/AiVisibilityPanel";
+import { HealthPillarsPanel } from "@/components/HealthPillarsPanel";
+import { buildHealthPillars } from "@/lib/health-pillars";
 import { formatTenLabel, overallFromScores } from "@/lib/score-display";
 
 interface AuditReportViewProps {
@@ -39,6 +41,13 @@ const CATEGORIES: { key: AuditCategory | "all"; label: string }[] = [
   { key: "domain", label: "Domain" },
 ];
 
+const SEVERITIES: { key: Severity | "all"; label: string }[] = [
+  { key: "all", label: "All priorities" },
+  { key: "critical", label: "Critical" },
+  { key: "warning", label: "High" },
+  { key: "info", label: "Medium / Low" },
+];
+
 function storageKey(url: string) {
   return `audit-resolved-${url}`;
 }
@@ -56,8 +65,11 @@ export function AuditReportView({
   const [internalFilter, setInternalFilter] = useState<AuditCategory | "all">("all");
   const filter = controlledFilter ?? internalFilter;
   const setFilter = onCategoryFilterChange ?? setInternalFilter;
+  const [severityFilter, setSeverityFilter] = useState<Severity | "all">("all");
   const [resolved, setResolved] = useState<Set<string>>(new Set());
   const [hideResolved, setHideResolved] = useState(false);
+
+  const pillars = useMemo(() => buildHealthPillars(report), [report]);
 
   useEffect(() => {
     try {
@@ -83,11 +95,14 @@ export function AuditReportView({
 
   const filteredIssues = report.issues.filter((i) => {
     if (filter !== "all" && i.category !== filter) return false;
+    if (severityFilter !== "all" && i.severity !== severityFilter) return false;
     if (hideResolved && resolved.has(i.id)) return false;
     return true;
   });
 
   const resolvedCount = report.issues.filter((i) => resolved.has(i.id)).length;
+  const exportIsFiltered =
+    filter !== "all" || severityFilter !== "all" || (hideResolved && resolvedCount > 0);
 
   return (
     <div className="mt-10 space-y-8">
@@ -120,6 +135,7 @@ export function AuditReportView({
             <div className="flex flex-wrap gap-2">
               {onRescan && (
                 <button
+                  type="button"
                   onClick={onRescan}
                   disabled={rescanLoading}
                   className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink-soft disabled:opacity-60"
@@ -127,7 +143,10 @@ export function AuditReportView({
                   {rescanLoading ? "Re-scanning…" : "Re-scan"}
                 </button>
               )}
-              <ExportButtons report={report} />
+              <ExportButtons
+                report={report}
+                issues={exportIsFiltered ? filteredIssues : undefined}
+              />
               <EmailReportButton report={report} />
             </div>
             <ShareReportButton report={report} />
@@ -136,10 +155,10 @@ export function AuditReportView({
                 {report.summary.critical} critical
               </span>
               <span className="rounded-lg bg-amber-soft px-3 py-1 font-medium text-amber-900">
-                {report.summary.warning} warnings
+                {report.summary.warning} high
               </span>
               <span className="rounded-lg bg-teal-soft px-3 py-1 font-medium text-teal">
-                {report.summary.info} info
+                {report.summary.info} medium
               </span>
             </div>
           </div>
@@ -196,6 +215,8 @@ export function AuditReportView({
           )}
       </div>
 
+      <HealthPillarsPanel pillars={pillars} />
+
       {report.serpPreview && (
         <SerpPreview
           title={report.serpPreview.title}
@@ -215,16 +236,38 @@ export function AuditReportView({
       <div id="audit-issues">
         <div className="mb-2">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">Issues</p>
-          <h3 className="font-display mt-1 text-xl font-semibold text-ink">Everything we found</h3>
+          <h3 className="font-display mt-1 text-xl font-semibold text-ink">Fix queue</h3>
           <p className="text-sm text-ink-muted">
-            SEO, security, performance, accessibility, links, and domain — with fix recommendations.
+            Prioritised by Critical → High → Medium. Filter, mark done, export what you see.
           </p>
+        </div>
+        <div className="mb-3 flex flex-wrap gap-2">
+          {SEVERITIES.map((sev) => (
+            <button
+              key={sev.key}
+              type="button"
+              onClick={() => setSeverityFilter(sev.key)}
+              className={`rounded-xl px-3 py-1.5 text-sm font-medium transition ${
+                severityFilter === sev.key
+                  ? "bg-teal text-white"
+                  : "bg-white text-ink-muted ring-1 ring-ink/10 hover:bg-paper"
+              }`}
+            >
+              {sev.label}
+              {sev.key !== "all" && (
+                <span className="ml-1 opacity-70">
+                  ({report.issues.filter((i) => i.severity === sev.key).length})
+                </span>
+              )}
+            </button>
+          ))}
         </div>
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-2">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.key}
+                type="button"
                 onClick={() => setFilter(cat.key)}
                 className={`rounded-xl px-4 py-1.5 text-sm font-medium transition ${
                   filter === cat.key
@@ -264,7 +307,7 @@ export function AuditReportView({
             <p className="mt-1 text-sm text-ink-muted">
               {hideResolved
                 ? "Uncheck “Hide resolved” to see completed items."
-                : "This category looks good for the scanned page."}
+                : "Try another priority or category."}
             </p>
           </div>
         ) : (

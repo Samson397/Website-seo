@@ -17,6 +17,13 @@ const SEVERITY_STYLES = {
   info: "border-blue-200 bg-blue-50 text-blue-800",
 };
 
+const PRIORITY_STYLES = {
+  Critical: "bg-rose-600 text-white",
+  High: "bg-amber-600 text-white",
+  Medium: "bg-ink/80 text-white",
+  Low: "bg-ink/40 text-white",
+};
+
 const CATEGORY_LABELS: Record<string, string> = {
   seo: "SEO",
   performance: "Performance",
@@ -36,6 +43,8 @@ export function IssueCard({ issue, resolved, onToggleResolved, aiHint }: IssueCa
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const priority = issue.priorityLabel;
+
   return (
     <div
       className={`rounded-lg border bg-white p-5 shadow-sm transition ${
@@ -54,20 +63,42 @@ export function IssueCard({ issue, resolved, onToggleResolved, aiHint }: IssueCa
             <span className={resolved ? "line-through" : ""}>Done</span>
           </label>
         )}
-        <span
-          className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase ${SEVERITY_STYLES[issue.severity]}`}
-        >
-          {issue.severity}
-        </span>
+        {priority ? (
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase ${PRIORITY_STYLES[priority]}`}
+          >
+            {priority}
+          </span>
+        ) : (
+          <span
+            className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase ${SEVERITY_STYLES[issue.severity]}`}
+          >
+            {issue.severity}
+          </span>
+        )}
         <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
           {CATEGORY_LABELS[issue.category] || issue.category}
         </span>
+        {issue.impact ? (
+          <span className="rounded-full bg-mist px-2.5 py-0.5 text-xs font-medium text-ink-muted">
+            Impact {issue.impact}
+          </span>
+        ) : null}
+        {issue.difficulty ? (
+          <span className="rounded-full bg-mist px-2.5 py-0.5 text-xs font-medium text-ink-muted">
+            {issue.difficulty} fix
+          </span>
+        ) : null}
+        {issue.timeEstimate ? (
+          <span className="rounded-full bg-mist px-2.5 py-0.5 text-xs font-medium text-ink-muted">
+            {issue.timeEstimate}
+          </span>
+        ) : null}
       </div>
 
       <h3 className={`text-lg font-semibold text-slate-900 ${resolved ? "line-through" : ""}`}>
         {issue.title}
       </h3>
-      <p className="mt-2 text-sm text-slate-600">{issue.description}</p>
 
       {aiHint ? (
         <div className="mt-3 rounded-lg border border-teal/20 bg-teal-soft/40 px-3 py-3">
@@ -77,6 +108,11 @@ export function IssueCard({ issue, resolved, onToggleResolved, aiHint }: IssueCa
         </div>
       ) : null}
 
+      <p className="mt-3 text-sm">
+        <span className="font-medium text-slate-700">Why this matters: </span>
+        <span className="text-slate-600">{issue.description}</span>
+      </p>
+
       {issue.currentValue && (
         <div className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm">
           <span className="font-medium text-slate-700">Current: </span>
@@ -85,7 +121,7 @@ export function IssueCard({ issue, resolved, onToggleResolved, aiHint }: IssueCa
       )}
 
       <p className="mt-3 text-sm">
-        <span className="font-medium text-slate-700">Recommendation: </span>
+        <span className="font-medium text-slate-700">What to do: </span>
         <span className="text-slate-600">{issue.recommendation}</span>
       </p>
 
@@ -93,10 +129,11 @@ export function IssueCard({ issue, resolved, onToggleResolved, aiHint }: IssueCa
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Fix snippet
+              Copy-ready fix
             </span>
             <button
-              onClick={copyFix}
+              type="button"
+              onClick={() => void copyFix()}
               className="rounded-md bg-slate-800 px-3 py-1 text-xs font-medium text-white transition hover:bg-slate-700"
             >
               {copied ? "Copied!" : "Copy fix"}

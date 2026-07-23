@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { PageHero, PrimaryCta } from "@/components/ui/PageHero";
+import { ScoreHistoryChart } from "@/components/ScoreHistoryChart";
+import { ScanComparisonPanel } from "@/components/ScanComparisonPanel";
 import {
   clearScanHistory,
   clearWatchlist,
+  getReportStub,
   getScanHistory,
   getWatchlist,
   getWatchlistDueForRescan,
+  historyForHostname,
+  stubToReport,
   toggleWatch,
   WATCH_RESCAN_DAYS,
   type HistoryEntry,
@@ -21,19 +26,56 @@ export default function HistoryPage() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [watchlist, setWatchlist] = useState<WatchItem[]>([]);
   const [ready, setReady] = useState(false);
-
   const [due, setDue] = useState<WatchItem[]>([]);
+  const [chartHost, setChartHost] = useState<string>("");
+  const [compareA, setCompareA] = useState<string>("");
+  const [compareB, setCompareB] = useState<string>("");
 
   function refresh() {
-    setHistory(getScanHistory());
+    const next = getScanHistory();
+    setHistory(next);
     setWatchlist(getWatchlist());
     setDue(getWatchlistDueForRescan());
     setReady(true);
+    if (!chartHost && next[0]?.hostname) {
+      setChartHost(next[0].hostname);
+    }
   }
 
   useEffect(() => {
     refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const hosts = useMemo(() => {
+    const seen = new Set<string>();
+    const list: string[] = [];
+    for (const h of history) {
+      if (!seen.has(h.hostname)) {
+        seen.add(h.hostname);
+        list.push(h.hostname);
+      }
+    }
+    return list;
+  }, [history]);
+
+  const hostHistory = chartHost ? historyForHostname(chartHost) : [];
+  const compareOptions = hostHistory.filter((h) => h.stubId);
+
+  const comparison =
+    compareA && compareB && compareA !== compareB
+      ? (() => {
+          const a = getReportStub(compareA);
+          const b = getReportStub(compareB);
+          if (!a || !b) return null;
+          // older as previous, newer as current
+          const [prev, curr] =
+            new Date(a.scannedAt).getTime() <= new Date(b.scannedAt).getTime()
+              ? [a, b]
+              : [b, a];
+          return { previous: stubToReport(prev), current: stubToReport(curr) };
+        })()
+      : null;
 
   const empty = ready && history.length === 0 && watchlist.length === 0;
 
@@ -42,7 +84,7 @@ export default function HistoryPage() {
       <PageHero
         eyebrow="On this device"
         title="History"
-        description="Recent scans and your watchlist stay in this browser — no account. Re-scan anytime to check weekly."
+        description="Track score progress, compare past scans, and re-check watched sites — stored in this browser only."
         actions={<PrimaryCta href={routes.home}>New scan</PrimaryCta>}
       />
 
@@ -85,6 +127,91 @@ export default function HistoryPage() {
         )}
 
         {watchlist.length > 0 && <DigestSignup watchlist={watchlist} />}
+
+        {hosts.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal">
+                  Progress
+                </p>
+                <h2 className="font-display mt-1 text-2xl font-semibold text-ink">
+                  Score over time
+                </h2>
+              </div>
+              <label className="text-sm text-ink-muted">
+                Site{" "}
+                <select
+                  value={chartHost}
+                  onChange={(e) => {
+                    setChartHost(e.target.value);
+                    setCompareA("");
+                    setCompareB("");
+                  }}
+                  className="ml-2 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-ink"
+                >
+                  {hosts.map((h) => (
+                    <option key={h} value={h}>
+                      {h}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <ScoreHistoryChart entries={history} hostname={chartHost} />
+
+            {compareOptions.length >= 2 && (
+              <div className="rounded-2xl border border-ink/10 bg-white p-5 shadow-sm">
+                <h3 className="font-display text-lg font-semibold text-ink">
+                  Compare two scans
+                </h3>
+                <p className="mt-1 text-sm text-ink-muted">
+                  Side-by-side fixed vs new issues from saved reports on this device.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <label className="text-sm text-ink-muted">
+                    Older{" "}
+                    <select
+                      value={compareA}
+                      onChange={(e) => setCompareA(e.target.value)}
+                      className="ml-2 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-ink"
+                    >
+                      <option value="">Select…</option>
+                      {compareOptions.map((h) => (
+                        <option key={h.stubId} value={h.stubId}>
+                          {new Date(h.scannedAt).toLocaleString()} · {h.overall}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="text-sm text-ink-muted">
+                    Newer{" "}
+                    <select
+                      value={compareB}
+                      onChange={(e) => setCompareB(e.target.value)}
+                      className="ml-2 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-ink"
+                    >
+                      <option value="">Select…</option>
+                      {compareOptions.map((h) => (
+                        <option key={h.stubId} value={h.stubId}>
+                          {new Date(h.scannedAt).toLocaleString()} · {h.overall}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                {comparison ? (
+                  <div className="mt-4">
+                    <ScanComparisonPanel
+                      previous={comparison.previous}
+                      current={comparison.current}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </section>
+        )}
 
         {watchlist.length > 0 && (
           <section>
@@ -184,7 +311,7 @@ export default function HistoryPage() {
                         >
                           {" "}
                           ({item.scoreDelta > 0 ? "↑" : "↓"}
-                          {Math.abs(item.scoreDelta)} since last scan)
+                          {Math.abs(item.scoreDelta)} since previous)
                         </span>
                       ) : null}
                       {item.pagesScanned != null ? ` · ${item.pagesScanned} pages` : ""}
@@ -209,7 +336,7 @@ export default function HistoryPage() {
               ))}
             </ul>
             <p className="mt-4 text-xs text-ink-muted">
-              Stored in this browser only. Clearing site data removes history.
+              Stored in this browser only. Clearing site data removes history and compare stubs.
             </p>
           </section>
         )}

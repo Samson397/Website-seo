@@ -1,11 +1,13 @@
-import type { AuditReport } from "@/lib/types";
+import type { AuditIssue, AuditReport, AuditScores, AuditSummary, SiteChecklist } from "@/lib/types";
 
 const HISTORY_KEY = "seohub-scan-history-v1";
 const HISTORY_KEY_LEGACY = "seoscan-scan-history-v1";
 const WATCHLIST_KEY = "seohub-watchlist-v1";
 const WATCHLIST_KEY_LEGACY = "seoscan-watchlist-v1";
-const MAX_HISTORY = 25;
+const STUBS_KEY = "seohub-report-stubs-v1";
+const MAX_HISTORY = 40;
 const MAX_WATCH = 12;
+const MAX_STUBS = 12;
 /** Re-scan watchlist items after this many days */
 export const WATCH_RESCAN_DAYS = 7;
 
@@ -22,6 +24,8 @@ export interface HistoryEntry {
   pagesScanned?: number;
   failCount?: number;
   passCount?: number;
+  /** Links to a stored stub for side-by-side compare */
+  stubId?: string;
 }
 
 export interface WatchItem {
@@ -30,6 +34,22 @@ export interface WatchItem {
   addedAt: string;
   lastOverall?: number;
   lastScannedAt?: string;
+}
+
+/** Slim report kept in localStorage for history compare (no crawl page list). */
+export interface StoredReportStub {
+  id: string;
+  url: string;
+  hostname: string;
+  scannedAt: string;
+  overall: number;
+  scores: AuditScores;
+  summary: AuditSummary;
+  issues: Pick<
+    AuditIssue,
+    "category" | "severity" | "title" | "description" | "recommendation" | "priorityLabel"
+  >[];
+  checklist?: Pick<SiteChecklist, "passCount" | "failCount" | "attentionCount" | "items">;
 }
 
 function overallFromScores(scores: AuditReport["scores"]): number {
@@ -80,13 +100,95 @@ export function getScanHistory(): HistoryEntry[] {
   return readJson<HistoryEntry[]>(HISTORY_KEY, HISTORY_KEY_LEGACY, []);
 }
 
+function slimReport(report: AuditReport): StoredReportStub {
+  const hostname = hostnameFromUrl(report.url);
+  const overall = overallFromScores(report.scores);
+  return {
+    id: `${hostname}::${report.scannedAt}`,
+    url: report.url,
+    hostname,
+    scannedAt: report.scannedAt,
+    overall,
+    scores: report.scores,
+    summary: report.summary,
+    issues: report.issues.slice(0, 80).map((i) => ({
+      category: i.category,
+      severity: i.severity,
+      title: i.title,
+      description: i.description,
+      recommendation: i.recommendation,
+      priorityLabel: i.priorityLabel,
+    })),
+    checklist: report.checklist
+      ? {
+          passCount: report.checklist.passCount,
+          failCount: report.checklist.failCount,
+          attentionCount: report.checklist.attentionCount,
+          items: report.checklist.items,
+        }
+      : undefined,
+  };
+}
+
+function getStubs(): StoredReportStub[] {
+  if (typeof window === "undefined") return [];
+  return readJson<StoredReportStub[]>(STUBS_KEY, STUBS_KEY, []);
+}
+
+function saveStub(report: AuditReport): string {
+  const stub = slimReport(report);
+  const prev = getStubs().filter((s) => s.id !== stub.id);
+  writeJson(STUBS_KEY, [stub, ...prev].slice(0, MAX_STUBS));
+  return stub.id;
+}
+
+export function getReportStub(id: string): StoredReportStub | null {
+  return getStubs().find((s) => s.id === id) || null;
+}
+
+export function getReportStubsForHost(hostname: string): StoredReportStub[] {
+  return getStubs().filter((s) => s.hostname === hostname);
+}
+
+/** Convert a stub into a minimal AuditReport for ScanComparisonPanel. */
+export function stubToReport(stub: StoredReportStub): AuditReport {
+  return {
+    url: stub.url,
+    scannedAt: stub.scannedAt,
+    scores: stub.scores,
+    summary: stub.summary,
+    issues: stub.issues.map((i, idx) => ({
+      id: `stub-${idx}`,
+      category: i.category,
+      severity: i.severity,
+      title: i.title,
+      description: i.description,
+      recommendation: i.recommendation,
+      priorityLabel: i.priorityLabel,
+    })),
+    checklist: stub.checklist
+      ? {
+          ...stub.checklist,
+          hasCount: stub.checklist.passCount,
+          missingCount: stub.checklist.failCount,
+          warningCount: stub.checklist.attentionCount,
+          summary: `${stub.checklist.passCount} pass · ${stub.checklist.failCount} fail · ${stub.checklist.attentionCount} attention`,
+        }
+      : undefined,
+    tier: "full",
+  };
+}
+
 export function saveScanToHistory(report: AuditReport): HistoryEntry[] {
   const hostname = hostnameFromUrl(report.url);
   const overall = overallFromScores(report.scores);
-  const existing = getScanHistory().find((h) => h.hostname === hostname);
-  const previousOverall = existing?.overall;
+  // Keep prior scans for the same host so score-over-time works
+  const priorSameHost = getScanHistory().find((h) => h.hostname === hostname);
+  const previousOverall = priorSameHost?.overall;
   const scoreDelta =
     previousOverall != null ? overall - previousOverall : undefined;
+
+  const stubId = saveStub(report);
 
   const entry: HistoryEntry = {
     url: report.url,
@@ -99,10 +201,11 @@ export function saveScanToHistory(report: AuditReport): HistoryEntry[] {
     pagesScanned: report.crawl?.pagesScanned,
     failCount: report.checklist?.failCount ?? report.checklist?.missingCount,
     passCount: report.checklist?.passCount ?? report.checklist?.hasCount,
+    stubId,
   };
 
-  const prev = getScanHistory().filter((h) => h.hostname !== entry.hostname);
-  const next = [entry, ...prev].slice(0, MAX_HISTORY);
+  // Append timeline (do not collapse to one row per hostname)
+  const next = [entry, ...getScanHistory()].slice(0, MAX_HISTORY);
   writeJson(HISTORY_KEY, next);
 
   const watch = getWatchlist();
@@ -117,6 +220,10 @@ export function saveScanToHistory(report: AuditReport): HistoryEntry[] {
   }
 
   return next;
+}
+
+export function historyForHostname(hostname: string): HistoryEntry[] {
+  return getScanHistory().filter((h) => h.hostname === hostname);
 }
 
 export function getWatchlist(): WatchItem[] {
@@ -160,6 +267,7 @@ export function toggleWatch(url: string, report?: AuditReport): WatchItem[] {
 
 export function clearScanHistory(): void {
   writeJson(HISTORY_KEY, []);
+  writeJson(STUBS_KEY, []);
 }
 
 export function clearWatchlist(): void {
