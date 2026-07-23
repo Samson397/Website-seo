@@ -258,10 +258,12 @@ body {
   animation: scan-sheen 1.6s ease-in-out infinite;
 }
 
-/* Full-bleed hero field — matches logo-hero plate, not soft SaaS purple mist */
+/* Cool slate hero field — atmosphere only, never a logo wallpaper */
 .hero-mesh {
   color: var(--ink);
-  background: var(--hero-field);
+  background:
+    radial-gradient(ellipse 80% 60% at 100% 0%, rgba(255, 255, 255, 0.35), transparent 55%),
+    linear-gradient(165deg, #9eb8c4 0%, var(--hero-field) 42%, #7f9eab 100%);
   position: relative;
   isolation: isolate;
 }
@@ -272,9 +274,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background:
-    radial-gradient(ellipse 70% 55% at 78% 42%, rgba(255, 255, 255, 0.28), transparent 58%),
-    linear-gradient(180deg, rgba(10, 18, 32, 0.06) 0%, rgba(10, 18, 32, 0.18) 100%);
+  background: linear-gradient(180deg, rgba(10, 18, 32, 0.04) 0%, rgba(10, 18, 32, 0.1) 100%);
 }
 
 .hero-mesh::after {
@@ -284,20 +284,15 @@ body {
   top: 0;
   left: 0;
   width: 45%;
-  height: 140px;
+  height: 120px;
   z-index: 0;
   background: linear-gradient(
     105deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.28) 45%,
+    rgba(255, 255, 255, 0.22) 45%,
     transparent 70%
   );
   animation: hero-sheen 8s ease-in-out infinite;
-}
-
-.hero-mark {
-  animation: mist-drift 14s ease-in-out infinite;
-  will-change: transform;
 }
 
 .glass-panel {
@@ -306,11 +301,11 @@ body {
   -webkit-backdrop-filter: blur(14px);
 }
 
-/* Interaction surface — tinted to hero, not a white card */
+/* Solid enough that form copy never fights a background image */
 .scan-shell {
-  border: 1px solid rgba(10, 18, 32, 0.18);
-  background: rgba(231, 236, 235, 0.72);
-  box-shadow: 0 28px 50px -34px rgba(10, 18, 32, 0.45);
+  border: 1px solid rgba(10, 18, 32, 0.16);
+  background: #eef2f1;
+  box-shadow: 0 22px 40px -28px rgba(10, 18, 32, 0.4);
 }
 
 .section-rule {
