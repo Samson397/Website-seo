@@ -107,12 +107,12 @@ export function HomeLaunchPass() {
           placeholder={codes[0]?.code || "CODE"}
           autoComplete="off"
           spellCheck={false}
-          className="min-w-[10rem] flex-1 rounded-xl border border-ink/15 bg-white px-3 py-2.5 font-mono text-sm uppercase tracking-wide text-ink placeholder:text-ink-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+          className="min-w-[10rem] flex-1 rounded-md border border-ink/15 bg-paper px-3 py-2.5 font-mono text-sm uppercase tracking-wide text-ink placeholder:text-ink-muted focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/20"
         />
         <button
           type="submit"
           disabled={loading}
-          className="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-bright disabled:opacity-60"
+          className="rounded-md bg-ink px-5 py-2.5 text-sm font-semibold text-white hover:bg-ink-soft disabled:opacity-60"
         >
           {loading ? "Claiming…" : "Claim free unlock"}
         </button>
