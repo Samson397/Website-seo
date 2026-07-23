@@ -43,14 +43,17 @@ export function HomeLaunchPass() {
     if (codes?.[0] && !code) setCode(codes[0].code);
   }, [codes, code]);
 
-  // Still loading — reserve space so a visible launch pass doesn't pop in (CLS).
+  // Still loading — reserve launch-pass + form height so content doesn't pop in (CLS).
   // If the pool is empty we collapse; that shift is below the fold and rare.
   if (codes === null) {
     return (
-      <section
-        className="mt-12 min-h-[11.5rem] border-t border-transparent pt-10"
-        aria-hidden
-      />
+      <section className="mt-12 min-h-[14rem] border-t border-transparent pt-10" aria-hidden>
+        <div className="h-16 max-w-xl rounded-xl bg-ink/[0.03]" />
+        <div className="mt-5 flex max-w-md flex-wrap gap-2">
+          <div className="h-11 min-w-[10rem] flex-1 rounded-xl bg-ink/[0.03]" />
+          <div className="h-11 w-36 rounded-xl bg-ink/[0.03]" />
+        </div>
+      </section>
     );
   }
   // Pool empty (or no DB) — remove launch pass entirely. New codes via PROMO_CODES env reappear here.

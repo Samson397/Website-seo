@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
+import { AdSenseLoader } from "@/components/AdSenseLoader";
 import { CookieConsent } from "@/components/CookieConsent";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { VisitorTracker } from "@/components/VisitorTracker";
@@ -150,13 +150,8 @@ export default function RootLayout({
           <GoogleAnalytics />
         </Suspense>
         <Analytics />
-        {/* Defer Auto ads until after load — meta tag above remains for AdSense verification. */}
-        <Script
-          id="adsense-loader"
-          strategy="lazyOnload"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ADSENSE_CLIENT)}`}
-          crossOrigin="anonymous"
-        />
+        {/* Meta tag above verifies AdSense; script loads after load + idle (see AdSenseLoader). */}
+        <AdSenseLoader />
       </body>
     </html>
   );
