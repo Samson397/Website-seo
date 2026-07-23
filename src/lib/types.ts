@@ -21,6 +21,14 @@ export interface AuditIssue {
   pagePath?: string;
   /** Collapsed template e.g. /blog/:slug */
   pathTemplate?: string;
+  /** Estimated SEO/business impact */
+  impact?: "high" | "medium" | "low";
+  /** How hard the fix usually is */
+  difficulty?: "easy" | "medium" | "hard";
+  /** Rough fix time for a typical site owner */
+  timeEstimate?: string;
+  /** User-facing priority bucket */
+  priorityLabel?: "Critical" | "High" | "Medium" | "Low";
 }
 
 export interface AuditScores {

@@ -16,6 +16,7 @@ import {
   runInternalLinkAudit,
   runLinkDepthAudit,
 } from "@/lib/audit/site-wide";
+import { enrichIssueMeta } from "@/lib/issue-guidance";
 import { pathToTemplate } from "@/lib/issue-groups";
 import { runAiVisibilityAudit } from "@/lib/audit/ai-visibility";
 import { runTrustAudit, runModernWebAudit, runWwwConsistencyAudit } from "@/lib/audit/trust";
@@ -361,6 +362,11 @@ export async function runFullAudit(
     if (issue.pagePath && !issue.pathTemplate) {
       issue.pathTemplate = pathToTemplate(issue.pagePath);
     }
+    const guided = enrichIssueMeta(issue);
+    issue.impact = guided.impact;
+    issue.difficulty = guided.difficulty;
+    issue.timeEstimate = guided.timeEstimate;
+    issue.priorityLabel = guided.priorityLabel;
   }
 
   allIssues.sort(

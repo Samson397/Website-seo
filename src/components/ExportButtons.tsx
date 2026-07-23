@@ -1,9 +1,12 @@
 "use client";
 
-import type { AuditReport } from "@/lib/types";
+import type { AuditIssue, AuditReport } from "@/lib/types";
 
 interface ExportButtonsProps {
   report: AuditReport;
+  /** When set, exports only these issues (filtered view). */
+  issues?: AuditIssue[];
+  labelSuffix?: string;
 }
 
 function downloadBlob(content: string, filename: string, type: string) {
@@ -24,17 +27,32 @@ function hostnameSlug(report: AuditReport) {
   }
 }
 
-function exportCsv(report: AuditReport) {
+function exportCsv(report: AuditReport, issues: AuditIssue[]) {
   const headers = [
+    "Priority",
     "Severity",
     "Category",
     "Title",
-    "Description",
+    "Why it matters",
     "Recommendation",
+    "Impact",
+    "Difficulty",
+    "Time",
     "Current Value",
   ];
-  const rows = report.issues.map((i) =>
-    [i.severity, i.category, i.title, i.description, i.recommendation, i.currentValue || ""]
+  const rows = issues.map((i) =>
+    [
+      i.priorityLabel || "",
+      i.severity,
+      i.category,
+      i.title,
+      i.description,
+      i.recommendation,
+      i.impact || "",
+      i.difficulty || "",
+      i.timeEstimate || "",
+      i.currentValue || "",
+    ]
       .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
       .join(",")
   );
@@ -42,9 +60,10 @@ function exportCsv(report: AuditReport) {
   downloadBlob(csv, `seohub-${hostnameSlug(report)}-${Date.now()}.csv`, "text/csv;charset=utf-8");
 }
 
-function exportJson(report: AuditReport) {
+function exportJson(report: AuditReport, issues: AuditIssue[]) {
+  const payload = { ...report, issues };
   downloadBlob(
-    JSON.stringify(report, null, 2),
+    JSON.stringify(payload, null, 2),
     `seohub-${hostnameSlug(report)}-${Date.now()}.json`,
     "application/json"
   );
@@ -59,7 +78,7 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function exportPdfHtml(report: AuditReport) {
+function exportPdfHtml(report: AuditReport, issues: AuditIssue[]) {
   const hostname = hostnameSlug(report);
   const safeUrl = escapeHtml(report.url);
   const safeShare = report.shareId ? escapeHtml(report.shareId) : "";
@@ -93,16 +112,17 @@ function exportPdfHtml(report: AuditReport) {
     <div class="score"><strong>${report.scores.security}</strong>Security</div>
   </div>
   <p class="noprint"><em>Tip: use your browser Print → Save as PDF for a PDF file.</em></p>
-  <p>${report.summary.critical} critical · ${report.summary.warning} warnings · ${report.summary.info} info · ${report.issues.length} issues</p>
+  <p>${issues.length} issue(s) in this export</p>
   <h2>Issues</h2>
-  ${report.issues
+  ${issues
     .map(
       (i) => `<div class="issue">
-    <span class="badge ${escapeHtml(i.severity)}">${escapeHtml(i.severity)}</span>
+    <span class="badge ${escapeHtml(i.severity)}">${escapeHtml(i.priorityLabel || i.severity)}</span>
     <strong> ${escapeHtml(i.title)}</strong>
-    <p>${escapeHtml(i.description)}</p>
+    <p><em>Why:</em> ${escapeHtml(i.description)}</p>
     ${i.currentValue ? `<p><em>Current:</em> ${escapeHtml(i.currentValue)}</p>` : ""}
     <p><em>Fix:</em> ${escapeHtml(i.recommendation)}</p>
+    ${i.timeEstimate ? `<p><em>Time:</em> ${escapeHtml(i.timeEstimate)} · <em>Difficulty:</em> ${escapeHtml(i.difficulty || "")}</p>` : ""}
     ${i.fixSnippet ? `<pre>${escapeHtml(i.fixSnippet)}</pre>` : ""}
   </div>`
     )
@@ -119,29 +139,33 @@ function exportPdfHtml(report: AuditReport) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
-export function ExportButtons({ report }: ExportButtonsProps) {
+export function ExportButtons({ report, issues, labelSuffix }: ExportButtonsProps) {
+  const list = issues ?? report.issues;
+  const filtered = Boolean(issues && issues.length !== report.issues.length);
+  const suffix = labelSuffix || (filtered ? " (filtered)" : "");
+
   return (
     <div className="flex flex-wrap gap-2">
       <button
         type="button"
-        onClick={() => exportCsv(report)}
+        onClick={() => exportCsv(report, list)}
         className="rounded-xl border border-ink/10 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-teal/40 hover:bg-teal-soft"
       >
-        CSV
+        CSV{suffix}
       </button>
       <button
         type="button"
-        onClick={() => exportJson(report)}
+        onClick={() => exportJson(report, list)}
         className="rounded-xl border border-ink/10 bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-teal/40 hover:bg-teal-soft"
       >
-        JSON
+        JSON{suffix}
       </button>
       <button
         type="button"
-        onClick={() => exportPdfHtml(report)}
+        onClick={() => exportPdfHtml(report, list)}
         className="rounded-xl bg-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-bright"
       >
-        PDF report
+        PDF{suffix}
       </button>
     </div>
   );
