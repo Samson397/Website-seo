@@ -48,7 +48,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
           className="flex items-center gap-2.5"
           aria-label="SEOHub home"
         >
-          <LogoMark size="sm" />
+          <LogoMark size="sm" priority />
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">
