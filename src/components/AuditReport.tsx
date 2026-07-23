@@ -172,6 +172,28 @@ export function AuditReportView({
             )}
           </div>
         )}
+        {report.performanceMetrics &&
+          (report.performanceMetrics.fieldLcp ||
+            report.performanceMetrics.fieldCls ||
+            report.performanceMetrics.fieldInp) && (
+            <div className="mt-3 grid grid-cols-2 gap-3 rounded-xl border border-ink/10 bg-white/60 p-4 sm:grid-cols-4">
+              <p className="col-span-2 text-xs font-semibold uppercase tracking-wide text-ink-muted sm:col-span-4">
+                Chrome UX Report (field)
+                {report.performanceMetrics.fieldCategory
+                  ? ` · ${report.performanceMetrics.fieldCategory}`
+                  : ""}
+              </p>
+              {report.performanceMetrics.fieldLcp && (
+                <Metric label="Field LCP" value={report.performanceMetrics.fieldLcp} />
+              )}
+              {report.performanceMetrics.fieldCls && (
+                <Metric label="Field CLS" value={report.performanceMetrics.fieldCls} />
+              )}
+              {report.performanceMetrics.fieldInp && (
+                <Metric label="Field INP" value={report.performanceMetrics.fieldInp} />
+              )}
+            </div>
+          )}
       </div>
 
       {report.serpPreview && (
