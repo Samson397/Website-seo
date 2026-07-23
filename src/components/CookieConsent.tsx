@@ -61,7 +61,7 @@ export function CookieConsent() {
         <p className="text-sm text-white/75">
           We use cookies for analytics and may show small ads. We don&apos;t collect emails. See
           our{" "}
-          <Link href="/privacy" className="text-teal-bright hover:underline">
+          <Link href="/privacy" className="font-medium text-white underline underline-offset-2 hover:text-teal-bright">
             Privacy Policy
           </Link>
           .

@@ -63,8 +63,9 @@ export default function PrivacyPage() {
           <h2 className="font-display text-xl font-semibold text-ink">Advertising</h2>
           <p className="mt-2 leading-relaxed">
             We may show small third-party ads (for example Google AdSense). Ad partners may use
-            cookies or similar technologies as described in their policies. You can control cookies
-            via our consent banner and your browser settings.
+            cookies or similar technologies as described in their policies. Ad scripts load only
+            after you choose Accept on the consent banner; “Essential only” keeps them off. You can
+            also control cookies via your browser settings.
           </p>
         </section>
 

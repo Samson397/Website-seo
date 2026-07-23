@@ -50,7 +50,7 @@ export function exportTechnicalSeoChecklistPdf() {
 <html lang="en"><head><meta charset="utf-8">
 <title>${escapeHtml(TECHNICAL_SEO_CHECKLIST_TITLE)} — ${escapeHtml(APP_NAME)}</title>
 <style>
-  :root { --ink:#0c1222; --teal:#0d9488; --mist:#e8eef6; }
+  :root { --ink:#0c1222; --teal:#0f766e; --mist:#e8eef6; }
   body { font-family: Georgia, 'Times New Roman', serif; max-width: 820px; margin: 2rem auto; padding: 0 1.25rem; color: var(--ink); line-height: 1.5; }
   h1,h2 { font-family: Georgia, serif; letter-spacing: -0.02em; }
   .brand { color: var(--teal); font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; font-family: system-ui, sans-serif; }

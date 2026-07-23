@@ -64,7 +64,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
                   active
                     ? "bg-ink/8 text-ink"
                     : isHero
-                      ? "text-ink/65 hover:bg-ink/5 hover:text-ink"
+                      ? "text-ink/80 hover:bg-ink/5 hover:text-ink"
                       : "text-ink-muted hover:bg-mist hover:text-ink"
                 }`}
               >

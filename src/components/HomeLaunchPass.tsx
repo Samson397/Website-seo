@@ -43,8 +43,15 @@ export function HomeLaunchPass() {
     if (codes?.[0] && !code) setCode(codes[0].code);
   }, [codes, code]);
 
-  // Still loading — avoid flashing a depleted WELCOME section.
-  if (codes === null) return null;
+  // Still loading — reserve space so the section does not pop in (mobile CLS).
+  if (codes === null) {
+    return (
+      <section
+        className="mt-12 min-h-[11rem] border-t border-ink/10 pt-10"
+        aria-hidden
+      />
+    );
+  }
   // Pool empty (or no DB) — remove launch pass entirely. New codes via PROMO_CODES env reappear here.
   if (codes.length === 0) return null;
 

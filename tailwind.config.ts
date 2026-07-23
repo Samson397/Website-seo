@@ -22,7 +22,7 @@ const config: Config = {
           soft: "#DBEAFE",
         },
         teal: {
-          DEFAULT: "#0d9488",
+          DEFAULT: "#0f766e",
           bright: "#14b8a6",
           soft: "#ccfbf1",
         },

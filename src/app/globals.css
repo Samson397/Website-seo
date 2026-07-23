@@ -8,7 +8,8 @@
   --ink-soft: #123a6b;
   --mist: #e8f3f1;
   --paper: #f4f8fa;
-  --teal: #0d9488;
+  /* Darker teal for WCAG AA on paper (#f4f8fa) — was #0d9488 at ~3.5:1 */
+  --teal: #0f766e;
   --teal-bright: #14b8a6;
   --brand: #1d4ed8;
   --brand-bright: #3b82f6;

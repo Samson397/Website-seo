@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/react";
+import { AdSense } from "@/components/AdSense";
 import { CookieConsent } from "@/components/CookieConsent";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { VisitorTracker } from "@/components/VisitorTracker";
@@ -14,13 +15,16 @@ import { getSiteUrl } from "@/lib/site-url";
 const display = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
-  display: "swap",
+  // optional avoids font-swap CLS on mobile (PSI CLS ~0.42 from web fonts)
+  display: "optional",
+  adjustFontFallback: true,
 });
 
 const body = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-body",
-  display: "swap",
+  display: "optional",
+  adjustFontFallback: true,
 });
 
 const siteUrl = getSiteUrl();
@@ -134,16 +138,11 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* Google AdSense — Auto ads (site-wide) */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4587075434685102"
-          crossOrigin="anonymous"
-        />
       </head>
       <body className="font-body antialiased">
         {children}
         <CookieConsent />
+        <AdSense />
         <Suspense fallback={null}>
           <VisitorTracker />
         </Suspense>
