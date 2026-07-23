@@ -56,6 +56,11 @@ export interface PerformanceMetrics {
   inp?: string;
   fcp?: string;
   ttfb?: string;
+  /** Chrome UX Report (field) — when Google returns loadingExperience */
+  fieldLcp?: string;
+  fieldCls?: string;
+  fieldInp?: string;
+  fieldCategory?: string;
 }
 
 export interface SerpPreview {

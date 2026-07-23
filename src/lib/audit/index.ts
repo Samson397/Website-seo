@@ -2,7 +2,7 @@ import { safeFetch } from "@/lib/fetcher";
 import { runSeoAudit } from "@/lib/audit/seo";
 import { runAccessibilityAudit } from "@/lib/audit/accessibility";
 import { runSecurityAudit } from "@/lib/audit/security";
-import { runLinksAudit } from "@/lib/audit/links";
+import { runLinksAudit, runCrawlBrokenLinksAudit } from "@/lib/audit/links";
 import { runPerformanceAudit } from "@/lib/audit/performance";
 import { runContentAudit, extractPageMeta } from "@/lib/audit/content";
 import { runImageAudit } from "@/lib/audit/images";
@@ -11,6 +11,7 @@ import { crawlSitePages } from "@/lib/audit/crawl";
 import {
   buildCrawlCoverage,
   runCoverageAudit,
+  runCrawlPageSignalAudit,
   runDuplicateMetaAudit,
   runInternalLinkAudit,
   runLinkDepthAudit,
@@ -159,7 +160,14 @@ export async function runFullAudit(
       ),
       ...runLinkDepthAudit(crawledPages, fetchResult.finalUrl),
       ...runCoverageAudit(crawledPages),
+      ...runCrawlPageSignalAudit(crawledPages),
     ];
+
+    const crawlLinkIssues = await runCrawlBrokenLinksAudit(
+      crawledPages,
+      fetchResult.finalUrl
+    );
+    siteWideIssues.push(...crawlLinkIssues);
 
     if (hitCap) {
       siteWideIssues.push(

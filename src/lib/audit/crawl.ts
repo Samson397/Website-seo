@@ -25,6 +25,13 @@ export interface CrawledPageMeta {
   requestedUrl?: string;
   finalUrl?: string;
   hreflang?: string[];
+  /** Light signals extracted while HTML is in memory */
+  missingAltCount?: number;
+  imageCount?: number;
+  hasJsonLd?: boolean;
+  noindex?: boolean;
+  /** Sample of outbound http(s) links for site-wide broken-link checks */
+  outboundSample?: string[];
 }
 
 /**
@@ -196,16 +203,48 @@ export async function discoverPages(
 
 export function extractMetaFromHtml(url: string, html: string, status: number): CrawledPageMeta {
   const $ = cheerio.load(html);
-  $("script, style, noscript").remove();
-  const text = $.text().replace(/\s+/g, " ").trim();
-  const wordCount = text.split(/\s+/).filter((w) => w.length > 0).length;
-  const h1Count = $("h1").length;
 
   const hreflang: string[] = [];
   $('link[rel="alternate"][hreflang]').each((_, el) => {
     const lang = $(el).attr("hreflang")?.trim();
     if (lang) hreflang.push(lang);
   });
+
+  let imageCount = 0;
+  let missingAltCount = 0;
+  $("img").each((_, el) => {
+    imageCount += 1;
+    const alt = $(el).attr("alt");
+    if (alt === undefined || alt === null) missingAltCount += 1;
+  });
+
+  const robots = $('meta[name="robots"]').attr("content")?.trim() || "";
+  const hasJsonLd = $('script[type="application/ld+json"]').length > 0;
+
+  const outboundSample = new Set<string>();
+  $("a[href]").each((_, el) => {
+    if (outboundSample.size >= 8) return;
+    const href = $(el).attr("href")?.trim();
+    if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:")) {
+      return;
+    }
+    try {
+      const resolved = new URL(href, url);
+      if (!resolved.protocol.startsWith("http")) return;
+      if (/\.(pdf|jpg|jpeg|png|gif|webp|svg|css|js|zip|mp4|mp3|ico)(\?|$)/i.test(resolved.pathname)) {
+        return;
+      }
+      resolved.hash = "";
+      outboundSample.add(resolved.href);
+    } catch {
+      // skip
+    }
+  });
+
+  $("script, style, noscript").remove();
+  const text = $.text().replace(/\s+/g, " ").trim();
+  const wordCount = text.split(/\s+/).filter((w) => w.length > 0).length;
+  const h1Count = $("h1").length;
 
   return {
     url,
@@ -214,11 +253,16 @@ export function extractMetaFromHtml(url: string, html: string, status: number): 
     h1: $("h1").first().text().trim() || "",
     status,
     canonical: $('link[rel="canonical"]').attr("href")?.trim() || "",
-    robots: $('meta[name="robots"]').attr("content")?.trim() || "",
+    robots,
     hasOg: Boolean($('meta[property="og:title"]').attr("content")),
     wordCount,
     h1Count,
     hreflang,
+    missingAltCount,
+    imageCount,
+    hasJsonLd,
+    noindex: /noindex/i.test(robots),
+    outboundSample: Array.from(outboundSample),
   };
 }
 

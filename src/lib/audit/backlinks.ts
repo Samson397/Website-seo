@@ -104,7 +104,10 @@ export function runBacklinkAudit(profile: BacklinkProfile): AuditIssue[] {
         recommendation: "Create valuable content and earn links from relevant sites.",
       })
     );
-  } else if (profile.referringDomains !== undefined && profile.referringDomains < 10) {
+    return issues;
+  }
+
+  if (profile.referringDomains !== undefined && profile.referringDomains < 10) {
     issues.push(
       createIssue({
         category: "seo",
@@ -115,6 +118,85 @@ export function runBacklinkAudit(profile: BacklinkProfile): AuditIssue[] {
         recommendation: "Earn links from authoritative sites in your niche.",
       })
     );
+  }
+
+  const summed = (profile.dofollowBacklinks ?? 0) + (profile.nofollowBacklinks ?? 0);
+  const total = summed > 0 ? summed : profile.totalBacklinks || 0;
+  if (total > 0 && profile.dofollowBacklinks !== undefined) {
+    const dofollowShare = profile.dofollowBacklinks / total;
+    if (dofollowShare < 0.25 && total >= 20) {
+      issues.push(
+        createIssue({
+          category: "seo",
+          severity: "info",
+          title: "Low dofollow share among backlinks",
+          description:
+            "Most tracked backlinks are nofollow. Nofollow still drives discovery, but dofollow equity is limited.",
+          currentValue: `${Math.round(dofollowShare * 100)}% dofollow (${profile.dofollowBacklinks}/${total})`,
+          recommendation: "Earn editorial dofollow links from relevant publishers — not only directory/nofollow mentions.",
+        })
+      );
+    }
+  }
+
+  const top = profile.topBacklinks || [];
+  if (top.length >= 5) {
+    const genericAnchors = [
+      "click here",
+      "read more",
+      "here",
+      "link",
+      "website",
+      "this",
+      "http",
+      "www",
+    ];
+    const spammy = top.filter((b) => {
+      const a = (b.anchor || "").trim().toLowerCase();
+      if (!a) return true;
+      if (a.length <= 2) return true;
+      if (genericAnchors.includes(a)) return true;
+      if (/^https?:\/\//i.test(a) || /^www\./i.test(a)) return true;
+      return false;
+    });
+    if (spammy.length >= Math.ceil(top.length * 0.4)) {
+      issues.push(
+        createIssue({
+          category: "seo",
+          severity: "info",
+          title: "Many weak or generic backlink anchors",
+          description:
+            "A large share of top backlinks use empty, URL-only, or generic anchor text (e.g. “click here”).",
+          currentValue: `${spammy.length}/${top.length} sampled anchors look weak`,
+          recommendation:
+            "Pursue contextual mentions with descriptive anchors that match the page topic.",
+        })
+      );
+    }
+
+    const domainCounts = new Map<string, number>();
+    for (const b of top) {
+      const d = (b.sourceDomain || "").toLowerCase();
+      if (!d) continue;
+      domainCounts.set(d, (domainCounts.get(d) || 0) + 1);
+    }
+    const heavy = Array.from(domainCounts.entries()).filter(([, n]) => n >= 4);
+    if (heavy.length > 0) {
+      issues.push(
+        createIssue({
+          category: "seo",
+          severity: "info",
+          title: "Backlink sample concentrated on few domains",
+          description:
+            "Several of the strongest sampled backlinks come from the same domains — diversity may be limited.",
+          currentValue: heavy
+            .slice(0, 5)
+            .map(([d, n]) => `${d}×${n}`)
+            .join(", "),
+          recommendation: "Widen referring domains rather than stacking links from the same sites.",
+        })
+      );
+    }
   }
 
   return issues;

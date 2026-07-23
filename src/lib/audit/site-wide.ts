@@ -124,6 +124,31 @@ export function runDuplicateMetaAudit(pages: CrawledPageMeta[]): AuditIssue[] {
     );
   }
 
+  const h1Groups = groupBy(
+    pages.filter((p) => p.h1 && p.h1.length > 2),
+    (p) => p.h1.toLowerCase()
+  );
+  for (const [h1, group] of Array.from(h1Groups.entries())) {
+    if (group.length > 1) {
+      issues.push(
+        createIssue({
+          category: "seo",
+          severity: "warning",
+          title: "Duplicate H1 headings across pages",
+          description:
+            "Multiple pages share the same H1. That often signals thin templates or copied titles.",
+          currentValue: `"${h1.slice(0, 80)}" on ${group.length} pages: ${group
+            .map((p) => pathnameOf(p.url))
+            .slice(0, 6)
+            .join(", ")}`,
+          recommendation: "Give each indexable page a unique, descriptive H1.",
+          pagePath: pathnameOf(group[0].url),
+          pathTemplate: pathToTemplate(pathnameOf(group[0].url)),
+        })
+      );
+    }
+  }
+
   const errorPages = pages.filter((p) => p.status >= 400);
   for (const page of errorPages) {
     issues.push(
@@ -325,6 +350,45 @@ export function runCoverageAudit(pages: CrawledPageMeta[]): AuditIssue[] {
     );
   }
 
+  // Non-self canonicals: pages that point at a different same-origin URL (clusters / conflicts)
+  const nonSelf: { page: CrawledPageMeta; target: string }[] = [];
+  const targetCounts = new Map<string, number>();
+  for (const p of withCanonical) {
+    if (p.status >= 400) continue;
+    try {
+      const canon = normalizeLoose(new URL(p.canonical!, p.url).href);
+      const self = normalizeLoose(p.url);
+      if (canon !== self) {
+        nonSelf.push({ page: p, target: canon });
+        targetCounts.set(canon, (targetCounts.get(canon) || 0) + 1);
+      }
+    } catch {
+      // already handled as badCanonical
+    }
+  }
+
+  if (nonSelf.length > 0) {
+    const clustered = Array.from(targetCounts.entries()).filter(([, n]) => n >= 2);
+    issues.push(
+      createIssue({
+        category: "seo",
+        severity: clustered.length > 0 || nonSelf.length > 3 ? "warning" : "info",
+        title: `${nonSelf.length} page${nonSelf.length === 1 ? "" : "s"} with non-self canonical`,
+        description:
+          clustered.length > 0
+            ? "Several URLs canonicalize to the same target — confirm these are intentional duplicates, not conflicting preferences."
+            : "These pages declare a canonical that is not the page URL itself. That is fine for true duplicates; risky if unintended.",
+        currentValue:
+          nonSelf
+            .slice(0, 8)
+            .map(({ page, target }) => `${pathnameOf(page.url)} → ${pathnameOf(target)}`)
+            .join("; ") + (nonSelf.length > 8 ? ` (+${nonSelf.length - 8} more)` : ""),
+        recommendation:
+          "Use self-referencing canonicals on indexable pages. Only cross-canonicalize true duplicates to one preferred URL.",
+      })
+    );
+  }
+
   const withHreflang = pages.filter((p) => (p.hreflang?.length ?? 0) > 0);
   const withoutHreflang = pages.filter((p) => (p.hreflang?.length ?? 0) === 0 && p.status < 400);
   if (withHreflang.length > 0 && withoutHreflang.length > 0 && pages.length > 2) {
@@ -407,4 +471,52 @@ export function buildCrawlCoverage(pages: CrawledPageMeta[], entryUrl: string): 
       .sort((a, b) => a[0] - b[0])
       .map(([depth, count]) => ({ depth, count })),
   };
+}
+
+/** Light per-page signals collected while crawl HTML was in memory. */
+export function runCrawlPageSignalAudit(pages: CrawledPageMeta[]): AuditIssue[] {
+  const issues: AuditIssue[] = [];
+  if (pages.length < 2) return issues;
+
+  const missingAltPages = pages.filter((p) => (p.missingAltCount ?? 0) > 0 && p.status < 400);
+  const totalMissingAlt = missingAltPages.reduce((sum, p) => sum + (p.missingAltCount ?? 0), 0);
+  if (totalMissingAlt > 0) {
+    issues.push(
+      createIssue({
+        category: "accessibility",
+        severity: totalMissingAlt > 10 ? "warning" : "info",
+        title: `${totalMissingAlt} image${totalMissingAlt === 1 ? "" : "s"} missing alt across crawl`,
+        description: `${missingAltPages.length} crawled page(s) include <img> tags without an alt attribute.`,
+        currentValue:
+          missingAltPages
+            .slice(0, 8)
+            .map((p) => `${pathnameOf(p.url)} (${p.missingAltCount})`)
+            .join(", ") + (missingAltPages.length > 8 ? ` (+${missingAltPages.length - 8} more)` : ""),
+        recommendation: "Add descriptive alt text (or alt=\"\" for decorative images) on every template.",
+      })
+    );
+  }
+
+  const noSchema = pages.filter(
+    (p) => !p.hasJsonLd && p.status < 400 && (p.wordCount ?? 0) > 150
+  );
+  if (noSchema.length > 0 && pages.length >= 3) {
+    issues.push(
+      createIssue({
+        category: "seo",
+        severity: "info",
+        title: `${noSchema.length} content page${noSchema.length === 1 ? "" : "s"} without JSON-LD`,
+        description:
+          "These crawled pages have substantial copy but no structured data. Schema helps rich results and AI understanding.",
+        currentValue: noSchema
+          .slice(0, 10)
+          .map((p) => pathnameOf(p.url))
+          .join(", "),
+        recommendation:
+          "Add relevant JSON-LD (Article, FAQPage, Product, BreadcrumbList) on content templates.",
+      })
+    );
+  }
+
+  return issues;
 }
