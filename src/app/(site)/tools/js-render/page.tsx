@@ -1,5 +1,10 @@
+import { SeoPageIntro } from "@/components/SeoPageIntro";
 import { pageMetadata } from "@/lib/page-seo";
+import { ToolSeoBody } from "@/components/ToolSeoBody";
+import { TOOL_SEO_COPY } from "@/lib/tool-seo-copy";
 import JsRenderToolClient from "./JsRenderToolClient";
+
+const copy = TOOL_SEO_COPY["js-render"];
 
 export const metadata = pageMetadata({
   title: "JavaScript rendering check — SEOHub",
@@ -9,5 +14,12 @@ export const metadata = pageMetadata({
 });
 
 export default function JsRenderToolPage() {
-  return <JsRenderToolClient />;
+  return (
+    <>
+      <JsRenderToolClient />
+      <SeoPageIntro heading={copy.heading}>
+        <ToolSeoBody copy={copy} />
+      </SeoPageIntro>
+    </>
+  );
 }

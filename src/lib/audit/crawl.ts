@@ -128,10 +128,29 @@ function extractInternalLinks(html: string, baseUrl: string, origin: string): st
   return Array.from(links);
 }
 
+/** Drop tracking / campaign params so variants of the same page are not crawled twice. */
+const STRIP_QUERY_KEYS = new Set([
+  "ref",
+  "platform",
+  "fbclid",
+  "gclid",
+  "gbraid",
+  "wbraid",
+  "msclkid",
+  "mc_cid",
+  "mc_eid",
+]);
+
 function normalizeUrl(u: string): string {
   try {
     const p = new URL(u);
     p.hash = "";
+    for (const key of Array.from(p.searchParams.keys())) {
+      const lower = key.toLowerCase();
+      if (lower.startsWith("utm_") || STRIP_QUERY_KEYS.has(lower)) {
+        p.searchParams.delete(key);
+      }
+    }
     const href = p.href.replace(/\/$/, "") || p.href;
     return href;
   } catch {

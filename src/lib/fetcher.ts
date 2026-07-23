@@ -170,25 +170,29 @@ export async function safeFetch(urlString: string): Promise<SafeFetchResult> {
 }
 
 export async function safeHead(
-  urlString: string
+  urlString: string,
+  opts?: { redirect?: RequestRedirect }
 ): Promise<{ status: number; finalUrl: string; ok: boolean }> {
   const url = await validateUrlSafe(urlString);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
+  const redirect = opts?.redirect ?? "follow";
 
   try {
     const response = await fetch(url.href, {
       method: "HEAD",
       signal: controller.signal,
-      redirect: "follow",
+      redirect,
       headers: { "User-Agent": USER_AGENT },
     });
 
     const finalUrl = response.url || url.href;
-    const finalParsed = new URL(finalUrl);
-    const finalHost = finalParsed.hostname.replace(/^\[|\]$/g, "").toLowerCase();
-    if (isPrivateIp(finalHost) || BLOCKED_HOSTNAMES.has(finalHost)) {
-      throw new Error("Redirect to internal URL blocked");
+    if (redirect === "follow") {
+      const finalParsed = new URL(finalUrl);
+      const finalHost = finalParsed.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+      if (isPrivateIp(finalHost) || BLOCKED_HOSTNAMES.has(finalHost)) {
+        throw new Error("Redirect to internal URL blocked");
+      }
     }
 
     return {
@@ -197,6 +201,24 @@ export async function safeHead(
       ok: response.ok,
     };
   } catch {
+    if (redirect === "manual") {
+      // HEAD may fail on some hosts; try GET without following.
+      try {
+        const response = await fetch(url.href, {
+          method: "GET",
+          signal: controller.signal,
+          redirect: "manual",
+          headers: { "User-Agent": USER_AGENT },
+        });
+        return {
+          status: response.status,
+          finalUrl: url.href,
+          ok: response.ok,
+        };
+      } catch {
+        return { status: 0, finalUrl: url.href, ok: false };
+      }
+    }
     try {
       const response = await fetch(url.href, {
         method: "GET",

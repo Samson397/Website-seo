@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getSiteUrl } from "@/lib/site-url";
 
 const OG_IMAGE = {
   url: "/opengraph-image",
@@ -20,15 +21,21 @@ export function pageMetadata(opts: {
       ? opts.description
       : `${opts.description} Free SEO tools from SEOHub — no account required.`;
 
+  // Absolute self-canonical — homepage keeps a trailing slash to match the live URL.
+  const site = getSiteUrl();
+  const canonical =
+    path === "/" ? `${site}/` : `${site}${path.endsWith("/") ? path.slice(0, -1) : path}`;
+
   return {
     title: opts.title,
     description,
-    alternates: { canonical: path },
+    alternates: { canonical },
     ...(opts.robots ? { robots: opts.robots } : {}),
     openGraph: {
       title: opts.title,
       description,
-      url: path,
+      url: canonical,
+      siteName: "SEOHub",
       images: [OG_IMAGE],
     },
     twitter: {

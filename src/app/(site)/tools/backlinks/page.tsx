@@ -1,5 +1,10 @@
+import { SeoPageIntro } from "@/components/SeoPageIntro";
 import { pageMetadata } from "@/lib/page-seo";
+import { ToolSeoBody } from "@/components/ToolSeoBody";
+import { TOOL_SEO_COPY } from "@/lib/tool-seo-copy";
 import BacklinksToolClient from "./BacklinksToolClient";
+
+const copy = TOOL_SEO_COPY.backlinks;
 
 export const metadata = pageMetadata({
   title: "Backlink intelligence — SEOHub",
@@ -9,5 +14,12 @@ export const metadata = pageMetadata({
 });
 
 export default function BacklinksToolPage() {
-  return <BacklinksToolClient />;
+  return (
+    <>
+      <BacklinksToolClient />
+      <SeoPageIntro heading={copy.heading}>
+        <ToolSeoBody copy={copy} />
+      </SeoPageIntro>
+    </>
+  );
 }

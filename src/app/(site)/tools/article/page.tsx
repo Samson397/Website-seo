@@ -1,5 +1,10 @@
+import { SeoPageIntro } from "@/components/SeoPageIntro";
 import { pageMetadata } from "@/lib/page-seo";
+import { ToolSeoBody } from "@/components/ToolSeoBody";
+import { TOOL_SEO_COPY } from "@/lib/tool-seo-copy";
 import ArticleWriterClient from "./ArticleWriterClient";
+
+const copy = TOOL_SEO_COPY.article;
 
 export const metadata = pageMetadata({
   title: "AI article writer — SEOHub",
@@ -9,5 +14,12 @@ export const metadata = pageMetadata({
 });
 
 export default function ArticleWriterPage() {
-  return <ArticleWriterClient />;
+  return (
+    <>
+      <ArticleWriterClient />
+      <SeoPageIntro heading={copy.heading}>
+        <ToolSeoBody copy={copy} />
+      </SeoPageIntro>
+    </>
+  );
 }
