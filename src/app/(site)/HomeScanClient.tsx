@@ -389,7 +389,7 @@ export default function HomeScanClient() {
               ? `Free homepage scores + AI visibility. Unlock the full crawl and fixes for ${priceLabel}.`
               : "Audit, keywords, rank checks, and tools — free to start, no account."}
           </p>
-          <p className="mt-2 text-sm font-medium tracking-wide text-ink/65">
+          <p className="mt-2 text-sm font-medium tracking-wide text-ink/80">
             50+ checks · up to 200 pages · no account
           </p>
 

@@ -2,34 +2,41 @@
 
 > Free tool that scans any public website and reports what you have and what's missing for SEO, performance, security, and accessibility. Browser-first weekly audit with pay-per-scan unlock — not a backlink suite.
 
+SEOHub is for founders and marketers who want clear technical SEO fixes without a subscription. Prefer the canonical host https://www.seohub.online/.
+
 ## Docs
 
-- [Homepage](/): Run a website audit
-- [Competitor audit](/competitors): Compare up to 10 external websites side by side
-- [Technical SEO Checklist](/checklist/technical-seo): Free printable technical SEO checklist (Save as PDF)
-- [Guides](/guides): Short fix guides for common SEO issues
-- [Blog](/blog): Practical SEO articles
-- [Privacy Policy](/privacy): How we handle data
-- [Terms of Service](/terms): Terms of use
-- [About](/about): About SEOHub
+- [Homepage](https://www.seohub.online/): Run a website audit
+- [Competitor audit](https://www.seohub.online/competitors): Compare up to 10 external websites side by side
+- [Technical SEO Checklist](https://www.seohub.online/checklist/technical-seo): Free printable technical SEO checklist (Save as PDF)
+- [Guides](https://www.seohub.online/guides): Short fix guides for common SEO issues
+- [Blog](https://www.seohub.online/blog): Practical SEO articles
+- [Privacy Policy](https://www.seohub.online/privacy): How we handle data
+- [Terms of Service](https://www.seohub.online/terms): Terms of use
+- [About](https://www.seohub.online/about): About SEOHub
 
 ## Comparisons
 
 Honest framing: SEOHub is a browser-first weekly site audit + pay-per-scan. It does not claim to beat Ahrefs or Semrush on backlinks.
 
-- [Comparisons index](/compare): All SEOHub vs pages
-- [SEOHub vs Ahrefs](/compare/seohub-vs-ahrefs): Weekly audit vs backlink research suite
-- [SEOHub vs Semrush](/compare/seohub-vs-semrush): Focused crawl checklist vs all-in-one marketing suite
-- [SEOHub vs Ubersuggest](/compare/seohub-vs-ubersuggest): Technical audit vs lighter keyword research
-- [SEOHub vs free SEO checkers](/compare/seohub-vs-free-seo-checkers): Homepage grades vs crawl + toolkit
-- [Best free SEO tools](/compare/best-free-seo-tools): Where SEOHub fits among free options
+- [Comparisons index](https://www.seohub.online/compare): All SEOHub vs pages
+- [SEOHub vs Ahrefs](https://www.seohub.online/compare/seohub-vs-ahrefs): Weekly audit vs backlink research suite
+- [SEOHub vs Semrush](https://www.seohub.online/compare/seohub-vs-semrush): Focused crawl checklist vs all-in-one marketing suite
+- [SEOHub vs Ubersuggest](https://www.seohub.online/compare/seohub-vs-ubersuggest): Technical audit vs lighter keyword research
+- [SEOHub vs free SEO checkers](https://www.seohub.online/compare/seohub-vs-free-seo-checkers): Homepage grades vs crawl + toolkit
+- [Best free SEO tools](https://www.seohub.online/compare/best-free-seo-tools): Where SEOHub fits among free options
 
 ## Free tools
 
-- [Tools](/tools): Full free toolkit
-- [Keyword research](/tools/keywords)
-- [Security headers](/tools/headers)
-- [Redirect chain](/tools/redirects)
-- [JSON-LD schema](/tools/schema)
-- [Broken links](/tools/broken-links)
-- [robots.txt & sitemap](/tools/robots)
+- [Tools](https://www.seohub.online/tools): Full free toolkit
+- [Keyword research](https://www.seohub.online/tools/keywords): Keyword ideas and on-page phrases
+- [Security headers](https://www.seohub.online/tools/headers): Check HTTP security headers
+- [Redirect chain](https://www.seohub.online/tools/redirects): Trace redirect hops
+- [JSON-LD schema](https://www.seohub.online/tools/schema): Validate structured data
+- [Broken links](https://www.seohub.online/tools/broken-links): Find broken links on a page
+- [robots.txt & sitemap](https://www.seohub.online/tools/robots): Inspect crawl directives
+
+## Optional
+
+- [Pricing](https://www.seohub.online/pricing): Free preview vs pay-per-scan unlock
+- [Sample report](https://www.seohub.online/r/sample): Example full-site audit deliverable
