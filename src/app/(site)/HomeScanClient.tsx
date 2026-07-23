@@ -378,29 +378,29 @@ export default function HomeScanClient() {
     <main className="min-h-screen pb-16">
       <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
         <div className="relative z-[1] mx-auto flex max-w-3xl flex-col items-center text-center">
-          <p className="font-display animate-rise text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
+          <p className="font-display text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
             SEOHub
           </p>
-          <h1 className="font-display animate-rise-delay-1 mt-4 max-w-xl text-xl font-semibold tracking-tight text-ink-soft sm:text-2xl">
+          <h1 className="font-display mt-4 max-w-xl text-xl font-semibold tracking-tight text-ink-soft sm:text-2xl">
             Full-site SEO. No subscription.
           </h1>
-          <p className="animate-rise-delay-2 mt-3 max-w-lg text-base text-ink-muted sm:text-lg">
+          <p className="mt-3 max-w-lg text-base text-ink-muted sm:text-lg">
             {paymentsOn
               ? `Free homepage scores + AI visibility. Unlock the full crawl and fixes for ${priceLabel}.`
               : "Audit, keywords, rank checks, and tools — free to start, no account."}
           </p>
-          <p className="animate-rise-delay-2 mt-2 text-sm font-medium tracking-wide text-ink/65">
+          <p className="mt-2 text-sm font-medium tracking-wide text-ink/65">
             50+ checks · up to 200 pages · no account
           </p>
 
-          <div className="animate-rise-delay-2 scan-shell mt-8 w-full max-w-xl rounded-2xl p-4 sm:p-5">
+          <div className="scan-shell mt-8 w-full max-w-xl rounded-2xl p-4 sm:p-5">
             <UrlInput
               onSubmit={handleScanSubmit}
               loading={loading}
               showCrawlControls={showCrawlControls}
             />
           </div>
-          <p className="animate-rise-delay-2 mt-4 max-w-lg text-xs text-ink-muted/80">
+          <p className="mt-4 max-w-lg text-xs text-ink-muted/80">
             HTML-only crawl: we fetch public HTML (no headless browser). JS-rendered apps may show
             fewer on-page signals.{" "}
             <Link href={routes.sampleReport} className="font-medium text-teal underline-offset-2 hover:underline">

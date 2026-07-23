@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/react";
 import { CookieConsent } from "@/components/CookieConsent";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
@@ -7,20 +8,24 @@ import { VisitorTracker } from "@/components/VisitorTracker";
 import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
+import { ADSENSE_CLIENT } from "@/lib/adsense";
 import { OG_IMAGE } from "@/lib/page-seo";
 import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 import { getSiteUrl } from "@/lib/site-url";
 
+// optional + fixed weights: avoid mobile CLS from late font swaps (PSI CLS ~0.42).
 const display = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
-  display: "swap",
+  display: "optional",
+  weight: ["600", "700"],
 });
 
 const body = Source_Sans_3({
   subsets: ["latin"],
   variable: "--font-body",
-  display: "swap",
+  display: "optional",
+  weight: ["400", "500", "600", "700"],
 });
 
 const siteUrl = getSiteUrl();
@@ -62,7 +67,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   // AdSense site verification — exact tag from AdSense dashboard
   other: {
-    "google-adsense-account": "ca-pub-4587075434685102",
+    "google-adsense-account": ADSENSE_CLIENT,
   },
 };
 
@@ -129,16 +134,10 @@ export default function RootLayout({
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <head>
         {/* Exact AdSense verification meta (also emitted via metadata.other) */}
-        <meta name="google-adsense-account" content="ca-pub-4587075434685102" />
+        <meta name="google-adsense-account" content={ADSENSE_CLIENT} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        {/* Google AdSense — Auto ads (site-wide) */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4587075434685102"
-          crossOrigin="anonymous"
         />
       </head>
       <body className="font-body antialiased">
@@ -151,6 +150,13 @@ export default function RootLayout({
           <GoogleAnalytics />
         </Suspense>
         <Analytics />
+        {/* Defer Auto ads until after load — meta tag above remains for AdSense verification. */}
+        <Script
+          id="adsense-loader"
+          strategy="lazyOnload"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ADSENSE_CLIENT)}`}
+          crossOrigin="anonymous"
+        />
       </body>
     </html>
   );
