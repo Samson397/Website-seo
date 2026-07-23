@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { HomeFeatures } from "@/components/HomeFeatures";
 import { SeoPageIntro } from "@/components/SeoPageIntro";
@@ -16,18 +17,30 @@ export const metadata = pageMetadata({
 function HomeShell() {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
-        <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
-          <p className="font-display text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
-            SEOHub
-          </p>
-          <h1 className="font-display mt-4 max-w-xl text-xl font-semibold tracking-tight text-ink-soft sm:text-2xl">
-            Full-site SEO. No subscription.
-          </h1>
-          <p className="mt-3 max-w-lg text-base text-ink-muted sm:text-lg">
-            Free homepage scores and AI visibility. Unlock a full crawl with fixes when you need
-            the complete report.
-          </p>
+      <section className="hero-mesh relative min-h-[min(92svh,820px)] overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
+        <div className="pointer-events-none absolute inset-0 select-none" aria-hidden>
+          <Image
+            src="/logo-hero.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="hero-mark object-cover object-[62%_40%] opacity-60 sm:opacity-75"
+          />
+        </div>
+        <div className="relative z-[1] mx-auto flex min-h-[min(70svh,640px)] max-w-6xl flex-col justify-end sm:justify-center">
+          <div className="max-w-lg">
+            <p className="font-display text-5xl font-extrabold tracking-tight text-ink sm:text-7xl">
+              SEOHub
+            </p>
+            <h1 className="font-display mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              Full-site SEO. No subscription.
+            </h1>
+            <p className="mt-3 max-w-md text-base leading-relaxed text-ink-soft/90 sm:text-lg">
+              Free homepage scores. Unlock a full crawl with fixes when you need the complete
+              report.
+            </p>
+          </div>
         </div>
       </section>
     </main>
@@ -42,6 +55,7 @@ export default function HomePage() {
       </Suspense>
 
       {/* Always in the HTML document for crawlers (outside useSearchParams Suspense). */}
+      <link rel="preload" as="image" href="/logo-hero.png" fetchPriority="high" />
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <SeoPageIntro heading="What SEOHub checks on every scan">
           <p>

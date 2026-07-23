@@ -129,13 +129,12 @@ export default function ToolsPage() {
   return (
     <main className="min-h-screen pb-16">
       <PageHero
-        eyebrow="SEOHub toolkit"
         title="Audit, research, optimize, generate."
         description="Free tools with no account — built to sit next to your weekly site scan."
         actions={
           <Link
             href={routes.home}
-            className="inline-flex rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition hover:bg-ink-soft"
+            className="inline-flex rounded-md bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-soft"
           >
             Run free homepage scan
           </Link>

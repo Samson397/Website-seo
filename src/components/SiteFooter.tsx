@@ -17,7 +17,7 @@ const FOOTER_LINKS = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-ink/10 bg-gradient-to-b from-paper to-mist py-12 text-ink-muted">
+    <footer className="border-t border-ink/12 bg-ink py-12 text-white/65">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <Link href={routes.home} className="flex items-center gap-2.5" aria-label="SEOHub home">
@@ -25,13 +25,13 @@ export function SiteFooter() {
           </Link>
           <nav className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
             {FOOTER_LINKS.map((item) => (
-              <Link key={item.href} href={item.href} className="hover:text-ink">
+              <Link key={item.href} href={item.href} className="hover:text-white">
                 {item.label}
               </Link>
             ))}
           </nav>
         </div>
-        <p className="text-xs text-ink-muted/80">
+        <p className="text-xs text-white/45">
           Full-site SEO audits, keyword tools, and technical checkers — free to start, no account.
         </p>
       </div>

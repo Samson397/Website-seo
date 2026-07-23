@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UrlInput, type ScanSubmitPayload } from "@/components/UrlInput";
@@ -376,37 +377,49 @@ export default function HomeScanClient() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
-        <div className="relative z-[1] mx-auto flex max-w-3xl flex-col items-center text-center">
-          <p className="font-display text-4xl font-semibold tracking-tight text-ink sm:text-6xl">
-            SEOHub
-          </p>
-          <h1 className="font-display mt-4 max-w-xl text-xl font-semibold tracking-tight text-ink-soft sm:text-2xl">
-            Full-site SEO. No subscription.
-          </h1>
-          <p className="mt-3 max-w-lg text-base text-ink-muted sm:text-lg">
-            {paymentsOn
-              ? `Free homepage scores + AI visibility. Unlock the full crawl and fixes for ${priceLabel}.`
-              : "Audit, keywords, rank checks, and tools — free to start, no account."}
-          </p>
-          <p className="mt-2 text-sm font-medium tracking-wide text-ink/80">
-            50+ checks · up to 200 pages · no account
-          </p>
+      <section className="hero-mesh relative min-h-[min(92svh,820px)] overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
+        {/* Priority full-bleed brand plate — preferred LCP over delayed text paint. */}
+        <div className="pointer-events-none absolute inset-0 select-none" aria-hidden>
+          <Image
+            src="/logo-hero.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="hero-mark object-cover object-[62%_40%] opacity-60 sm:opacity-75"
+          />
+        </div>
+        <div className="relative z-[1] mx-auto flex min-h-[min(70svh,640px)] max-w-6xl flex-col justify-end sm:justify-center">
+          <div className="max-w-lg">
+            <p className="font-display text-5xl font-extrabold tracking-tight text-ink sm:text-7xl">
+              SEOHub
+            </p>
+            <h1 className="font-display mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+              Full-site SEO. No subscription.
+            </h1>
+            <p className="mt-3 max-w-md text-base leading-relaxed text-ink-soft/90 sm:text-lg">
+              {paymentsOn
+                ? `Free homepage scores. Unlock the full crawl and fixes for ${priceLabel}.`
+                : "Audit, keywords, and tools — free to start, no account."}
+            </p>
 
-          <div className="scan-shell mt-8 w-full max-w-xl rounded-2xl p-4 sm:p-5">
-            <UrlInput
-              onSubmit={handleScanSubmit}
-              loading={loading}
-              showCrawlControls={showCrawlControls}
-            />
+            <div className="scan-shell animate-rise mt-8 w-full max-w-md rounded-md p-3 sm:p-4">
+              <UrlInput
+                onSubmit={handleScanSubmit}
+                loading={loading}
+                showCrawlControls={showCrawlControls}
+              />
+            </div>
+            <p className="mt-3 max-w-md text-xs text-ink/70">
+              Public HTML crawl — not a headless browser.{" "}
+              <Link
+                href={routes.sampleReport}
+                className="font-medium text-teal underline-offset-2 hover:underline"
+              >
+                Sample report
+              </Link>
+            </p>
           </div>
-          <p className="mt-4 max-w-lg text-xs text-ink-muted/80">
-            HTML-only crawl: we fetch public HTML (no headless browser). JS-rendered apps may show
-            fewer on-page signals.{" "}
-            <Link href={routes.sampleReport} className="font-medium text-teal underline-offset-2 hover:underline">
-              View sample report
-            </Link>
-          </p>
         </div>
       </section>
 

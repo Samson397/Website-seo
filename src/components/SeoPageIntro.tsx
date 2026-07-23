@@ -7,11 +7,11 @@ export function SeoPageIntro({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mx-auto max-w-2xl px-4 pb-2 pt-6 text-center text-sm leading-relaxed text-ink-muted sm:px-6">
+    <section className="section-rule mx-auto max-w-2xl px-0 pb-2 pt-12 text-left text-sm leading-relaxed text-ink-muted">
       {heading ? (
-        <h2 className="font-display text-lg font-semibold text-ink">{heading}</h2>
+        <h2 className="font-display text-2xl font-bold tracking-tight text-ink">{heading}</h2>
       ) : null}
-      <div className={heading ? "mt-2 space-y-3" : "space-y-3"}>{children}</div>
+      <div className={heading ? "mt-4 space-y-3" : "space-y-3"}>{children}</div>
     </section>
   );
 }

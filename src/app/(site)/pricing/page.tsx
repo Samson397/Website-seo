@@ -70,7 +70,6 @@ export default function PricingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <PageHero
-        eyebrow="SEOHub pricing"
         title={<>Free preview. {FULL_SCAN_PRICE_LABEL} for the full report.</>}
         description="No account. No subscription. Pay once per full-site scan — unlock that report, then crawl up to 200 pages."
         actions={
@@ -163,24 +162,24 @@ function Plan({
   featured?: boolean;
 }) {
   return (
-    <section className={`border-t-2 pt-6 ${featured ? "border-brand" : "border-ink/10"}`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">{label}</p>
-      <p className="font-display mt-2 text-4xl font-semibold text-ink">{price}</p>
+    <section className={`border-t-2 pt-6 ${featured ? "border-teal" : "border-ink/10"}`}>
+      <p className="font-display text-lg font-bold text-teal">{label}</p>
+      <p className="font-display mt-2 text-4xl font-bold text-ink">{price}</p>
       <p className="mt-1 text-sm text-ink-muted">{note}</p>
       <ul className="mt-6 space-y-2.5 text-sm text-ink-muted">
         {items.map((item) => (
           <li key={item} className="flex gap-2">
-            <span className="text-brand">✓</span>
+            <span className="text-teal">✓</span>
             <span>{item}</span>
           </li>
         ))}
       </ul>
       <Link
         href={cta.href}
-        className={`mt-8 inline-flex rounded-xl px-5 py-2.5 text-sm font-semibold ${
+        className={`mt-8 inline-flex rounded-md px-5 py-2.5 text-sm font-semibold ${
           featured
-            ? "bg-brand text-white hover:bg-brand-bright"
-            : "border border-ink/10 bg-white text-ink hover:border-brand/40"
+            ? "bg-ink text-white hover:bg-ink-soft"
+            : "border border-ink/15 bg-paper text-ink hover:border-ink/30"
         }`}
       >
         {cta.label}

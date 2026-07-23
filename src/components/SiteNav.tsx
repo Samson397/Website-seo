@@ -33,7 +33,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
       className={
         isHero
           ? "absolute inset-x-0 top-0 z-20 px-4 pt-5 sm:px-6"
-          : "border-b border-ink/10 bg-white/90 px-4 backdrop-blur-md sm:px-6"
+          : "border-b border-ink/10 bg-paper/90 px-4 backdrop-blur-md sm:px-6"
       }
     >
       <a
@@ -76,9 +76,9 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
 
         <button
           type="button"
-          className={`inline-flex h-10 w-10 items-center justify-center rounded-xl lg:hidden ${
+          className={`inline-flex h-10 w-10 items-center justify-center rounded-md lg:hidden ${
             isHero
-              ? "bg-white/60 text-ink ring-1 ring-ink/10"
+              ? "bg-paper/55 text-ink ring-1 ring-ink/15"
               : "bg-mist text-ink"
           }`}
           aria-expanded={menuOpen}
@@ -117,7 +117,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
           />
           <nav
             id="mobile-nav-drawer"
-            className="absolute inset-x-4 top-[4.25rem] z-40 rounded-2xl border border-ink/10 bg-white p-3 shadow-lg lg:hidden"
+            className="absolute inset-x-4 top-[4.25rem] z-40 rounded-md border border-ink/10 bg-paper p-3 shadow-lg lg:hidden"
             aria-label="Main mobile"
           >
             <ul className="space-y-1">
@@ -129,7 +129,7 @@ export function SiteNav({ variant = "default" }: SiteNavProps) {
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      className={`block rounded-xl px-3 py-3 text-sm font-medium ${
+                      className={`block rounded-md px-3 py-3 text-sm font-medium ${
                         active ? "bg-ink text-white" : "text-ink hover:bg-mist"
                       }`}
                       onClick={() => setMenuOpen(false)}

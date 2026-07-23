@@ -63,12 +63,12 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
           disabled={loading}
           autoComplete="url"
           inputMode="url"
-          className="flex-1 rounded-xl border border-ink/12 bg-white px-4 py-3.5 text-ink shadow-inner placeholder:text-ink-muted/55 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/25 disabled:opacity-60"
+          className="flex-1 rounded-md border border-ink/15 bg-paper px-4 py-3.5 text-ink placeholder:text-ink-muted/55 focus:border-teal focus:outline-none focus:ring-2 focus:ring-teal/25 disabled:opacity-60"
         />
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-xl bg-ink px-8 py-3.5 font-semibold text-white shadow-glow transition hover:bg-ink-soft focus:outline-none focus:ring-2 focus:ring-teal/35 disabled:opacity-60 sm:w-auto"
+          className="w-full rounded-md bg-ink px-8 py-3.5 font-semibold text-white transition hover:bg-ink-soft focus:outline-none focus:ring-2 focus:ring-teal/35 disabled:opacity-60 sm:w-auto"
         >
           {loading ? "Scanning site…" : "Scan site"}
         </button>

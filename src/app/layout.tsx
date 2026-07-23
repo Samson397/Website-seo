@@ -5,7 +5,7 @@ import { AdSenseLoader } from "@/components/AdSenseLoader";
 import { CookieConsent } from "@/components/CookieConsent";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { VisitorTracker } from "@/components/VisitorTracker";
-import { Fraunces, Source_Sans_3 } from "next/font/google";
+import { IBM_Plex_Sans, Syne } from "next/font/google";
 import "./globals.css";
 
 import { ADSENSE_CLIENT } from "@/lib/adsense";
@@ -14,14 +14,14 @@ import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 import { getSiteUrl } from "@/lib/site-url";
 
 // optional + fixed weights: avoid mobile CLS from late font swaps (PSI CLS ~0.42).
-const display = Fraunces({
+const display = Syne({
   subsets: ["latin"],
   variable: "--font-display",
   display: "optional",
-  weight: ["600", "700"],
+  weight: ["600", "700", "800"],
 });
 
-const body = Source_Sans_3({
+const body = IBM_Plex_Sans({
   subsets: ["latin"],
   variable: "--font-body",
   display: "optional",

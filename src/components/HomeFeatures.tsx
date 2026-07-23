@@ -5,10 +5,10 @@ import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 const FEATURES = [
   {
     title: "Scores out of 10",
-    text: "SEO, speed, accessibility, security, and AI visibility — clear /10 gauges, not opaque dashboards.",
+    text: "SEO, speed, accessibility, security, and AI visibility — clear gauges, not opaque dashboards.",
   },
   {
-    title: "Will AI promote you?",
+    title: "Will AI cite you?",
     text: "GEO checks for ChatGPT, Perplexity, Claude, and Google AI: bots, llms.txt, entity schema, and brand signals.",
   },
   {
@@ -23,26 +23,25 @@ const FEATURES = [
 
 export function HomeFeatures() {
   return (
-    <section className="mt-14 space-y-8 pb-8">
+    <section className="section-rule mt-14 space-y-10 pb-8 pt-12">
       <div className="max-w-2xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">Why SEOHub</p>
-        <h2 className="font-display mt-2 text-3xl font-semibold tracking-tight text-ink">
-          Everything a serious SEO stack needs — priced like a tool, not a platform.
+        <p className="font-display text-lg font-bold text-teal">Why SEOHub</p>
+        <h2 className="font-display mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+          A serious SEO stack, priced like a tool.
         </h2>
         <p className="mt-3 text-ink-muted">
           Built for founders and marketers who want clear fixes without login walls.{" "}
-          <Link href={routes.pricing} className="font-medium text-brand hover:underline">
+          <Link href={routes.pricing} className="font-medium text-teal hover:underline">
             See pricing
           </Link>
           .
         </p>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        {FEATURES.map((f, i) => (
-          <article key={f.title} className="border-t border-ink/10 pt-5">
-            <span className="font-mono text-xs text-brand">0{i + 1}</span>
-            <h3 className="font-display mt-2 text-xl font-semibold text-ink">{f.title}</h3>
+      <div className="grid gap-0 sm:grid-cols-2">
+        {FEATURES.map((f) => (
+          <article key={f.title} className="border-t border-ink/10 py-6 pr-4 sm:odd:pr-10 sm:even:pl-10">
+            <h3 className="font-display text-xl font-bold text-ink">{f.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-ink-muted">{f.text}</p>
           </article>
         ))}
