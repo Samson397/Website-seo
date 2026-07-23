@@ -184,4 +184,64 @@ export const TOOL_SEO_COPY: Record<string, ToolSeoCopy> = {
     relatedHref: routes.robotsInspector,
     relatedLabel: "Inspect the live robots.txt",
   },
+  article: {
+    heading: "Draft SEO articles without a subscription writer",
+    paragraphs: [
+      "Enter a target keyword (and optional site URL or notes) to generate a working title, meta description, outline, draft article, FAQs, JSON-LD ideas, and internal link suggestions. When DeepSeek is configured on the server you get a stronger draft; otherwise SEOHub still returns a solid template you can edit.",
+      "Treat the output as a starting point for human editing — not publish-ready autopilot. Pair it with the keyword research and content optimizer tools so titles, density, and structure match what the page already ranks for, then validate schema with the JSON-LD checker before you ship.",
+      "No account is required. Use this when you need a fast brief for a landing page or blog post, then run a free homepage scan to catch technical issues the draft cannot fix.",
+    ],
+    faqs: [
+      {
+        q: "Does this publish to my CMS?",
+        a: "No. You copy the draft and paste it into your CMS. SEOHub does not store articles after the session ends.",
+      },
+      {
+        q: "Will AI copy alone rank?",
+        a: "Usually not. Unique facts, examples, and edits still matter. Use the draft to accelerate structure, then rewrite for your brand.",
+      },
+    ],
+    relatedHref: routes.contentOptimizer,
+    relatedLabel: "Score on-page content fit",
+  },
+  backlinks: {
+    heading: "Backlink ideas without another monthly suite",
+    paragraphs: [
+      "Look up competitor link opportunities and review potentially risky referring domains when DataForSEO credentials are configured. The goal is a short outreach list — not a full backlink graph with historical metrics across millions of domains.",
+      "Use competitor gaps to find relevant sites that already link in your niche, then check whether your own homepage and key templates are technically sound enough to earn those links. Pair outreach with a full-site crawl so thin pages and broken redirects do not waste the traffic you win.",
+      "If API keys are missing, the tool explains what is unavailable instead of inventing data. Free to start, no login wall.",
+    ],
+    faqs: [
+      {
+        q: "Is this a replacement for Ahrefs or Semrush?",
+        a: "No. Those suites go deeper on historical graphs and keyword databases. SEOHub focuses on weekly technical audits plus lightweight intel when keys are set.",
+      },
+      {
+        q: "Why might results be empty?",
+        a: "Backlink endpoints need DataForSEO configured on the server. Without credentials, use the free technical tools and homepage scan instead.",
+      },
+    ],
+    relatedHref: routes.compareAhrefs,
+    relatedLabel: "See SEOHub vs Ahrefs",
+  },
+  "js-render": {
+    heading: "See what crawlers get without JavaScript",
+    paragraphs: [
+      "Compare the static HTML response with a JavaScript-rendered snapshot so you can spot content that only appears after client-side frameworks hydrate. Marketing sites on React, Vue, Framer, and similar stacks often look complete in a browser while bots see thin shells.",
+      "If the rendered view adds critical copy, titles, or links the raw HTML lacks, fix SSR, prerendering, or meta generation at the template layer — not with more client widgets. Follow up with a free homepage scan and, when needed, a full-site crawl for template-wide gaps.",
+      "No account required. Use this before blaming rankings on “content quality” when the real issue is what Googlebot received on first fetch.",
+    ],
+    faqs: [
+      {
+        q: "Does Google always execute JavaScript?",
+        a: "Google can render JS, but it is slower and imperfect. Critical titles, body copy, and links should still appear in the initial HTML whenever possible.",
+      },
+      {
+        q: "When should I worry?",
+        a: "When important headings, product details, or nav links are missing from the static HTML but present after render — especially on money pages.",
+      },
+    ],
+    relatedHref: routes.schema,
+    relatedLabel: "Check JSON-LD on the live HTML",
+  },
 };

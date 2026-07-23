@@ -9,7 +9,7 @@ import HomeScanClient from "./HomeScanClient";
 export const metadata = pageMetadata({
   title: "Full-site SEO. No subscription. | SEOHub",
   description:
-    "Run a free homepage SEO audit with scores out of 10 for SEO, speed, accessibility, security, and AI visibility. Unlock one full-site crawl of up to 200 pages with fixes, checklist, and exports — no account required.",
+    "Free homepage SEO scores out of 10, then unlock a full-site crawl of up to 200 pages with fixes and exports. No account required.",
   path: "/",
 });
 

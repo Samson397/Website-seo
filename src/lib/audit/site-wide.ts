@@ -23,6 +23,18 @@ function pathnameOf(url: string): string {
   }
 }
 
+/** Prefer unique pathnames when judging duplicates (ignore tracking query variants). */
+function uniqueByPathname(pages: CrawledPageMeta[]): CrawledPageMeta[] {
+  return Array.from(new Map(pages.map((p) => [pathnameOf(p.url), p])).values());
+}
+
+function isIndexableHtmlPage(page: CrawledPageMeta): boolean {
+  const path = pathnameOf(page.url);
+  if (path.startsWith("/.well-known/")) return false;
+  if (/\.(txt|xml|json|webmanifest)$/i.test(path)) return false;
+  return page.status < 400;
+}
+
 function withPath(issue: Omit<AuditIssue, "id">, path?: string): Omit<AuditIssue, "id"> {
   if (!path) return issue;
   return {
@@ -49,13 +61,16 @@ export function runDuplicateMetaAudit(pages: CrawledPageMeta[]): AuditIssue[] {
     return issues;
   }
 
+  const htmlPages = pages.filter(isIndexableHtmlPage);
+
   const titleGroups = groupBy(
-    pages.filter((p) => p.title && p.title !== "(no title)"),
+    htmlPages.filter((p) => p.title && p.title !== "(no title)"),
     (p) => p.title.toLowerCase()
   );
 
   for (const [title, group] of Array.from(titleGroups.entries())) {
-    if (group.length > 1) {
+    const unique = uniqueByPathname(group);
+    if (unique.length > 1) {
       issues.push(
         createIssue({
           category: "seo",
@@ -63,23 +78,24 @@ export function runDuplicateMetaAudit(pages: CrawledPageMeta[]): AuditIssue[] {
           title: "Duplicate page titles found",
           description:
             "Multiple pages share the same title. Search engines may struggle to rank the correct page.",
-          currentValue: `"${title}" used on ${group.length} pages: ${group.map((p) => pathnameOf(p.url)).join(", ")}`,
+          currentValue: `"${title}" used on ${unique.length} pages: ${unique.map((p) => pathnameOf(p.url)).join(", ")}`,
           recommendation: "Give each page a unique, descriptive title tag.",
-          pagePath: pathnameOf(group[0].url),
-          pathTemplate: pathToTemplate(pathnameOf(group[0].url)),
+          pagePath: pathnameOf(unique[0].url),
+          pathTemplate: pathToTemplate(pathnameOf(unique[0].url)),
         })
       );
     }
   }
 
   const descGroups = groupBy(
-    pages.filter((p) => p.description.length > 20),
+    htmlPages.filter((p) => p.description.length > 20),
     (p) => p.description.toLowerCase()
   );
 
   for (const [, group] of Array.from(descGroups.entries())) {
-    if (group.length > 1) {
-      const preview = group[0].description.substring(0, 80);
+    const unique = uniqueByPathname(group);
+    if (unique.length > 1) {
+      const preview = unique[0].description.substring(0, 80);
       issues.push(
         createIssue({
           category: "seo",
@@ -87,30 +103,30 @@ export function runDuplicateMetaAudit(pages: CrawledPageMeta[]): AuditIssue[] {
           title: "Duplicate meta descriptions found",
           description:
             "Multiple pages share the same meta description, reducing their uniqueness in search results.",
-          currentValue: `"${preview}..." on ${group.length} pages: ${group.map((p) => pathnameOf(p.url)).join(", ")}`,
+          currentValue: `"${preview}..." on ${unique.length} pages: ${unique.map((p) => pathnameOf(p.url)).join(", ")}`,
           recommendation: "Write unique meta descriptions for each page.",
-          pagePath: pathnameOf(group[0].url),
-          pathTemplate: pathToTemplate(pathnameOf(group[0].url)),
+          pagePath: pathnameOf(unique[0].url),
+          pathTemplate: pathToTemplate(pathnameOf(unique[0].url)),
         })
       );
     }
   }
 
-  const emptyDesc = pages.filter((p) => !p.description);
+  const emptyDesc = htmlPages.filter((p) => !p.description);
   if (emptyDesc.length > 0) {
     issues.push(
       createIssue({
         category: "seo",
         severity: "warning",
         title: "Pages missing meta descriptions",
-        description: `${emptyDesc.length} of ${pages.length} scanned pages have no meta description.`,
+        description: `${emptyDesc.length} of ${htmlPages.length} scanned pages have no meta description.`,
         currentValue: emptyDesc.map((p) => pathnameOf(p.url)).join(", "),
         recommendation: "Add unique meta descriptions to every indexable page.",
       })
     );
   }
 
-  const emptyH1 = pages.filter((p) => !p.h1);
+  const emptyH1 = htmlPages.filter((p) => !p.h1);
   if (emptyH1.length > 0) {
     issues.push(
       createIssue({
@@ -125,11 +141,12 @@ export function runDuplicateMetaAudit(pages: CrawledPageMeta[]): AuditIssue[] {
   }
 
   const h1Groups = groupBy(
-    pages.filter((p) => p.h1 && p.h1.length > 2),
+    htmlPages.filter((p) => p.h1 && p.h1.length > 2),
     (p) => p.h1.toLowerCase()
   );
   for (const [h1, group] of Array.from(h1Groups.entries())) {
-    if (group.length > 1) {
+    const unique = uniqueByPathname(group);
+    if (unique.length > 1) {
       issues.push(
         createIssue({
           category: "seo",
@@ -137,13 +154,13 @@ export function runDuplicateMetaAudit(pages: CrawledPageMeta[]): AuditIssue[] {
           title: "Duplicate H1 headings across pages",
           description:
             "Multiple pages share the same H1. That often signals thin templates or copied titles.",
-          currentValue: `"${h1.slice(0, 80)}" on ${group.length} pages: ${group
+          currentValue: `"${h1.slice(0, 80)}" on ${unique.length} pages: ${unique
             .map((p) => pathnameOf(p.url))
             .slice(0, 6)
             .join(", ")}`,
           recommendation: "Give each indexable page a unique, descriptive H1.",
-          pagePath: pathnameOf(group[0].url),
-          pathTemplate: pathToTemplate(pathnameOf(group[0].url)),
+          pagePath: pathnameOf(unique[0].url),
+          pathTemplate: pathToTemplate(pathnameOf(unique[0].url)),
         })
       );
     }
@@ -300,8 +317,10 @@ export function runCoverageAudit(pages: CrawledPageMeta[]): AuditIssue[] {
     );
   }
 
-  const missingCanonical = pages.filter((p) => !p.canonical && p.status < 400);
-  const withCanonical = pages.filter((p) => p.canonical && p.status < 400);
+  const missingCanonical = pages.filter(
+    (p) => !p.canonical && p.status < 400 && isIndexableHtmlPage(p)
+  );
+  const withCanonical = pages.filter((p) => p.canonical && p.status < 400 && isIndexableHtmlPage(p));
   const badCanonical: CrawledPageMeta[] = [];
   for (const p of withCanonical) {
     try {

@@ -32,7 +32,7 @@ const siteUrl = getSiteUrl();
 
 const title = "Full-site SEO. No subscription. | SEOHub";
 const description =
-  "Run a free homepage SEO audit with scores out of 10, then unlock a full-site crawl of up to 200 pages with fixes, checklist, and exports. No account required.";
+  "Free homepage SEO scores out of 10, then unlock a full-site crawl of up to 200 pages with fixes and exports. No account required.";
 
 /** Paid unlock amount for schema (mirror Stripe display without currency symbol). */
 const paidPriceAmount = FULL_SCAN_PRICE_LABEL.replace(/^\$/, "") || "4.99";
@@ -41,10 +41,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title,
   description,
+  alternates: { canonical: `${siteUrl}/` },
   openGraph: {
     title,
     description,
-    url: siteUrl,
+    url: `${siteUrl}/`,
     siteName: "SEOHub",
     type: "website",
     locale: "en_GB",

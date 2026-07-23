@@ -138,9 +138,10 @@ export async function runWwwConsistencyAudit(url: string): Promise<AuditIssue[]>
     const currentHasWww = parsed.hostname.startsWith("www.");
     const alternateUrl = currentHasWww ? withoutWww : withWww;
 
-    const alternate = await safeHead(alternateUrl);
+    // Do not follow redirects — a 3xx to the preferred host is the correct setup.
+    const alternate = await safeHead(alternateUrl, { redirect: "manual" });
 
-    if (alternate.ok && alternate.status < 400) {
+    if (alternate.ok && alternate.status < 300) {
       issues.push(
         createIssue({
           category: "seo",
@@ -150,10 +151,10 @@ export async function runWwwConsistencyAudit(url: string): Promise<AuditIssue[]>
             "Having both versions live without redirects causes duplicate content. Pick one canonical version.",
           currentValue: `Both ${parsed.origin} and ${new URL(alternateUrl).origin} return HTTP ${alternate.status}`,
           recommendation: "301 redirect one version to the other and set a canonical URL.",
-          fixSnippet: `# Redirect www to non-www (Nginx)
+          fixSnippet: `# Redirect apex to www (Nginx)
 server {
-  server_name www.example.com;
-  return 301 https://example.com$request_uri;
+  server_name example.com;
+  return 301 https://www.example.com$request_uri;
 }`,
         })
       );

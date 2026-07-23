@@ -185,8 +185,20 @@ export async function runFullAudit(
       );
     }
 
-    const missingCanonical = crawledPages.filter((p) => !p.canonical).length;
-    const thinPages = crawledPages.filter((p) => (p.wordCount ?? 0) > 0 && (p.wordCount ?? 0) < 100).length;
+    const isHtmlPage = (url: string) => {
+      try {
+        const path = new URL(url).pathname || "/";
+        if (path.startsWith("/.well-known/")) return false;
+        if (/\.(txt|xml|json|webmanifest)$/i.test(path)) return false;
+        return true;
+      } catch {
+        return true;
+      }
+    };
+    const missingCanonical = crawledPages.filter((p) => !p.canonical && isHtmlPage(p.url)).length;
+    const thinPages = crawledPages.filter(
+      (p) => isHtmlPage(p.url) && (p.wordCount ?? 0) > 0 && (p.wordCount ?? 0) < 100
+    ).length;
     const noindexPages = crawledPages.filter((p) => (p.robots || "").toLowerCase().includes("noindex")).length;
     const multiH1 = crawledPages.filter((p) => (p.h1Count ?? 0) > 1).length;
     const errorPages = crawledPages.filter((p) => p.status >= 400).length;

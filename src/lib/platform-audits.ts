@@ -499,8 +499,7 @@ export function platformAuditPath(slug: string): string {
   return `/audit/${slug}`;
 }
 
-/** Homepage scan CTA with platform attribution query. */
-export function platformScanCtaHref(slug: string): string {
-  const params = new URLSearchParams({ platform: slug, ref: "platform-audit" });
-  return `/?${params.toString()}`;
+/** Homepage scan CTA — plain home URL (no query variants that create duplicate titles). */
+export function platformScanCtaHref(_slug: string): string {
+  return "/";
 }

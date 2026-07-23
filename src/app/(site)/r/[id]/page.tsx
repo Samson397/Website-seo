@@ -4,6 +4,7 @@ import { getSharedReport } from "@/lib/reports";
 import { getSampleReport, SAMPLE_REPORT_ID } from "@/lib/sample-report";
 import { SharedReportView } from "@/components/SharedReportView";
 import { PageHero, PrimaryCta } from "@/components/ui/PageHero";
+import { pageMetadata } from "@/lib/page-seo";
 import { routes } from "@/lib/routes";
 import type { AuditReport } from "@/lib/types";
 
@@ -29,13 +30,21 @@ export async function generateMetadata({ params }: PageProps) {
   } catch {
     // ignore
   }
-  return {
-    title: isSample ? "Sample SEO report — SEOHub" : `SEOHub report — ${host}`,
-    description: isSample
-      ? "Public sample of an SEOHub full-site audit with crawl coverage and fix recommendations."
-      : `Shared SEOHub audit for ${host}`,
-    robots: isSample ? { index: true, follow: true } : { index: false, follow: false },
-  };
+  if (isSample) {
+    return pageMetadata({
+      title: "Sample SEO report — SEOHub",
+      description:
+        "Public sample of an SEOHub full-site audit with crawl coverage and fix recommendations.",
+      path: `/r/${SAMPLE_REPORT_ID}`,
+      robots: { index: true, follow: true },
+    });
+  }
+  return pageMetadata({
+    title: `SEOHub report — ${host}`,
+    description: `Shared SEOHub audit for ${host}`,
+    path: `/r/${params.id}`,
+    robots: { index: false, follow: false },
+  });
 }
 
 export default async function SharedReportPage({ params }: PageProps) {
