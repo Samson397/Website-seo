@@ -3,6 +3,7 @@ import { HomeFeatures } from "@/components/HomeFeatures";
 import { SeoPageIntro } from "@/components/SeoPageIntro";
 import { pageMetadata } from "@/lib/page-seo";
 import { routes } from "@/lib/routes";
+import { FULL_SCAN_PRICE_LABEL } from "@/lib/stripe-public";
 import HomeScanClient from "./HomeScanClient";
 
 export const metadata = pageMetadata({
@@ -12,14 +13,27 @@ export const metadata = pageMetadata({
   path: "/",
 });
 
+/** Server-rendered hero copy — stable LCP candidate, not owned by client JS. */
+function HomeHeroCopy() {
+  return (
+    <>
+      <p className="font-display text-5xl font-extrabold tracking-tight text-ink sm:text-6xl">
+        SEOHub
+      </p>
+      <h1 className="font-display mt-3 text-xl font-bold tracking-tight text-ink sm:text-3xl">
+        Full-site SEO. No subscription.
+      </h1>
+      <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-soft sm:text-base">
+        Free homepage scores. Full crawl and fixes from {FULL_SCAN_PRICE_LABEL}.
+      </p>
+    </>
+  );
+}
+
 export default function HomePage() {
   return (
     <>
-      {/*
-        HomeScanClient SSRs the hero. useSearchParams lives in an inner Suspense
-        so the hero is not swapped out of the document (keeps LCP on brand/copy).
-      */}
-      <HomeScanClient />
+      <HomeScanClient hero={<HomeHeroCopy />} />
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <SeoPageIntro heading="What SEOHub checks on every scan">

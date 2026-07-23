@@ -10,27 +10,27 @@ import {
 } from "@/components/PromoCodesBoard";
 import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
+function LaunchPassSkeleton() {
+  return (
+    <section className="mt-12 min-h-[22rem] border-t border-ink/10 pt-10" aria-hidden>
+      <div className="h-6 w-28 rounded bg-ink/[0.04]" />
+      <div className="mt-3 h-8 max-w-md rounded bg-ink/[0.04]" />
+      <div className="mt-3 h-12 max-w-xl rounded bg-ink/[0.03]" />
+      <div className="mt-5 h-28 max-w-md rounded-md bg-ink/[0.03]" />
+      <div className="mt-5 flex max-w-md flex-wrap gap-2">
+        <div className="h-11 min-w-[10rem] flex-1 rounded-md bg-ink/[0.03]" />
+        <div className="h-11 w-36 rounded-md bg-ink/[0.03]" />
+      </div>
+    </section>
+  );
+}
+
 /** Homepage launch pass — only while a free code still has remaining uses. */
 export function HomeLaunchPass() {
-  const [ready, setReady] = useState(false);
   const [codes, setCodes] = useState<PromoCodeRow[] | null>(null);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Defer past LCP so promo UI cannot become the mobile LCP element.
-  useEffect(() => {
-    let timeoutId = 0;
-    const start = () => {
-      timeoutId = window.setTimeout(() => setReady(true), 3500);
-    };
-    if (document.readyState === "complete") start();
-    else window.addEventListener("load", start, { once: true });
-    return () => {
-      window.removeEventListener("load", start);
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -48,33 +48,21 @@ export function HomeLaunchPass() {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
     void load();
     const onRedeemed = () => void load();
     window.addEventListener("seohub:promo-redeemed", onRedeemed);
     return () => window.removeEventListener("seohub:promo-redeemed", onRedeemed);
-  }, [load, ready]);
+  }, [load]);
 
   useEffect(() => {
     if (codes?.[0] && !code) setCode(codes[0].code);
   }, [codes, code]);
 
-  if (!ready) return null;
-
-  // Still loading — reserve launch-pass + form height so content doesn't pop in (CLS).
-  // If the pool is empty we collapse; that shift is below the fold and rare.
+  // Reserve height immediately — never return null while loading (CLS).
   if (codes === null) {
-    return (
-      <section className="mt-12 min-h-[14rem] border-t border-transparent pt-10" aria-hidden>
-        <div className="h-16 max-w-xl rounded-xl bg-ink/[0.03]" />
-        <div className="mt-5 flex max-w-md flex-wrap gap-2">
-          <div className="h-11 min-w-[10rem] flex-1 rounded-xl bg-ink/[0.03]" />
-          <div className="h-11 w-36 rounded-xl bg-ink/[0.03]" />
-        </div>
-      </section>
-    );
+    return <LaunchPassSkeleton />;
   }
-  // Pool empty (or no DB) — remove launch pass entirely. New codes via PROMO_CODES env reappear here.
+  // Pool empty (or no DB) — remove launch pass entirely.
   if (codes.length === 0) return null;
 
   async function redeem(e?: FormEvent) {
@@ -113,7 +101,7 @@ export function HomeLaunchPass() {
   }
 
   return (
-    <section className="mt-12 border-t border-ink/10 pt-10">
+    <section className="mt-12 min-h-[22rem] border-t border-ink/10 pt-10">
       <PromoCodesBoard />
       <form
         onSubmit={(e) => void redeem(e)}
