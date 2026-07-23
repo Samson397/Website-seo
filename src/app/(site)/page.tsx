@@ -17,7 +17,7 @@ export const metadata = pageMetadata({
 function HomeShell() {
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative min-h-[min(92svh,820px)] overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
+      <section className="hero-mesh relative overflow-hidden px-4 pb-10 pt-24 sm:px-6 sm:pb-14 sm:pt-28">
         <div className="pointer-events-none absolute inset-0 select-none" aria-hidden>
           <Image
             src="/logo-hero.png"
@@ -25,15 +25,15 @@ function HomeShell() {
             fill
             priority
             sizes="100vw"
-            className="hero-mark object-cover object-[62%_40%] opacity-60 sm:opacity-75"
+            className="hero-mark object-contain object-[85%_20%] opacity-45 sm:object-cover sm:object-[70%_40%] sm:opacity-70"
           />
         </div>
-        <div className="relative z-[1] mx-auto flex min-h-[min(70svh,640px)] max-w-6xl flex-col justify-end sm:justify-center">
+        <div className="relative z-[1] mx-auto max-w-6xl">
           <div className="max-w-lg">
-            <p className="font-display text-5xl font-extrabold tracking-tight text-ink sm:text-7xl">
+            <p className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-6xl">
               SEOHub
             </p>
-            <h1 className="font-display mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+            <h1 className="font-display mt-2 text-xl font-bold tracking-tight text-ink sm:mt-3 sm:text-3xl">
               Full-site SEO. No subscription.
             </h1>
             <p className="mt-3 max-w-md text-base leading-relaxed text-ink-soft/90 sm:text-lg">

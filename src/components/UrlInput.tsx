@@ -79,7 +79,7 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
       </p>
 
       {showCrawlControls ? (
-        <div className="rounded-xl border border-ink/10 bg-white/60 p-3">
+        <div>
           <button
             type="button"
             onClick={() => setAdvancedOpen((o) => !o)}
@@ -88,7 +88,7 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
             {advancedOpen ? "Hide" : "Show"} crawl controls
           </button>
           {advancedOpen ? (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="mt-3 grid gap-3 rounded-md border border-ink/10 bg-paper/80 p-3 sm:grid-cols-2">
               <label className="block text-xs text-ink-muted">
                 Max pages (1–{HARD_MAX_PAGES})
                 <input
@@ -98,7 +98,7 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
                   value={maxPages}
                   onChange={(e) => setMaxPages(e.target.value)}
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm text-ink"
+                  className="mt-1 w-full rounded-md border border-ink/12 bg-paper px-3 py-2 text-sm text-ink"
                 />
               </label>
               <label className="block text-xs text-ink-muted">
@@ -109,7 +109,7 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
                   onChange={(e) => setStartPath(e.target.value)}
                   placeholder="/blog"
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm text-ink"
+                  className="mt-1 w-full rounded-md border border-ink/12 bg-paper px-3 py-2 text-sm text-ink"
                 />
               </label>
               <label className="block text-xs text-ink-muted sm:col-span-1">
@@ -120,7 +120,7 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
                   placeholder="/blog, /products/*"
                   rows={2}
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm text-ink"
+                  className="mt-1 w-full rounded-md border border-ink/12 bg-paper px-3 py-2 text-sm text-ink"
                 />
               </label>
               <label className="block text-xs text-ink-muted sm:col-span-1">
@@ -131,7 +131,7 @@ export function UrlInput({ onSubmit, loading, showCrawlControls = false }: UrlIn
                   placeholder="/cart, /account/*"
                   rows={2}
                   disabled={loading}
-                  className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm text-ink"
+                  className="mt-1 w-full rounded-md border border-ink/12 bg-paper px-3 py-2 text-sm text-ink"
                 />
               </label>
             </div>

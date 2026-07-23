@@ -377,8 +377,8 @@ export default function HomeScanClient() {
 
   return (
     <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative min-h-[min(92svh,820px)] overflow-hidden px-4 pb-14 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
-        {/* Priority full-bleed brand plate — preferred LCP over delayed text paint. */}
+      <section className="hero-mesh relative overflow-hidden px-4 pb-10 pt-24 sm:px-6 sm:pb-14 sm:pt-28">
+        {/* Brand plate behind copy — section height follows content, not the viewport. */}
         <div className="pointer-events-none absolute inset-0 select-none" aria-hidden>
           <Image
             src="/logo-hero.png"
@@ -386,15 +386,15 @@ export default function HomeScanClient() {
             fill
             priority
             sizes="100vw"
-            className="hero-mark object-cover object-[62%_40%] opacity-60 sm:opacity-75"
+            className="hero-mark object-contain object-[85%_20%] opacity-45 sm:object-cover sm:object-[70%_40%] sm:opacity-70"
           />
         </div>
-        <div className="relative z-[1] mx-auto flex min-h-[min(70svh,640px)] max-w-6xl flex-col justify-end sm:justify-center">
+        <div className="relative z-[1] mx-auto max-w-6xl">
           <div className="max-w-lg">
-            <p className="font-display text-5xl font-extrabold tracking-tight text-ink sm:text-7xl">
+            <p className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-6xl">
               SEOHub
             </p>
-            <h1 className="font-display mt-3 text-2xl font-bold tracking-tight text-ink sm:text-3xl">
+            <h1 className="font-display mt-2 text-xl font-bold tracking-tight text-ink sm:mt-3 sm:text-3xl">
               Full-site SEO. No subscription.
             </h1>
             <p className="mt-3 max-w-md text-base leading-relaxed text-ink-soft/90 sm:text-lg">
@@ -403,7 +403,7 @@ export default function HomeScanClient() {
                 : "Audit, keywords, and tools — free to start, no account."}
             </p>
 
-            <div className="scan-shell animate-rise mt-8 w-full max-w-md rounded-md p-3 sm:p-4">
+            <div className="scan-shell animate-rise mt-6 w-full max-w-md rounded-md p-3 sm:mt-8 sm:p-4">
               <UrlInput
                 onSubmit={handleScanSubmit}
                 loading={loading}
