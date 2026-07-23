@@ -14,15 +14,16 @@ const config: Config = {
           soft: "#123a6b",
           muted: "#5a6a84",
         },
-        mist: "#e6f4f2",
-        paper: "#f3f7f9",
+        mist: "#e8f3f1",
+        paper: "#f4f8fa",
         brand: {
           DEFAULT: "#1d4ed8",
           bright: "#3B82F6",
           soft: "#DBEAFE",
         },
         teal: {
-          DEFAULT: "#0d9488",
+          // Dark enough for AA on paper (#f4f8fa) — #0d9488 failed PSI at ~3.5:1
+          DEFAULT: "#0f766e",
           bright: "#14b8a6",
           soft: "#ccfbf1",
         },
