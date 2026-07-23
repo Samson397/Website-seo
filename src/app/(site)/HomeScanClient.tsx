@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, Suspense, type Dispatch, type SetStateAction, type MutableRefObject } from "react";
+import { useEffect, useRef, useState, Suspense, type Dispatch, type SetStateAction, type MutableRefObject, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UrlInput, type ScanSubmitPayload } from "@/components/UrlInput";
@@ -43,7 +43,7 @@ function stripUnlockSessionParam(
   router.replace(q ? `/?${q}` : "/", { scroll: false });
 }
 
-export default function HomeScanClient() {
+export default function HomeScanClient({ hero }: { hero: ReactNode }) {
   const router = useRouter();
   const { enabled: paymentsOn, priceLabel } = usePaymentsEnabled();
   const [unlocked, setUnlocked] = useState(false);
@@ -294,19 +294,9 @@ export default function HomeScanClient() {
       <section className="hero-mesh relative overflow-hidden px-4 pb-10 pt-24 sm:px-6 sm:pb-14 sm:pt-28">
         <div className="relative z-[1] mx-auto max-w-6xl">
           <div className="max-w-lg">
-            <p className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
-              SEOHub
-            </p>
-            <h1 className="font-display mt-3 text-xl font-bold tracking-tight text-ink sm:text-3xl">
-              Full-site SEO. No subscription.
-            </h1>
-            <p className="mt-3 max-w-md text-base leading-relaxed text-ink-soft/90 sm:text-lg">
-              {paymentsOn
-                ? `Free homepage scores. Unlock the full crawl and fixes for ${priceLabel}.`
-                : "Audit, keywords, and tools — free to start, no account."}
-            </p>
+            {hero}
 
-            <div className="scan-shell animate-rise mt-6 w-full max-w-md rounded-md p-3 sm:mt-8 sm:p-4">
+            <div className="scan-shell mt-6 w-full max-w-md rounded-md p-3 sm:mt-8 sm:p-4">
               <UrlInput
                 onSubmit={handleScanSubmit}
                 loading={loading}

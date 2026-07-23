@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { LogoMark } from "@/components/LogoMark";
 import { routes } from "@/lib/routes";
 
 const FOOTER_LINKS = [
@@ -15,13 +14,18 @@ const FOOTER_LINKS = [
   { href: routes.terms, label: "Terms" },
 ] as const;
 
+/** Text brand in footer — avoids lazy logo image CLS flagged by PageSpeed. */
 export function SiteFooter() {
   return (
     <footer className="border-t border-ink/12 bg-ink py-12 text-white/65">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-          <Link href={routes.home} className="flex items-center gap-2.5" aria-label="SEOHub home">
-            <LogoMark size="sm" />
+          <Link
+            href={routes.home}
+            className="font-display text-lg font-extrabold tracking-tight text-white"
+            aria-label="SEOHub home"
+          >
+            SEOHub
           </Link>
           <nav className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
             {FOOTER_LINKS.map((item) => (
