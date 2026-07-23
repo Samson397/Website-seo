@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense, type Dispatch, type SetStateAction, type MutableRefObject } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { UrlInput, type ScanSubmitPayload } from "@/components/UrlInput";
@@ -44,7 +44,6 @@ function stripUnlockSessionParam(
 }
 
 export default function HomeScanClient() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { enabled: paymentsOn, priceLabel } = usePaymentsEnabled();
   const [unlocked, setUnlocked] = useState(false);
@@ -65,115 +64,18 @@ export default function HomeScanClient() {
   const fullScanInFlight = useRef<string | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const lastCrawl = useRef<CrawlControls | undefined>(undefined);
+  const runAuditRef = useRef<(
+    url: string,
+    isRescan?: boolean,
+    forceFull?: boolean,
+    sessionOverride?: string,
+    crawl?: CrawlControls,
+    keepVisible?: boolean
+  ) => void>(() => {});
 
   useEffect(() => {
     setUnlocked(!paymentsOn || hasFullUnlock());
   }, [paymentsOn]);
-
-  // Complete Stripe / promo unlock — unlock stashed report in place, then expand crawl
-  useEffect(() => {
-    const sessionId = searchParams.get("unlock_session");
-    if (!sessionId) return;
-    // Ref + sessionStorage: survive Strict Mode remounts / soft navigations.
-    if (unlockHandled.current === sessionId || hasHandledUnlockSession(sessionId)) {
-      stripUnlockSessionParam(router, searchParams);
-      return;
-    }
-    unlockHandled.current = sessionId;
-    markUnlockSessionHandled(sessionId);
-    const isPromo = sessionId.startsWith("promo_");
-
-    // Already spent this unlock — clean the URL and skip the banner / re-scan.
-    const existing = getUnlock();
-    if (existing?.sessionId === sessionId && existing.used) {
-      stripUnlockSessionParam(router, searchParams);
-      return;
-    }
-
-    void (async () => {
-      try {
-        const verifyPath = isPromo ? "/api/promo/verify" : "/api/stripe/verify";
-        const res = await fetch(verifyPath, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        const data = await res.json();
-        if (!res.ok || !data.paid) {
-          if (data.consumed || data.code === "unlock_spent") {
-            saveUnlock(sessionId);
-            markUnlockUsed();
-            setUnlocked(false);
-          }
-          setError(data.error || "Payment could not be verified.");
-          stripUnlockSessionParam(router, searchParams);
-          return;
-        }
-        saveUnlock(sessionId);
-        setUnlocked(true);
-
-        const stash = readPreviewStash();
-        const url = searchParams.get("url")?.trim() || stash?.url || lastUrl.current;
-        const previewId = stash?.previewId;
-        const unlockLabel = isPromo ? "promo code" : priceLabel;
-
-        // Mark URL as handled before stripping unlock_session so the auto-start
-        // effect doesn't kick off a second (free) scan when the query updates.
-        if (url) autoStarted.current = url;
-
-        // Prevent sticky ?unlock_session=… from replaying this banner on every visit.
-        stripUnlockSessionParam(router, searchParams);
-
-        if (previewId) {
-          const unlockRes = await fetch("/api/audit/unlock", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ previewId, sessionId }),
-          });
-          const unlockData = await unlockRes.json();
-          if (unlockRes.ok && unlockData.report) {
-            const unlockedReport = unlockData.report as AuditReport;
-            setReport(unlockedReport);
-            saveScanToHistory(unlockedReport);
-            setHistoryTick((n) => n + 1);
-            clearPreviewStash();
-            setUnlockNotice(
-              `Unlocked with ${unlockLabel}. Showing your report — expanding to full-site crawl…`
-            );
-            requestAnimationFrame(() => {
-              resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-            });
-            if (url) {
-              void runAudit(url, true, true, sessionId, undefined, true);
-            } else {
-              setUnlockNotice(
-                `Full SEO unlocked with ${unlockLabel}. Paste a URL above to run your full-site scan.`
-              );
-            }
-            return;
-          }
-        }
-
-        if (url) {
-          setUnlockNotice(`Full SEO unlocked with ${unlockLabel}. Running full site scan…`);
-          void runAudit(url, false, true, sessionId);
-        } else {
-          // Claimed unlock with no target URL — don't imply a scan is running.
-          setUnlockNotice(
-            `Full SEO unlocked with ${unlockLabel}. Paste a URL above to run your full-site scan.`
-          );
-        }
-      } catch {
-        setError(
-          isPromo
-            ? "Could not apply promo code. Try again or pay with Stripe."
-            : "Could not verify payment. Contact support if you were charged."
-        );
-        stripUnlockSessionParam(router, searchParams);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
 
   async function runAudit(
     url: string,
@@ -355,13 +257,10 @@ export default function HomeScanClient() {
   }
 
   useEffect(() => {
-    if (searchParams.get("unlock_session")) return;
-    const url = searchParams.get("url")?.trim();
-    if (!url || autoStarted.current === url) return;
-    autoStarted.current = url;
-    void runAudit(url);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+    runAuditRef.current = (url, isRescan, forceFull, sessionOverride, crawl, keepVisible) => {
+      void runAudit(url, isRescan, forceFull, sessionOverride, crawl, keepVisible);
+    };
+  });
 
   function handleRescan() {
     if (lastUrl.current) runAudit(lastUrl.current, true, false, undefined, lastCrawl.current);
@@ -376,6 +275,22 @@ export default function HomeScanClient() {
 
   return (
     <main className="min-h-screen pb-16">
+      <Suspense fallback={null}>
+        <HomeScanQueryBridge
+          router={router}
+          priceLabel={priceLabel}
+          lastUrl={lastUrl}
+          autoStarted={autoStarted}
+          unlockHandled={unlockHandled}
+          resultsRef={resultsRef}
+          runAuditRef={runAuditRef}
+          setUnlocked={setUnlocked}
+          setError={setError}
+          setReport={setReport}
+          setHistoryTick={setHistoryTick}
+          setUnlockNotice={setUnlockNotice}
+        />
+      </Suspense>
       <section className="hero-mesh relative overflow-hidden px-4 pb-10 pt-24 sm:px-6 sm:pb-14 sm:pt-28">
         <div className="relative z-[1] mx-auto max-w-6xl">
           <div className="max-w-lg">
@@ -478,5 +393,153 @@ export default function HomeScanClient() {
       </div>
     </main>
   );
+}
+
+type RunAuditFn = (
+  url: string,
+  isRescan?: boolean,
+  forceFull?: boolean,
+  sessionOverride?: string,
+  crawl?: CrawlControls,
+  keepVisible?: boolean
+) => void;
+
+/** Isolated useSearchParams consumer — keeps the hero out of a Suspense swap. */
+function HomeScanQueryBridge({
+  router,
+  priceLabel,
+  lastUrl,
+  autoStarted,
+  unlockHandled,
+  resultsRef,
+  runAuditRef,
+  setUnlocked,
+  setError,
+  setReport,
+  setHistoryTick,
+  setUnlockNotice,
+}: {
+  router: ReturnType<typeof useRouter>;
+  priceLabel: string;
+  lastUrl: MutableRefObject<string>;
+  autoStarted: MutableRefObject<string | null>;
+  unlockHandled: MutableRefObject<string | null>;
+  resultsRef: MutableRefObject<HTMLDivElement | null>;
+  runAuditRef: MutableRefObject<RunAuditFn>;
+  setUnlocked: Dispatch<SetStateAction<boolean>>;
+  setError: Dispatch<SetStateAction<string | null>>;
+  setReport: Dispatch<SetStateAction<AuditReport | null>>;
+  setHistoryTick: Dispatch<SetStateAction<number>>;
+  setUnlockNotice: Dispatch<SetStateAction<string | null>>;
+}) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const sessionId = searchParams.get("unlock_session");
+    if (!sessionId) return;
+    if (unlockHandled.current === sessionId || hasHandledUnlockSession(sessionId)) {
+      stripUnlockSessionParam(router, searchParams);
+      return;
+    }
+    unlockHandled.current = sessionId;
+    markUnlockSessionHandled(sessionId);
+    const isPromo = sessionId.startsWith("promo_");
+
+    const existing = getUnlock();
+    if (existing?.sessionId === sessionId && existing.used) {
+      stripUnlockSessionParam(router, searchParams);
+      return;
+    }
+
+    void (async () => {
+      try {
+        const verifyPath = isPromo ? "/api/promo/verify" : "/api/stripe/verify";
+        const res = await fetch(verifyPath, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.paid) {
+          if (data.consumed || data.code === "unlock_spent") {
+            saveUnlock(sessionId);
+            markUnlockUsed();
+            setUnlocked(false);
+          }
+          setError(data.error || "Payment could not be verified.");
+          stripUnlockSessionParam(router, searchParams);
+          return;
+        }
+        saveUnlock(sessionId);
+        setUnlocked(true);
+
+        const stash = readPreviewStash();
+        const url = searchParams.get("url")?.trim() || stash?.url || lastUrl.current;
+        const previewId = stash?.previewId;
+        const unlockLabel = isPromo ? "promo code" : priceLabel;
+
+        if (url) autoStarted.current = url;
+        stripUnlockSessionParam(router, searchParams);
+
+        if (previewId) {
+          const unlockRes = await fetch("/api/audit/unlock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ previewId, sessionId }),
+          });
+          const unlockData = await unlockRes.json();
+          if (unlockRes.ok && unlockData.report) {
+            const unlockedReport = unlockData.report as AuditReport;
+            setReport(unlockedReport);
+            saveScanToHistory(unlockedReport);
+            setHistoryTick((n) => n + 1);
+            clearPreviewStash();
+            setUnlockNotice(
+              `Unlocked with ${unlockLabel}. Showing your report — expanding to full-site crawl…`
+            );
+            requestAnimationFrame(() => {
+              resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+            if (url) {
+              runAuditRef.current?.(url, true, true, sessionId, undefined, true);
+            } else {
+              setUnlockNotice(
+                `Full SEO unlocked with ${unlockLabel}. Paste a URL above to run your full-site scan.`
+              );
+            }
+            return;
+          }
+        }
+
+        if (url) {
+          setUnlockNotice(`Full SEO unlocked with ${unlockLabel}. Running full site scan…`);
+          runAuditRef.current?.(url, false, true, sessionId);
+        } else {
+          setUnlockNotice(
+            `Full SEO unlocked with ${unlockLabel}. Paste a URL above to run your full-site scan.`
+          );
+        }
+      } catch {
+        setError(
+          isPromo
+            ? "Could not apply promo code. Try again or pay with Stripe."
+            : "Could not verify payment. Contact support if you were charged."
+        );
+        stripUnlockSessionParam(router, searchParams);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (searchParams.get("unlock_session")) return;
+    const url = searchParams.get("url")?.trim();
+    if (!url || autoStarted.current === url) return;
+    autoStarted.current = url;
+    runAuditRef.current?.(url);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  return null;
 }
 

@@ -12,10 +12,25 @@ import { trackAnalyticsEvent } from "@/lib/analytics-client";
 
 /** Homepage launch pass — only while a free code still has remaining uses. */
 export function HomeLaunchPass() {
+  const [ready, setReady] = useState(false);
   const [codes, setCodes] = useState<PromoCodeRow[] | null>(null);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Defer past LCP so promo UI cannot become the mobile LCP element.
+  useEffect(() => {
+    let timeoutId = 0;
+    const start = () => {
+      timeoutId = window.setTimeout(() => setReady(true), 3500);
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => {
+      window.removeEventListener("load", start);
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -33,15 +48,18 @@ export function HomeLaunchPass() {
   }, []);
 
   useEffect(() => {
+    if (!ready) return;
     void load();
     const onRedeemed = () => void load();
     window.addEventListener("seohub:promo-redeemed", onRedeemed);
     return () => window.removeEventListener("seohub:promo-redeemed", onRedeemed);
-  }, [load]);
+  }, [load, ready]);
 
   useEffect(() => {
     if (codes?.[0] && !code) setCode(codes[0].code);
   }, [codes, code]);
+
+  if (!ready) return null;
 
   // Still loading — reserve launch-pass + form height so content doesn't pop in (CLS).
   // If the pool is empty we collapse; that shift is below the fold and rare.

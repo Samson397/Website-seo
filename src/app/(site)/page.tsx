@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { HomeFeatures } from "@/components/HomeFeatures";
 import { SeoPageIntro } from "@/components/SeoPageIntro";
@@ -13,37 +12,15 @@ export const metadata = pageMetadata({
   path: "/",
 });
 
-function HomeShell() {
-  return (
-    <main className="min-h-screen pb-16">
-      <section className="hero-mesh relative overflow-hidden px-4 pb-10 pt-24 sm:px-6 sm:pb-14 sm:pt-28">
-        <div className="relative z-[1] mx-auto max-w-6xl">
-          <div className="max-w-lg">
-            <p className="font-display text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
-              SEOHub
-            </p>
-            <h1 className="font-display mt-3 text-xl font-bold tracking-tight text-ink sm:text-3xl">
-              Full-site SEO. No subscription.
-            </h1>
-            <p className="mt-3 max-w-md text-base leading-relaxed text-ink-soft/90 sm:text-lg">
-              Free homepage scores. Unlock a full crawl with fixes when you need the complete
-              report.
-            </p>
-          </div>
-        </div>
-      </section>
-    </main>
-  );
-}
-
 export default function HomePage() {
   return (
     <>
-      <Suspense fallback={<HomeShell />}>
-        <HomeScanClient />
-      </Suspense>
+      {/*
+        HomeScanClient SSRs the hero. useSearchParams lives in an inner Suspense
+        so the hero is not swapped out of the document (keeps LCP on brand/copy).
+      */}
+      <HomeScanClient />
 
-      {/* Always in the HTML document for crawlers (outside useSearchParams Suspense). */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <SeoPageIntro heading="What SEOHub checks on every scan">
           <p>
